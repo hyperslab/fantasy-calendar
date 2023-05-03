@@ -1,0 +1,17 @@
+{% extends "fantasycalendar/base.html" %}
+
+{% block title %}
+World Index
+{% endblock %}
+
+{% block content %}
+{% if world_list %}
+    <ul>
+    {% for world in world_list %}
+        <li><a href="{% url 'fantasycalendar:world-detail' world.id %}">{{ world.world_name }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No worlds have been created.</p>
+{% endif %}
+{% endblock %}

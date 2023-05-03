@@ -1,0 +1,18 @@
+{% extends "fantasycalendar/base.html" %}
+
+{% block title %}
+Calendar Detail
+{% endblock %}
+
+{% block content %}
+<h2><a href="{% url 'fantasycalendar:world-detail' calendar.world_id %}">{{ calendar.world.world_name }}</a> - {{ calendar.calendar_name }}</h2>
+{% if calendar.timeunit_set %}
+    <ul>
+    {% for time_unit in calendar.timeunit_set.all %}
+        <li>{{ time_unit.time_unit_name }}</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No time units have been created for this calendar.</p>
+{% endif %}
+{% endblock %}

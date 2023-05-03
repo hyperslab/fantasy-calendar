@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'fantasycalendar/style.css' %}">
+    <meta charset="UTF-8">
+    <title>{% block title %}Fantasy Calendar{% endblock %}</title>
+</head>
+
+<body>
+    <div id="header">
+        {% block header %}
+        <h1><a href="{% url 'fantasycalendar:world-index' %}">Fantasy Calendar</a></h1>
+        {% endblock %}
+    </div>
+    <div id="content">
+        {% block content %}
+        {% endblock %}
+    </div>
+</body>
+
+</html>
