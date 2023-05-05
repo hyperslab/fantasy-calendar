@@ -15,4 +15,5 @@ Calendar Detail
 {% else %}
     <p>No time units have been created for this calendar.</p>
 {% endif %}
+    <p><a href="{% url 'fantasycalendar:time-unit-create' calendar.world_id calendar.id %}">Create a new time unit for this calendar!</a></p>
 {% endblock %}

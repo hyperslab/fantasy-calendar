@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib import admin
+from django.urls import reverse
 
 
 class World(models.Model):
@@ -8,6 +9,9 @@ class World(models.Model):
     def __str__(self):
         return self.world_name
 
+    def get_absolute_url(self):
+        return reverse('fantasycalendar:world-detail', kwargs={'pk': self.pk})
+
 
 class Calendar(models.Model):
     world = models.ForeignKey(World, on_delete=models.CASCADE)
@@ -15,6 +19,9 @@ class Calendar(models.Model):
 
     def __str__(self):
         return self.calendar_name
+
+    def get_absolute_url(self):
+        return reverse('fantasycalendar:calendar-detail', kwargs={'pk': self.pk, 'world_key': self.world.pk})
 
 
 class TimeUnit(models.Model):
