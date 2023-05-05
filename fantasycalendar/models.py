@@ -42,4 +42,39 @@ class TimeUnit(models.Model):
         return self.base_unit is None and self.id is not None  # will not be considered "bottom level" until saved to db
 
     def get_number_of_base_display(self):
+        """
+        Return number_of_base formatted for display.
+        """
         return self.number_of_base.normalize()
+
+    def is_top_level(self):
+        """
+        Return True if there are no other TimeUnit objects that have
+        this TimeUnit as their base_unit.
+        """
+        return TimeUnit.objects.filter(base_unit_id=self.id).count() == 0
+
+    def get_level_depth(self):
+        """
+        Return the depth of this TimeUnit relative to its base time
+        units, with a bottom level unit like a "day" being level 1. So
+        a "month" made of days would be level 2, a "year" made of
+        months would be level 3, etc.
+        """
+        if self.is_bottom_level():
+            return 1
+        else:
+            return self.base_unit.get_level_depth() + 1
+
+    def is_highest_level(self):
+        """
+        Return True if there are no other TimeUnit objects on the
+        same Calendar as this TimeUnit that have a higher depth (as
+        described in get_level_depth).
+        """
+        level = self.get_level_depth()
+        time_units = TimeUnit.objects.filter(calendar_id=self.calendar.id)
+        for time_unit in time_units:
+            if time_unit.get_level_depth() > level:
+                return False
+        return True
