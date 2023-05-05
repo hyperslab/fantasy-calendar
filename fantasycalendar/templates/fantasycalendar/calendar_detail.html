@@ -9,7 +9,11 @@ Calendar Detail
 {% if calendar.timeunit_set %}
     <ul>
     {% for time_unit in calendar.timeunit_set.all %}
-        <li>{{ time_unit.time_unit_name }}</li>
+        {% if time_unit.is_bottom_level %}
+        <li>{{ time_unit.time_unit_name }} - base calendar unit</li>
+        {% else %}
+        <li>{{ time_unit.time_unit_name }} - {{ time_unit.get_number_of_base_display  }} {{ time_unit.base_unit.time_unit_name }}s long</li>
+        {% endif %}
     {% endfor %}
     </ul>
 {% else %}

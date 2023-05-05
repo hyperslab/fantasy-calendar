@@ -40,3 +40,6 @@ class TimeUnit(models.Model):
         Calendar, i.e. the equivalent of a "day".
         """
         return self.base_unit is None and self.id is not None  # will not be considered "bottom level" until saved to db
+
+    def get_number_of_base_display(self):
+        return self.number_of_base.normalize()
