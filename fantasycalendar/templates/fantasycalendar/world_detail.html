@@ -16,4 +16,5 @@ World Detail
     <p>No calendars have been created for this world.</p>
 {% endif %}
     <p><a href="{% url 'fantasycalendar:calendar-create' world.id %}">Create a new calendar in this world!</a></p>
+    <p><a href="{% url 'fantasycalendar:world-update' world.id %}">Change the name of this world!</a></p>
 {% endblock %}

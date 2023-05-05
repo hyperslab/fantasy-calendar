@@ -10,9 +10,11 @@ Calendar Detail
     <ul>
     {% for time_unit in calendar.timeunit_set.all %}
         {% if time_unit.is_bottom_level %}
-        <li>{{ time_unit.time_unit_name }} - base calendar unit</li>
+        <li>{{ time_unit.time_unit_name }} - base calendar unit <a
+                href="{% url 'fantasycalendar:time-unit-update' calendar.world_id calendar.id time_unit.id %}">(edit)</a></li>
         {% else %}
-        <li>{{ time_unit.time_unit_name }} - {{ time_unit.get_number_of_base_display  }} {{ time_unit.base_unit.time_unit_name }}s long</li>
+        <li>{{ time_unit.time_unit_name }} - {{ time_unit.get_number_of_base_display  }} {{ time_unit.base_unit.time_unit_name }}s long <a
+                href="{% url 'fantasycalendar:time-unit-update' calendar.world_id calendar.id time_unit.id %}">(edit)</a></li>
         {% endif %}
     {% endfor %}
     </ul>
@@ -20,4 +22,5 @@ Calendar Detail
     <p>No time units have been created for this calendar.</p>
 {% endif %}
     <p><a href="{% url 'fantasycalendar:time-unit-create' calendar.world_id calendar.id %}">Create a new time unit for this calendar!</a></p>
+    <p><a href="{% url 'fantasycalendar:calendar-update' calendar.world_id calendar.id %}">Change the name of this calendar!</a></p>
 {% endblock %}

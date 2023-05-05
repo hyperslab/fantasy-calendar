@@ -57,3 +57,34 @@ class TimeUnitCreateView(generic.CreateView):
     def get_success_url(self):
         return reverse('fantasycalendar:calendar-detail',
                        kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
+
+
+class WorldUpdateView(generic.UpdateView):
+    model = World
+    template_name = 'fantasycalendar/world_update_form.html'
+    fields = ['world_name']
+
+
+class CalendarUpdateView(generic.UpdateView):
+    model = Calendar
+    template_name = 'fantasycalendar/calendar_update_form.html'
+    fields = ['calendar_name']
+
+
+class TimeUnitUpdateView(generic.UpdateView):
+    model = TimeUnit
+    template_name = 'fantasycalendar/time_unit_update_form.html'
+    fields = ['time_unit_name', 'base_unit', 'number_of_base']
+
+    def get_form(self, form_class=None):
+        form = super(TimeUnitUpdateView, self).get_form()
+        if TimeUnit.objects.get(pk=self.kwargs['pk']).is_bottom_level():
+            form.fields['base_unit'].queryset = TimeUnit.objects.none()
+        else:
+            form.fields['base_unit'].queryset = TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key'])\
+                .exclude(pk=self.kwargs['pk'])
+        return form
+
+    def get_success_url(self):
+        return reverse('fantasycalendar:calendar-detail',
+                       kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
