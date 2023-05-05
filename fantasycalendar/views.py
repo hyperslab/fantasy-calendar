@@ -34,6 +34,8 @@ class CalendarCreateView(generic.CreateView):
     def form_valid(self, form):
         world = get_object_or_404(World, pk=self.kwargs['world_key'])
         form.instance.world = world
+        form.instance.save()
+        TimeUnit.objects.create(time_unit_name="Day", calendar=form.instance)
         return super(CalendarCreateView, self).form_valid(form)
 
 
