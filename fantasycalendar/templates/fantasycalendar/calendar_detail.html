@@ -24,3 +24,19 @@ Calendar Detail
     <p><a href="{% url 'fantasycalendar:time-unit-create' calendar.world_id calendar.id %}">Create a new time unit for this calendar!</a></p>
     <p><a href="{% url 'fantasycalendar:calendar-update' calendar.world_id calendar.id %}">Change the name of this calendar!</a></p>
 {% endblock %}
+
+{% block graphic %}
+{% if calendar.timeunit_set %}
+<div class="grid-container">
+    <div class="grid-item">1</div>
+    <div class="grid-item">2</div>
+    <div class="grid-item">3</div>
+    <div class="grid-item">4</div>
+    <div class="grid-item">5</div>
+    <div class="grid-item">6</div>
+    <div class="grid-item">7</div>
+    <div class="grid-item">8</div>
+    <div class="grid-item">9</div>
+</div>
+{% endif %}
+{% endblock %}
