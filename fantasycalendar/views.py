@@ -19,6 +19,14 @@ class CalendarDetailView(generic.DetailView):
     model = Calendar
     template_name = 'fantasycalendar/calendar_detail.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if 'display_unit_type' in self.request.GET:
+            context['display_unit'] = TimeUnit.objects.get(pk=self.request.GET['display_unit_type'])
+        else:
+            context['display_unit'] = TimeUnit.objects.filter(calendar_id=self.object.id).first()
+        return context
+
 
 class WorldCreateView(generic.CreateView):
     model = World

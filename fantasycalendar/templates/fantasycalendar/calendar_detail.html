@@ -27,6 +27,16 @@ Calendar Detail
 
 {% block graphic %}
 {% if calendar.timeunit_set %}
+<h3>{{ display_unit.time_unit_name }} View</h3>
+<form action="{% url 'fantasycalendar:calendar-detail' calendar.world_id calendar.id %}" method="get">
+    <label for="display_unit_type">Change display level: </label>
+    <select name="display_unit_type" id="display_unit_type">
+    {% for time_unit in calendar.timeunit_set.all %}
+        <option value="{{ time_unit.id }}" {% if time_unit.id == display_unit.id %}selected{% endif %}>{{ time_unit.time_unit_name }}</option>
+    {% endfor %}
+    </select>
+    <input type="submit" value="Submit">
+</form>
 <div class="grid-container">
     <div class="grid-item">1</div>
     <div class="grid-item">2</div>
