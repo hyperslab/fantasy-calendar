@@ -38,15 +38,9 @@ Calendar Detail
     <input type="submit" value="Submit">
 </form>
 <div class="grid-container">
-    <div class="grid-item">1</div>
-    <div class="grid-item">2</div>
-    <div class="grid-item">3</div>
-    <div class="grid-item">4</div>
-    <div class="grid-item">5</div>
-    <div class="grid-item">6</div>
-    <div class="grid-item">7</div>
-    <div class="grid-item">8</div>
-    <div class="grid-item">9</div>
+{% for square in display_amount %}
+    <div class="grid-item">{{ display_base_name }} {{ square }}</div>
+{% endfor %}
 </div>
 {% endif %}
 {% endblock %}

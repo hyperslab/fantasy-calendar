@@ -25,6 +25,12 @@ class CalendarDetailView(generic.DetailView):
             context['display_unit'] = TimeUnit.objects.get(pk=self.request.GET['display_unit_type'])
         else:
             context['display_unit'] = TimeUnit.objects.filter(calendar_id=self.object.id).first()
+        display_amount = int(context['display_unit'].number_of_base)
+        if display_amount < 1:
+            display_amount = 1
+        context['display_amount'] = range(1, display_amount + 1)
+        context['display_base_name'] = context['display_unit'].base_unit.time_unit_name \
+            if context['display_unit'].base_unit is not None else context['display_unit'].time_unit_name
         return context
 
 
