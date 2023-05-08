@@ -35,12 +35,25 @@ Calendar Detail
         <option value="{{ time_unit.id }}" {% if time_unit.id == display_unit.id %}selected{% endif %}>{{ time_unit.time_unit_name }}</option>
     {% endfor %}
     </select>
+    <label for="nest_checkbox">Show base time unit detail</label>
+    <input type="checkbox" id="nest_checkbox" name="nest_checkbox" value="1" {% if nest_level == 1 %}checked{% endif %}>
     <input type="submit" value="Submit">
 </form>
+{% if display_nested %}
+{% for block in display_amount %}
+    <h4>{{ display_base_name }} {{ block }}</h4>
+    <div class="grid-container">
+    {% for square in nested_display_amount %}
+        <div class="grid-item">{{ nested_display_base_name }} {{ square }}</div>
+    {% endfor %}
+    </div>
+{% endfor %}
+{% else %}
 <div class="grid-container">
 {% for square in display_amount %}
     <div class="grid-item">{{ display_base_name }} {{ square }}</div>
 {% endfor %}
 </div>
+{% endif %}
 {% endif %}
 {% endblock %}

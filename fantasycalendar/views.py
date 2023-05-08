@@ -31,6 +31,17 @@ class CalendarDetailView(generic.DetailView):
         context['display_amount'] = range(1, display_amount + 1)
         context['display_base_name'] = context['display_unit'].base_unit.time_unit_name \
             if context['display_unit'].base_unit is not None else context['display_unit'].time_unit_name
+        if 'nest_checkbox' in self.request.GET:
+            context['nest_level'] = int(self.request.GET['nest_checkbox'])
+        else:
+            context['nest_level'] = 0
+        if context['nest_level'] > 0 and context['display_unit'].base_unit is not None and \
+                context['display_unit'].base_unit.base_unit is not None:
+            context['nested_display_amount'] = range(1,  int(context['display_unit'].base_unit.number_of_base) + 1)
+            context['nested_display_base_name'] = context['display_unit'].base_unit.base_unit.time_unit_name
+            context['display_nested'] = True
+        else:
+            context['display_nested'] = False
         return context
 
 
