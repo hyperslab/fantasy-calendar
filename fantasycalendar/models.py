@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib import admin
 from django.urls import reverse
-import json
 
 
 class World(models.Model):
@@ -84,11 +83,11 @@ class TimeUnit(models.Model):
     def get_base_unit_instance_names(self):
         if not self.base_unit_instance_names:
             return []
-        names = json.decoder.JSONDecoder().decode(self.base_unit_instance_names)
+        names = self.base_unit_instance_names.split()
         if type(names) is not list:
             names = [names]
         return names
 
     def set_base_unit_instance_names(self, names: list[str]):
-        self.base_unit_instance_names = json.dumps(names)
+        self.base_unit_instance_names = ' '.join(names)
         self.save()

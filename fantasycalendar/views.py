@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import generic
 from .models import World, Calendar, TimeUnit
+from django import forms
 
 
 class WorldIndexView(generic.ListView):
@@ -81,11 +82,12 @@ class CalendarCreateView(generic.CreateView):
 class TimeUnitCreateView(generic.CreateView):
     model = TimeUnit
     template_name = 'fantasycalendar/time_unit_create_form.html'
-    fields = ['time_unit_name', 'base_unit', 'number_of_base']
+    fields = ['time_unit_name', 'base_unit', 'number_of_base', 'base_unit_instance_names']
 
     def get_form(self, form_class=None):
         form = super(TimeUnitCreateView, self).get_form()
         form.fields['base_unit'].queryset = TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key'])
+        form.fields['base_unit_instance_names'].label = 'Enter names of individual base units separated by spaces, if desired'
         return form
 
     def form_valid(self, form):
@@ -113,7 +115,7 @@ class CalendarUpdateView(generic.UpdateView):
 class TimeUnitUpdateView(generic.UpdateView):
     model = TimeUnit
     template_name = 'fantasycalendar/time_unit_update_form.html'
-    fields = ['time_unit_name', 'base_unit', 'number_of_base']
+    fields = ['time_unit_name', 'base_unit', 'number_of_base', 'base_unit_instance_names']
 
     def get_form(self, form_class=None):
         form = super(TimeUnitUpdateView, self).get_form()
@@ -122,6 +124,7 @@ class TimeUnitUpdateView(generic.UpdateView):
         else:
             form.fields['base_unit'].queryset = TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key'])\
                 .exclude(pk=self.kwargs['pk'])
+        form.fields['base_unit_instance_names'].label = 'Enter names of individual base units separated by spaces, if desired'
         return form
 
     def get_success_url(self):
