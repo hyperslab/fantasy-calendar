@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib import admin
 from django.urls import reverse
+import json
 
 
 class World(models.Model):
@@ -26,9 +27,10 @@ class Calendar(models.Model):
 
 class TimeUnit(models.Model):
     calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
-    time_unit_name = models.CharField(max_length=200)
+    time_unit_name = models.CharField(max_length=200, default='')
     base_unit = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
     number_of_base = models.DecimalField('number of base units in this unit', max_digits=8, decimal_places=3, default=0)
+    base_unit_instance_names = models.CharField(max_length=800, default='', blank=True)
 
     def __str__(self):
         return self.time_unit_name
@@ -78,3 +80,15 @@ class TimeUnit(models.Model):
             if time_unit.get_level_depth() > level:
                 return False
         return True
+
+    def get_base_unit_instance_names(self):
+        if not self.base_unit_instance_names:
+            return []
+        names = json.decoder.JSONDecoder().decode(self.base_unit_instance_names)
+        if type(names) is not list:
+            names = [names]
+        return names
+
+    def set_base_unit_instance_names(self, names: list[str]):
+        self.base_unit_instance_names = json.dumps(names)
+        self.save()

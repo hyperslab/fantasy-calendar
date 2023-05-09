@@ -28,18 +28,32 @@ class CalendarDetailView(generic.DetailView):
         display_amount = int(context['display_unit'].number_of_base)
         if display_amount < 1:
             display_amount = 1
-        context['display_amount'] = range(1, display_amount + 1)
-        context['display_base_name'] = context['display_unit'].base_unit.time_unit_name \
-            if context['display_unit'].base_unit is not None else context['display_unit'].time_unit_name
+        display_base_names = []
+        if context['display_unit'].base_unit is not None:
+            custom_names = context['display_unit'].get_base_unit_instance_names()
+            for i in range(1, display_amount + 1):
+                if i - 1 < len(custom_names):
+                    display_base_names.append(custom_names[i - 1])
+                else:
+                    display_base_names.append(str(context['display_unit'].base_unit.time_unit_name) + ' ' + str(i))
+        else:
+            display_base_names.append(context['display_unit'].time_unit_name + ' 1')
+        context['display_base_names'] = display_base_names
         if 'nest_checkbox' in self.request.GET:
             context['nest_level'] = int(self.request.GET['nest_checkbox'])
         else:
             context['nest_level'] = 0
         if context['nest_level'] > 0 and context['display_unit'].base_unit is not None and \
                 context['display_unit'].base_unit.base_unit is not None:
-            context['nested_display_amount'] = range(1,  int(context['display_unit'].base_unit.number_of_base) + 1)
-            context['nested_display_base_name'] = context['display_unit'].base_unit.base_unit.time_unit_name
             context['display_nested'] = True
+            nested_display_base_names = []
+            nested_custom_names = context['display_unit'].base_unit.get_base_unit_instance_names()
+            for i in range(1,  int(context['display_unit'].base_unit.number_of_base) + 1):
+                if i - 1 < len(nested_custom_names):
+                    nested_display_base_names.append(nested_custom_names[i - 1])
+                else:
+                    nested_display_base_names.append(str(context['display_unit'].base_unit.base_unit.time_unit_name) + ' ' + str(i))
+            context['nested_display_base_names'] = nested_display_base_names
         else:
             context['display_nested'] = False
         return context
