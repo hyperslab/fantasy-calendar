@@ -19,7 +19,8 @@ class TimeUnitInLine(admin.TabularInline):
     model = TimeUnit
     extra = 1
     form = TimeUnitInLineForm
-    fields = ['time_unit_name', 'base_unit', 'number_of_base', 'is_bottom_level', 'base_unit_instance_names']
+    fields = ['time_unit_name', 'base_unit', 'number_of_base', 'is_bottom_level', 'base_unit_instance_names',
+              'base_unit_custom_lengths']
     readonly_fields = ['is_bottom_level']
 
     def formfield_for_dbfield(self, db_field, request, **kwargs):

@@ -26,37 +26,43 @@ class CalendarDetailView(generic.DetailView):
             context['display_unit'] = TimeUnit.objects.get(pk=self.request.GET['display_unit_type'])
         else:
             context['display_unit'] = TimeUnit.objects.filter(calendar_id=self.object.id).first()
-        display_amount = int(context['display_unit'].number_of_base)
-        if display_amount < 1:
-            display_amount = 1
-        display_base_names = []
-        if context['display_unit'].base_unit is not None:
-            custom_names = context['display_unit'].get_base_unit_instance_names()
-            for i in range(1, display_amount + 1):
-                if i - 1 < len(custom_names):
-                    display_base_names.append(custom_names[i - 1])
-                else:
-                    display_base_names.append(str(context['display_unit'].base_unit.time_unit_name) + ' ' + str(i))
-        else:
-            display_base_names.append(context['display_unit'].time_unit_name + ' 1')
-        context['display_base_names'] = display_base_names
         if 'nest_checkbox' in self.request.GET:
             context['nest_level'] = int(self.request.GET['nest_checkbox'])
         else:
             context['nest_level'] = 0
+
         if context['nest_level'] > 0 and context['display_unit'].base_unit is not None and \
                 context['display_unit'].base_unit.base_unit is not None:
             context['display_nested'] = True
-            nested_display_base_names = []
+            display_instances = context['display_unit'].get_base_unit_instances()
+            display_base_names = []
             nested_custom_names = context['display_unit'].base_unit.get_base_unit_instance_names()
-            for i in range(1,  int(context['display_unit'].base_unit.number_of_base) + 1):
-                if i - 1 < len(nested_custom_names):
-                    nested_display_base_names.append(nested_custom_names[i - 1])
-                else:
-                    nested_display_base_names.append(str(context['display_unit'].base_unit.base_unit.time_unit_name) + ' ' + str(i))
-            context['nested_display_base_names'] = nested_display_base_names
+            for name, length in display_instances:
+                nested_display_base_names = []
+                for i in range(length):
+                    if i < len(nested_custom_names):
+                        nested_display_base_names.append(nested_custom_names[i])
+                    else:
+                        nested_display_base_names.append(str(context['display_unit'].base_unit.base_unit.time_unit_name) + ' ' + str(i + 1))
+                display_base_names.append((name, nested_display_base_names))
+            context['display_base_names'] = display_base_names
         else:
             context['display_nested'] = False
+            display_amount = int(context['display_unit'].number_of_base)
+            if display_amount < 1:
+                display_amount = 1
+            display_base_names = []
+            if context['display_unit'].base_unit is not None:
+                custom_names = context['display_unit'].get_base_unit_instance_names()
+                for i in range(1, display_amount + 1):
+                    if i - 1 < len(custom_names):
+                        display_base_names.append(custom_names[i - 1])
+                    else:
+                        display_base_names.append(str(context['display_unit'].base_unit.time_unit_name) + ' ' + str(i))
+            else:
+                display_base_names.append(context['display_unit'].time_unit_name + ' 1')
+            context['display_base_names'] = display_base_names
+
         return context
 
 
@@ -82,12 +88,13 @@ class CalendarCreateView(generic.CreateView):
 class TimeUnitCreateView(generic.CreateView):
     model = TimeUnit
     template_name = 'fantasycalendar/time_unit_create_form.html'
-    fields = ['time_unit_name', 'base_unit', 'number_of_base', 'base_unit_instance_names']
+    fields = ['time_unit_name', 'base_unit', 'number_of_base', 'base_unit_instance_names', 'base_unit_custom_lengths']
 
     def get_form(self, form_class=None):
         form = super(TimeUnitCreateView, self).get_form()
         form.fields['base_unit'].queryset = TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key'])
         form.fields['base_unit_instance_names'].label = 'Enter names of individual base units separated by spaces, if desired'
+        form.fields['base_unit_custom_lengths'].label = 'Enter custom lengths of all individual base units separated by spaces, if desired'
         return form
 
     def form_valid(self, form):
@@ -115,7 +122,7 @@ class CalendarUpdateView(generic.UpdateView):
 class TimeUnitUpdateView(generic.UpdateView):
     model = TimeUnit
     template_name = 'fantasycalendar/time_unit_update_form.html'
-    fields = ['time_unit_name', 'base_unit', 'number_of_base', 'base_unit_instance_names']
+    fields = ['time_unit_name', 'base_unit', 'number_of_base', 'base_unit_instance_names', 'base_unit_custom_lengths']
 
     def get_form(self, form_class=None):
         form = super(TimeUnitUpdateView, self).get_form()
@@ -125,6 +132,7 @@ class TimeUnitUpdateView(generic.UpdateView):
             form.fields['base_unit'].queryset = TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key'])\
                 .exclude(pk=self.kwargs['pk'])
         form.fields['base_unit_instance_names'].label = 'Enter names of individual base units separated by spaces, if desired'
+        form.fields['base_unit_custom_lengths'].label = 'Enter custom lengths of all individual base units separated by spaces, if desired'
         return form
 
     def get_success_url(self):

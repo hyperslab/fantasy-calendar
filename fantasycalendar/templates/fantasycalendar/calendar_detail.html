@@ -40,7 +40,7 @@ Calendar Detail
     <input type="submit" value="Submit">
 </form>
 {% if display_nested %}
-{% for display_base_name in display_base_names %}
+{% for display_base_name, nested_display_base_names in display_base_names %}
     <h4>{{ display_base_name }}</h4>
     <div class="grid-container">
     {% for nested_display_base_name in nested_display_base_names %}

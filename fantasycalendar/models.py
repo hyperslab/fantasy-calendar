@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 from django.contrib import admin
 from django.urls import reverse
@@ -30,6 +32,7 @@ class TimeUnit(models.Model):
     base_unit = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
     number_of_base = models.DecimalField('number of base units in this unit', max_digits=8, decimal_places=3, default=0)
     base_unit_instance_names = models.CharField(max_length=800, default='', blank=True)
+    base_unit_custom_lengths = models.CharField(max_length=800, default='', blank=True)
 
     def __str__(self):
         return self.time_unit_name
@@ -91,3 +94,45 @@ class TimeUnit(models.Model):
     def set_base_unit_instance_names(self, names: list[str]):
         self.base_unit_instance_names = ' '.join(names)
         self.save()
+
+    def get_base_unit_custom_lengths(self):
+        if not self.base_unit_custom_lengths:
+            return []
+        lengths = [int(x) for x in self.base_unit_custom_lengths.split()]
+        if type(lengths) is not list:
+            lengths = [lengths]
+        return lengths
+
+    def set_base_unit_custom_lengths(self, lengths: list[int]):
+        self.base_unit_custom_lengths = ' '.join([str(x) for x in lengths])
+        self.save()
+
+    def get_base_unit_instances(self):
+        if not self.base_unit:
+            return [(str(self.time_unit_name) + ' 1', 1)]
+        numer_of_instances = int(self.number_of_base)
+        custom_lengths = self.get_base_unit_custom_lengths()
+        lengths = []
+        remainder = Decimal('0.0')
+        base_length_per = int(self.base_unit.number_of_base)
+        if base_length_per < 1:
+            base_length_per = 1
+        extra_length_per = self.base_unit.number_of_base % 1
+        custom_names = self.get_base_unit_instance_names()
+        base_name = self.base_unit.time_unit_name
+        names = []
+        for i in range(numer_of_instances):
+            extra = 0
+            remainder += extra_length_per
+            if remainder >= 1:
+                extra += 1
+                remainder -= Decimal(1)
+            if i < len(custom_lengths):
+                lengths.append(custom_lengths[i])
+            else:
+                lengths.append(base_length_per + extra)
+            if i < len(custom_names):
+                names.append(custom_names[i])
+            else:
+                names.append(base_name + ' ' + str(i + 1))
+        return zip(names, lengths)
