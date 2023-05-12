@@ -38,14 +38,14 @@ class TimeUnit(models.Model):
         return self.time_unit_name
 
     @admin.display(boolean=True, description='Lowest level time unit?')
-    def is_bottom_level(self):
+    def is_bottom_level(self) -> bool:
         """
         Return True if this is the lowest-level unit of time in its
         Calendar, i.e. the equivalent of a "day".
         """
         return self.base_unit is None and self.id is not None  # will not be considered "bottom level" until saved to db
 
-    def get_length_cycle_display(self):
+    def get_length_cycle_display(self) -> str:
         """
         Return length_cycle formatted as a string for display.
         """
@@ -55,14 +55,14 @@ class TimeUnit(models.Model):
         else:
             return ', '.join(['{:f}'.format(x.normalize()) for x in lengths])
 
-    def is_top_level(self):
+    def is_top_level(self) -> bool:
         """
         Return True if there are no other TimeUnit objects that have
         this TimeUnit as their base_unit.
         """
         return TimeUnit.objects.filter(base_unit_id=self.id).count() == 0
 
-    def get_level_depth(self):
+    def get_level_depth(self) -> int:
         """
         Return the depth of this TimeUnit relative to its base time
         units, with a bottom level unit like a "day" being level 1. So
@@ -74,7 +74,7 @@ class TimeUnit(models.Model):
         else:
             return self.base_unit.get_level_depth() + 1
 
-    def is_highest_level(self):
+    def is_highest_level(self) -> bool:
         """
         Return True if there are no other TimeUnit objects on the
         same Calendar as this TimeUnit that have a higher depth (as
@@ -87,7 +87,10 @@ class TimeUnit(models.Model):
                 return False
         return True
 
-    def get_base_unit_instance_names(self):
+    def get_base_unit_instance_names(self) -> list[str]:
+        """
+        Return base_unit_instance_names as a list of each name.
+        """
         if not self.base_unit_instance_names:
             return []
         names = self.base_unit_instance_names.split()
@@ -96,10 +99,17 @@ class TimeUnit(models.Model):
         return names
 
     def set_base_unit_instance_names(self, names: list[str]):
+        """
+        Save base_unit_instance_names from a list of each name.
+        """
         self.base_unit_instance_names = ' '.join(names)
         self.save()
 
     def get_length_cycle(self) -> list[decimal]:
+        """
+        Return length_cycle as a list of each length in the cycle as a
+        decimal value.
+        """
         if not self.length_cycle:
             return []
         lengths = [Decimal(x) for x in self.length_cycle.split()]
@@ -108,10 +118,28 @@ class TimeUnit(models.Model):
         return lengths
 
     def set_length_cycle(self, lengths: list[decimal]):
+        """
+        Save length_cycle from a list of each length in the cycle. Each
+        length should be a decimal value.
+        """
         self.length_cycle = ' '.join([str(x) for x in lengths])
         self.save()
 
-    def get_length_at_iteration(self, iteration):
+    def get_length_at_iteration(self, iteration: int) -> int:
+        """
+        Return the number of base units in the instance of this time
+        unit that exists at a particular iteration. An iteration of 1
+        corresponds to the first instance of this time unit in its
+        calendar; values 0 and below are not used. No base or parent
+        units are considered in determining the iteration value.
+
+        As an example, if there are 12 "Month"s in a "Year", the fourth
+        Month of Year 3 would have iteration value 28.
+
+        The value returned is a whole integer with "leap"s already
+        factored in. Access length_cycle directly to see decimal
+        values.
+        """
         length_cycle = self.get_length_cycle()
         cycle_location = (iteration - 1) % len(length_cycle)
         cycle_iteration = int((iteration - 1) / len(length_cycle)) + 1
@@ -122,7 +150,18 @@ class TimeUnit(models.Model):
             extra = 1
         return int(base_length + extra)
 
-    def get_first_base_unit_instance_iteration_at_iteration(self, iteration):
+    def get_first_base_unit_instance_iteration_at_iteration(self, iteration: int) -> int:
+        """
+        Return the iteration value of the first base unit in the
+        instance of this time unit that exists at a given iteration.
+
+        As an example, if there are 12 "Month"s in a "Year", then
+        calling this method on the Year with an iteration value of 4
+        will return 37, as the first Month of Year 4 is Month 37.
+
+        Always returns 1 when the iteration value is 1. Also returns 1
+        for time units that have no base unit.
+        """
         length_cycle = self.get_length_cycle()
         number_of_complete_cycles = int((iteration - 1) / len(length_cycle))
         current_cycle_completed_instances = (iteration - 1) % len(length_cycle)
@@ -131,7 +170,19 @@ class TimeUnit(models.Model):
             base_iteration += length_cycle[i]
         return int(base_iteration) + 1
 
-    def get_base_unit_instances(self, iteration=1):
+    def get_base_unit_instances(self, iteration: int = 1) -> list[tuple[str, int]]:
+        """
+        Return a list of [str, int] tuples representing the names and
+        lengths (in whole number of base units) of all base unit
+        instances in the instance of this time unit that exists at a
+        particular iteration.
+
+        As an example, in a calendar with "Year"s made of "Month"s made
+        of "Day"s, calling this method on the Year will return a list
+        of tuples containing the name of each month alongside its
+        corresponding number of days. It might look like:
+        [('January', 31), ('February', 28), ...etc. ]
+        """
         if not self.base_unit:
             return [(str(self.time_unit_name) + ' 1', 1)]
         numer_of_instances = self.get_length_at_iteration(iteration=iteration)
