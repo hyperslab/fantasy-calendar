@@ -27,7 +27,7 @@ Calendar Detail
 
 {% block graphic %}
 {% if calendar.timeunit_set %}
-<h3>{{ display_unit.time_unit_name }} View</h3>
+<h3>{{ display_unit.time_unit_name }} {{ iteration }} View</h3>
 <form action="{% url 'fantasycalendar:calendar-detail' calendar.world_id calendar.id %}" method="get">
     <label for="display_unit_type">Change display level: </label>
     <select name="display_unit_type" id="display_unit_type">
@@ -35,8 +35,13 @@ Calendar Detail
         <option value="{{ time_unit.id }}" {% if time_unit.id == display_unit.id %}selected{% endif %}>{{ time_unit.time_unit_name }}</option>
     {% endfor %}
     </select>
-    <label for="nest_checkbox">Show base time unit detail</label>
+    <br>
+    <label for="nest_checkbox">Show base time unit detail?</label>
     <input type="checkbox" id="nest_checkbox" name="nest_checkbox" value="1" {% if nest_level == 1 %}checked{% endif %}>
+    <br>
+    <label for="iteration">Display specific time unit instance:</label>
+    <input type="text" id="iteration" name="iteration" value="{{ iteration }}">
+    <br>
     <input type="submit" value="Submit">
 </form>
 {% if display_nested %}

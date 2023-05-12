@@ -30,11 +30,15 @@ class CalendarDetailView(generic.DetailView):
             context['nest_level'] = int(self.request.GET['nest_checkbox'])
         else:
             context['nest_level'] = 0
+        if 'iteration' in self.request.GET:
+            context['iteration'] = int(self.request.GET['iteration'])
+        else:
+            context['iteration'] = 1
 
         if context['nest_level'] > 0 and context['display_unit'].base_unit is not None and \
                 context['display_unit'].base_unit.base_unit is not None:
             context['display_nested'] = True
-            display_instances = context['display_unit'].get_base_unit_instances()
+            display_instances = context['display_unit'].get_base_unit_instances(iteration=context['iteration'])
             display_base_names = []
             nested_custom_names = context['display_unit'].base_unit.get_base_unit_instance_names()
             for name, length in display_instances:
@@ -43,12 +47,13 @@ class CalendarDetailView(generic.DetailView):
                     if i < len(nested_custom_names):
                         nested_display_base_names.append(nested_custom_names[i])
                     else:
-                        nested_display_base_names.append(str(context['display_unit'].base_unit.base_unit.time_unit_name) + ' ' + str(i + 1))
+                        nested_display_base_names.append(str(context['display_unit'].base_unit.base_unit.time_unit_name)
+                                                         + ' ' + str(i + 1))
                 display_base_names.append((name, nested_display_base_names))
             context['display_base_names'] = display_base_names
         else:
             context['display_nested'] = False
-            display_amount = int(context['display_unit'].get_length_at_iteration(1))  # TODO specify iteration
+            display_amount = int(context['display_unit'].get_length_at_iteration(iteration=context['iteration']))
             if display_amount < 1:
                 display_amount = 1
             display_base_names = []
@@ -93,7 +98,8 @@ class TimeUnitCreateView(generic.CreateView):
     def get_form(self, form_class=None):
         form = super(TimeUnitCreateView, self).get_form()
         form.fields['base_unit'].queryset = TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key'])
-        form.fields['base_unit_instance_names'].label = 'Enter names of individual base units separated by spaces, if desired'
+        form.fields['base_unit_instance_names'].label = \
+            'Enter names of individual base units separated by spaces, if desired'
         return form
 
     def form_valid(self, form):
@@ -130,7 +136,8 @@ class TimeUnitUpdateView(generic.UpdateView):
         else:
             form.fields['base_unit'].queryset = TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key'])\
                 .exclude(pk=self.kwargs['pk'])
-        form.fields['base_unit_instance_names'].label = 'Enter names of individual base units separated by spaces, if desired'
+        form.fields['base_unit_instance_names'].label = \
+            'Enter names of individual base units separated by spaces, if desired'
         return form
 
     def get_success_url(self):
