@@ -1,3 +1,4 @@
+import decimal
 from decimal import Decimal
 
 from django.db import models
@@ -30,9 +31,8 @@ class TimeUnit(models.Model):
     calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
     time_unit_name = models.CharField(max_length=200, default='')
     base_unit = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
-    number_of_base = models.DecimalField('number of base units in this unit', max_digits=8, decimal_places=3, default=0)
+    length_cycle = models.CharField(max_length=800, default='1')
     base_unit_instance_names = models.CharField(max_length=800, default='', blank=True)
-    base_unit_custom_lengths = models.CharField(max_length=800, default='', blank=True)
 
     def __str__(self):
         return self.time_unit_name
@@ -45,11 +45,15 @@ class TimeUnit(models.Model):
         """
         return self.base_unit is None and self.id is not None  # will not be considered "bottom level" until saved to db
 
-    def get_number_of_base_display(self):
+    def get_length_cycle_display(self):
         """
-        Return number_of_base formatted for display.
+        Return length_cycle formatted as a string for display.
         """
-        return self.number_of_base.normalize()
+        lengths = self.get_length_cycle()
+        if len(lengths) == 0:  # this shouldn't happen
+            return 'Undefined'
+        else:
+            return ', '.join(['{:f}'.format(x.normalize()) for x in lengths])
 
     def is_top_level(self):
         """
@@ -95,42 +99,50 @@ class TimeUnit(models.Model):
         self.base_unit_instance_names = ' '.join(names)
         self.save()
 
-    def get_base_unit_custom_lengths(self):
-        if not self.base_unit_custom_lengths:
+    def get_length_cycle(self) -> list[decimal]:
+        if not self.length_cycle:
             return []
-        lengths = [int(x) for x in self.base_unit_custom_lengths.split()]
+        lengths = [Decimal(x) for x in self.length_cycle.split()]
         if type(lengths) is not list:
             lengths = [lengths]
         return lengths
 
-    def set_base_unit_custom_lengths(self, lengths: list[int]):
-        self.base_unit_custom_lengths = ' '.join([str(x) for x in lengths])
+    def set_length_cycle(self, lengths: list[decimal]):
+        self.length_cycle = ' '.join([str(x) for x in lengths])
         self.save()
 
-    def get_base_unit_instances(self):
+    def get_length_at_iteration(self, iteration):
+        length_cycle = self.get_length_cycle()
+        cycle_location = (iteration - 1) % len(length_cycle)
+        cycle_iteration = int((iteration - 1) / len(length_cycle)) + 1
+        base_length = int(length_cycle[cycle_location])
+        remainder_length = length_cycle[cycle_location] % 1
+        extra = 0
+        if ((remainder_length * (cycle_iteration - 1)) % 1) + remainder_length >= 1:
+            extra = 1
+        return int(base_length + extra)
+
+    def get_first_base_unit_instance_iteration_at_iteration(self, iteration):
+        length_cycle = self.get_length_cycle()
+        number_of_complete_cycles = int((iteration - 1) / len(length_cycle))
+        current_cycle_completed_instances = (iteration - 1) % len(length_cycle)
+        base_iteration = number_of_complete_cycles * sum(length_cycle)
+        for i in range(current_cycle_completed_instances):
+            base_iteration += length_cycle[i]
+        return int(base_iteration) + 1
+
+    def get_base_unit_instances(self, iteration=1):
         if not self.base_unit:
             return [(str(self.time_unit_name) + ' 1', 1)]
-        numer_of_instances = int(self.number_of_base)
-        custom_lengths = self.get_base_unit_custom_lengths()
+        numer_of_instances = self.get_length_at_iteration(iteration=iteration)
         lengths = []
-        remainder = Decimal('0.0')
-        base_length_per = int(self.base_unit.number_of_base)
-        if base_length_per < 1:
-            base_length_per = 1
-        extra_length_per = self.base_unit.number_of_base % 1
         custom_names = self.get_base_unit_instance_names()
         base_name = self.base_unit.time_unit_name
         names = []
+        base_iteration = self.get_first_base_unit_instance_iteration_at_iteration(iteration=iteration)
         for i in range(numer_of_instances):
-            extra = 0
-            remainder += extra_length_per
-            if remainder >= 1:
-                extra += 1
-                remainder -= Decimal(1)
-            if i < len(custom_lengths):
-                lengths.append(custom_lengths[i])
-            else:
-                lengths.append(base_length_per + extra)
+            lengths.append(self.base_unit.get_length_at_iteration(iteration=base_iteration))
+            base_iteration += 1
             if i < len(custom_names):
                 names.append(custom_names[i])
             else:

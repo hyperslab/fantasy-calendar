@@ -13,7 +13,7 @@ Calendar Detail
         <li>{{ time_unit.time_unit_name }} - base calendar unit <a
                 href="{% url 'fantasycalendar:time-unit-update' calendar.world_id calendar.id time_unit.id %}">(edit)</a></li>
         {% else %}
-        <li>{{ time_unit.time_unit_name }} - {{ time_unit.get_number_of_base_display  }} {{ time_unit.base_unit.time_unit_name }}s long <a
+        <li>{{ time_unit.time_unit_name }} - {{ time_unit.get_length_cycle_display  }} {{ time_unit.base_unit.time_unit_name }}s long <a
                 href="{% url 'fantasycalendar:time-unit-update' calendar.world_id calendar.id time_unit.id %}">(edit)</a></li>
         {% endif %}
     {% endfor %}

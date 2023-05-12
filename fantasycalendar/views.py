@@ -48,7 +48,7 @@ class CalendarDetailView(generic.DetailView):
             context['display_base_names'] = display_base_names
         else:
             context['display_nested'] = False
-            display_amount = int(context['display_unit'].number_of_base)
+            display_amount = int(context['display_unit'].get_length_at_iteration(1))  # TODO specify iteration
             if display_amount < 1:
                 display_amount = 1
             display_base_names = []
@@ -88,13 +88,12 @@ class CalendarCreateView(generic.CreateView):
 class TimeUnitCreateView(generic.CreateView):
     model = TimeUnit
     template_name = 'fantasycalendar/time_unit_create_form.html'
-    fields = ['time_unit_name', 'base_unit', 'number_of_base', 'base_unit_instance_names', 'base_unit_custom_lengths']
+    fields = ['time_unit_name', 'base_unit', 'length_cycle', 'base_unit_instance_names']
 
     def get_form(self, form_class=None):
         form = super(TimeUnitCreateView, self).get_form()
         form.fields['base_unit'].queryset = TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key'])
         form.fields['base_unit_instance_names'].label = 'Enter names of individual base units separated by spaces, if desired'
-        form.fields['base_unit_custom_lengths'].label = 'Enter custom lengths of all individual base units separated by spaces, if desired'
         return form
 
     def form_valid(self, form):
@@ -122,7 +121,7 @@ class CalendarUpdateView(generic.UpdateView):
 class TimeUnitUpdateView(generic.UpdateView):
     model = TimeUnit
     template_name = 'fantasycalendar/time_unit_update_form.html'
-    fields = ['time_unit_name', 'base_unit', 'number_of_base', 'base_unit_instance_names', 'base_unit_custom_lengths']
+    fields = ['time_unit_name', 'base_unit', 'length_cycle', 'base_unit_instance_names']
 
     def get_form(self, form_class=None):
         form = super(TimeUnitUpdateView, self).get_form()
@@ -132,7 +131,6 @@ class TimeUnitUpdateView(generic.UpdateView):
             form.fields['base_unit'].queryset = TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key'])\
                 .exclude(pk=self.kwargs['pk'])
         form.fields['base_unit_instance_names'].label = 'Enter names of individual base units separated by spaces, if desired'
-        form.fields['base_unit_custom_lengths'].label = 'Enter custom lengths of all individual base units separated by spaces, if desired'
         return form
 
     def get_success_url(self):
