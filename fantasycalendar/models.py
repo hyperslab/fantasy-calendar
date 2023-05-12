@@ -159,8 +159,7 @@ class TimeUnit(models.Model):
         calling this method on the Year with an iteration value of 4
         will return 37, as the first Month of Year 4 is Month 37.
 
-        Always returns 1 when the iteration value is 1. Also returns 1
-        for time units that have no base unit.
+        Always returns 1 when the iteration value is 1.
         """
         length_cycle = self.get_length_cycle()
         number_of_complete_cycles = int((iteration - 1) / len(length_cycle))
@@ -182,9 +181,13 @@ class TimeUnit(models.Model):
         of tuples containing the name of each month alongside its
         corresponding number of days. It might look like:
         [('January', 31), ('February', 28), ...etc. ]
+
+        For bottom level time units (with no base unit), returns a list
+        containing one tuple with the name set to the time unit name
+        followed by the iteration value and the length set to 1.
         """
         if not self.base_unit:
-            return [(str(self.time_unit_name) + ' 1', 1)]
+            return [(str(self.time_unit_name) + ' ' + str(iteration), 1)]
         numer_of_instances = self.get_length_at_iteration(iteration=iteration)
         lengths = []
         custom_names = self.get_base_unit_instance_names()
