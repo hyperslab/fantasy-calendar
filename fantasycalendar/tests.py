@@ -430,3 +430,96 @@ class TimeUnitModelTests(TestCase):
         self.assertEqual(time_unit.get_first_base_unit_instance_iteration_at_iteration(14), 392)
         self.assertEqual(time_unit.get_first_base_unit_instance_iteration_at_iteration(15), 421)
         self.assertEqual(time_unit.get_first_base_unit_instance_iteration_at_iteration(16), 452)
+
+    def test_get_first_bottom_level_iteration_at_iteration_with_bottom_level_unit(self):
+        """
+        get_first_bottom_level_iteration_at_iteration() returns the
+        iteration value exactly as it was passed in when called on a
+        bottom level time unit (for valid iteration values).
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        time_unit = TimeUnit.objects.create(calendar=calendar, length_cycle='1')
+        self.assertEqual(time_unit.get_first_bottom_level_iteration_at_iteration(1), 1)
+        self.assertEqual(time_unit.get_first_bottom_level_iteration_at_iteration(2), 2)
+        self.assertEqual(time_unit.get_first_bottom_level_iteration_at_iteration(10), 10)
+        self.assertEqual(time_unit.get_first_bottom_level_iteration_at_iteration(1234), 1234)
+
+    def test_get_first_bottom_level_iteration_at_iteration_with_level_two_unit(self):
+        """
+        get_first_bottom_level_iteration_at_iteration() returns the
+        expected value when called on a second level time unit (for
+        valid iteration values).
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        base_time_unit = TimeUnit.objects.create(calendar=calendar, length_cycle='1')
+        time_unit = TimeUnit.objects.create(calendar=calendar, base_unit=base_time_unit, length_cycle='31 28.25 31 30')
+        self.assertEqual(time_unit.get_first_bottom_level_iteration_at_iteration(1), 1)
+        self.assertEqual(time_unit.get_first_bottom_level_iteration_at_iteration(2), 32)
+        self.assertEqual(time_unit.get_first_bottom_level_iteration_at_iteration(3), 60)
+        self.assertEqual(time_unit.get_first_bottom_level_iteration_at_iteration(15), 421)
+
+    def test_get_first_bottom_level_iteration_at_iteration_with_level_three_unit(self):
+        """
+        get_first_bottom_level_iteration_at_iteration() returns the
+        expected value when called on a third level time unit (for
+        valid iteration values).
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        base_time_unit = TimeUnit.objects.create(calendar=calendar, length_cycle='1')
+        middle_time_unit = TimeUnit.objects.create(calendar=calendar, base_unit=base_time_unit,
+                                                   length_cycle='31 28.25 31 30')
+        time_unit = TimeUnit.objects.create(calendar=calendar, base_unit=middle_time_unit, length_cycle='4')
+        self.assertEqual(time_unit.get_first_bottom_level_iteration_at_iteration(1), 1)
+        self.assertEqual(time_unit.get_first_bottom_level_iteration_at_iteration(2), 121)
+        self.assertEqual(time_unit.get_first_bottom_level_iteration_at_iteration(3), 241)
+        self.assertEqual(time_unit.get_first_bottom_level_iteration_at_iteration(4), 361)
+        self.assertEqual(time_unit.get_first_bottom_level_iteration_at_iteration(5), 482)
+
+    def test_get_bottom_level_length_at_iteration_with_bottom_level_unit(self):
+        """
+        get_bottom_level_length_at_iteration() returns the expected
+        value when called on a bottom level time unit (for valid
+        iteration values).
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        time_unit = TimeUnit.objects.create(calendar=calendar, length_cycle='1')
+        self.assertEqual(time_unit.get_bottom_level_length_at_iteration(1), 1)
+        self.assertEqual(time_unit.get_bottom_level_length_at_iteration(2), 1)
+        self.assertEqual(time_unit.get_bottom_level_length_at_iteration(10), 1)
+        self.assertEqual(time_unit.get_bottom_level_length_at_iteration(1234), 1)
+
+    def test_get_bottom_level_length_at_iteration_with_level_two_unit(self):
+        """
+        get_bottom_level_length_at_iteration() returns the expected
+        value when called on a second level time unit (for valid
+        iteration values).
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        base_time_unit = TimeUnit.objects.create(calendar=calendar, length_cycle='1')
+        time_unit = TimeUnit.objects.create(calendar=calendar, base_unit=base_time_unit, length_cycle='31 28.25 31 30')
+        self.assertEqual(time_unit.get_bottom_level_length_at_iteration(1), 31)
+        self.assertEqual(time_unit.get_bottom_level_length_at_iteration(2), 28)
+        self.assertEqual(time_unit.get_bottom_level_length_at_iteration(4), 30)
+        self.assertEqual(time_unit.get_bottom_level_length_at_iteration(6), 28)
+        self.assertEqual(time_unit.get_bottom_level_length_at_iteration(14), 29)
+
+    def test_get_bottom_level_length_at_iteration_with_level_three_unit(self):
+        """
+        get_bottom_level_length_at_iteration() returns the expected
+        value when called on a third level time unit (for valid
+        iteration values).
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        base_time_unit = TimeUnit.objects.create(calendar=calendar, length_cycle='1')
+        middle_time_unit = TimeUnit.objects.create(calendar=calendar, base_unit=base_time_unit,
+                                                   length_cycle='31 28.25 31 30')
+        time_unit = TimeUnit.objects.create(calendar=calendar, base_unit=middle_time_unit, length_cycle='4')
+        self.assertEqual(time_unit.get_bottom_level_length_at_iteration(1), 120)
+        self.assertEqual(time_unit.get_bottom_level_length_at_iteration(2), 120)
+        self.assertEqual(time_unit.get_bottom_level_length_at_iteration(4), 121)

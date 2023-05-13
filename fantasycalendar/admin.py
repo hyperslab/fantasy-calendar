@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import resolve
 from django import forms
 
-from .models import World, Calendar, TimeUnit
+from .models import World, Calendar, TimeUnit, Event
 
 
 class TimeUnitInLineForm(forms.ModelForm):
@@ -51,3 +51,10 @@ class WorldAdmin(admin.ModelAdmin):
 
 
 admin.site.register(World, WorldAdmin)
+
+
+class EventAdmin(admin.ModelAdmin):
+    fields = ('calendar', 'event_name', 'event_description', 'bottom_level_iteration')
+
+
+admin.site.register(Event, EventAdmin)

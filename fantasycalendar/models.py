@@ -26,6 +26,13 @@ class Calendar(models.Model):
     def get_absolute_url(self):
         return reverse('fantasycalendar:calendar-detail', kwargs={'pk': self.pk, 'world_key': self.world.pk})
 
+    def get_bottom_level_time_unit(self) -> 'TimeUnit':
+        """
+        Return the lowest-level unit of time in this calendar, i.e. the
+        equivalent of a "day".
+        """
+        return TimeUnit.objects.get(calendar_id=self.pk, base_unit=None)
+
 
 class TimeUnit(models.Model):
     calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
@@ -202,3 +209,91 @@ class TimeUnit(models.Model):
             else:
                 names.append(base_name + ' ' + str(i + 1))
         return zip(names, lengths)
+
+    def get_first_bottom_level_iteration_at_iteration(self, iteration: int) -> int:
+        """
+        Return the iteration value of the first bottom level time unit
+        instance contained in the instance of this time unit that
+        exists at a particular iteration.
+
+        As an example, if there are 12 "Month"s in a "Year" and 30
+        "Day"s in a Month, Day being the bottom level time unit for
+        this calendar, then calling this method on the Year with an
+        iteration value of 4 will return 1081, as the first Day of Year
+        4 is Day 1081.
+
+        Always returns 1 when the iteration value is 1.
+        """
+        current_unit = self
+        current_unit_iteration = iteration
+        while current_unit.base_unit is not None:
+            current_unit_iteration = current_unit.get_first_base_unit_instance_iteration_at_iteration(
+                iteration=current_unit_iteration)
+            current_unit = current_unit.base_unit
+        return current_unit_iteration
+
+    def get_bottom_level_length_at_iteration(self, iteration: int) -> int:
+        """
+        Return the number of bottom level time units in the instance of
+        this time unit that exists at a particular iteration.
+
+        As an example, say there are 12 "Month"s in a "Year" and 30
+        "Day"s in a Month plus an extra "leap" Day on one of the Months
+        every 4 Years, Day being the bottom level time unit for this
+        calendar. Calling this method on the Year with an iteration
+        value of 3 will return 360, as there are 360 Days in the 3rd
+        Year, but calling it on Year 4 will return 361, as there are
+        361 Days in the 4th Year.
+        """
+        current_unit = self
+        current_length = self.get_length_at_iteration(iteration=iteration)
+        current_first_iteration = iteration
+        while current_unit.base_unit is not None:
+            current_first_iteration = current_unit.get_first_base_unit_instance_iteration_at_iteration(
+                iteration=current_first_iteration)
+            new_length = 0
+            for i in range(current_first_iteration, current_first_iteration + current_length):
+                new_length += current_unit.base_unit.get_length_at_iteration(i)
+            current_length = new_length
+            current_unit = current_unit.base_unit
+        return current_length
+
+    def get_last_bottom_level_iteration_at_iteration(self, iteration: int) -> int:
+        """
+        Return the iteration value of the last bottom level time unit
+        instance contained in the instance of this time unit that
+        exists at a particular iteration.
+
+        As an example, if there are 12 "Month"s in a "Year" and 30
+        "Day"s in a Month, Day being the bottom level time unit for
+        this calendar, then calling this method on the Year with an
+        iteration value of 4 will return 1440, as the last Day of Year
+        4 is Day 1440.
+        """
+        return self.get_first_bottom_level_iteration_at_iteration(iteration=iteration) + \
+            self.get_bottom_level_length_at_iteration(iteration=iteration) - 1
+
+    def get_events_at_iteration(self, iteration: int) -> list['Event']:
+        """
+        Return a list of all events on the same calendar as this time
+        unit that take place during the instance of this time unit that
+        exists at a particular iteration.
+        """
+        first_bottom_level_iteration = self.get_first_bottom_level_iteration_at_iteration(iteration=iteration)
+        last_bottom_level_iteration = self.get_last_bottom_level_iteration_at_iteration(iteration=iteration)
+        return [x for x in Event.objects.filter(bottom_level_iteration__gte=first_bottom_level_iteration,
+                                                bottom_level_iteration__lte=last_bottom_level_iteration)]
+
+
+class Event(models.Model):
+    calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
+    event_name = models.CharField(max_length=200)
+    event_description = models.TextField(max_length=800, blank=True)
+    bottom_level_iteration = models.BigIntegerField()
+
+    def __str__(self):
+        return self.event_name
+
+    def get_absolute_url(self):
+        return reverse('fantasycalendar:event-detail', kwargs={'pk': self.pk, 'calendar_key': self.calendar.pk,
+                                                               'world_key': self.calendar.world.pk})

@@ -17,4 +17,10 @@ urlpatterns = [
     path("worlds/<int:world_key>/calendars/<int:pk>/edit/", views.CalendarUpdateView.as_view(), name="calendar-update"),
     path("worlds/<int:world_key>/calendars/<int:calendar_key>/time-units/<int:pk>/edit/",
          views.TimeUnitUpdateView.as_view(), name="time-unit-update"),
+    path("worlds/<int:world_key>/calendars/<int:calendar_key>/events/<int:pk>/", views.EventDetailView.as_view(),
+         name="event-detail"),
+    path("worlds/<int:world_key>/calendars/<int:calendar_key>/events/new/", views.EventCreateView.as_view(),
+         name="event-create"),
+    path("worlds/<int:world_key>/calendars/<int:calendar_key>/events/<int:pk>/edit/", views.EventUpdateView.as_view(),
+         name="event-update"),
 ]

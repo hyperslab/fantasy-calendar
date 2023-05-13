@@ -22,6 +22,7 @@ Calendar Detail
     <p>No time units have been created for this calendar.</p>
 {% endif %}
     <p><a href="{% url 'fantasycalendar:time-unit-create' calendar.world_id calendar.id %}">Create a new time unit for this calendar!</a></p>
+    <p><a href="{% url 'fantasycalendar:event-create' calendar.world_id calendar.id %}">Create a new event for this calendar!</a></p>
     <p><a href="{% url 'fantasycalendar:calendar-update' calendar.world_id calendar.id %}">Change the name of this calendar!</a></p>
 {% endblock %}
 
@@ -48,15 +49,23 @@ Calendar Detail
 {% for display_base_name, nested_display_base_names in display_base_names %}
     <h4>{{ display_base_name }}</h4>
     <div class="grid-container">
-    {% for nested_display_base_name in nested_display_base_names %}
-        <div class="grid-item">{{ nested_display_base_name }}</div>
+    {% for nested_display_base_name, events in nested_display_base_names %}
+        <div class="grid-item">{{ nested_display_base_name }}
+        {% for event in events %}
+            <br><a href="{% url 'fantasycalendar:event-detail' calendar.world_id calendar.id event.id %}">{{ event.event_name }}</a>
+        {% endfor %}
+        </div>
     {% endfor %}
     </div>
 {% endfor %}
 {% else %}
 <div class="grid-container">
-{% for display_base_name in display_base_names %}
-    <div class="grid-item">{{ display_base_name }}</div>
+{% for display_base_name, events in display_base_names %}
+    <div class="grid-item">{{ display_base_name }}
+    {% for event in events %}
+        <br><a href="{% url 'fantasycalendar:event-detail' calendar.world_id calendar.id event.id %}">{{ event.event_name }}</a>
+    {% endfor %}
+    </div>
 {% endfor %}
 </div>
 {% endif %}

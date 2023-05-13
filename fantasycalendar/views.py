@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import generic
-from .models import World, Calendar, TimeUnit
+from .models import World, Calendar, TimeUnit, Event
 from django import forms
 
 
@@ -41,15 +41,23 @@ class CalendarDetailView(generic.DetailView):
             display_instances = context['display_unit'].get_base_unit_instances(iteration=context['iteration'])
             display_base_names = []
             nested_custom_names = context['display_unit'].base_unit.get_base_unit_instance_names()
+            first_base_instance_iteration = context['display_unit'].base_unit.\
+                get_first_base_unit_instance_iteration_at_iteration(
+                iteration=context['display_unit'].get_first_base_unit_instance_iteration_at_iteration(
+                    iteration=context['iteration']))
             for name, length in display_instances:
                 nested_display_base_names = []
                 for i in range(length):
                     if i < len(nested_custom_names):
-                        nested_display_base_names.append(nested_custom_names[i])
+                        nested_display_base_name = nested_custom_names[i]
                     else:
-                        nested_display_base_names.append(str(context['display_unit'].base_unit.base_unit.time_unit_name)
-                                                         + ' ' + str(i + 1))
+                        nested_display_base_name = str(context['display_unit'].base_unit.base_unit.time_unit_name) + \
+                                                   ' ' + str(i + 1)
+                    events = context['display_unit'].base_unit.base_unit.get_events_at_iteration(
+                        iteration=first_base_instance_iteration + i)
+                    nested_display_base_names.append((nested_display_base_name, events))
                 display_base_names.append((name, nested_display_base_names))
+                first_base_instance_iteration += length
             context['display_base_names'] = display_base_names
         else:
             context['display_nested'] = False
@@ -59,16 +67,27 @@ class CalendarDetailView(generic.DetailView):
             display_base_names = []
             if context['display_unit'].base_unit is not None:
                 custom_names = context['display_unit'].get_base_unit_instance_names()
+                first_base_instance_iteration = context['display_unit'].\
+                    get_first_base_unit_instance_iteration_at_iteration(iteration=context['iteration'])
                 for i in range(1, display_amount + 1):
                     if i - 1 < len(custom_names):
-                        display_base_names.append(custom_names[i - 1])
+                        display_base_name = custom_names[i - 1]
                     else:
-                        display_base_names.append(str(context['display_unit'].base_unit.time_unit_name) + ' ' + str(i))
+                        display_base_name = str(context['display_unit'].base_unit.time_unit_name) + ' ' + str(i)
+                    events = context['display_unit'].base_unit.get_events_at_iteration(
+                        iteration=first_base_instance_iteration + (i - 1))
+                    display_base_names.append((display_base_name, events))
             else:
-                display_base_names.append(context['display_unit'].time_unit_name + ' 1')
+                events = context['display_unit'].get_events_at_iteration(iteration=context['iteration'])
+                display_base_names.append((context['display_unit'].time_unit_name + ' 1', events))
             context['display_base_names'] = display_base_names
 
         return context
+
+
+class EventDetailView(generic.DetailView):
+    model = Event
+    template_name = 'fantasycalendar/event_detail.html'
 
 
 class WorldCreateView(generic.CreateView):
@@ -112,6 +131,28 @@ class TimeUnitCreateView(generic.CreateView):
                        kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
 
 
+class EventCreateView(generic.CreateView):
+    model = Event
+    template_name = 'fantasycalendar/event_create_form.html'
+    fields = ['event_name', 'event_description', 'bottom_level_iteration']
+
+    def get_form(self, form_class=None):
+        form = super(EventCreateView, self).get_form()
+        bottom_unit = Calendar.objects.get(pk=self.kwargs['calendar_key']).get_bottom_level_time_unit()
+        form.fields['bottom_level_iteration'].label = \
+            'Which ' + str(bottom_unit.time_unit_name) + ' does this event take place on?'
+        return form
+
+    def form_valid(self, form):
+        calendar = get_object_or_404(Calendar, pk=self.kwargs['calendar_key'])
+        form.instance.calendar = calendar
+        return super(EventCreateView, self).form_valid(form)
+
+    def get_success_url(self):
+        return reverse('fantasycalendar:calendar-detail',
+                       kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
+
+
 class WorldUpdateView(generic.UpdateView):
     model = World
     template_name = 'fantasycalendar/world_update_form.html'
@@ -143,3 +184,16 @@ class TimeUnitUpdateView(generic.UpdateView):
     def get_success_url(self):
         return reverse('fantasycalendar:calendar-detail',
                        kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
+
+
+class EventUpdateView(generic.UpdateView):
+    model = Event
+    template_name = 'fantasycalendar/event_update_form.html'
+    fields = ['event_name', 'event_description', 'bottom_level_iteration']
+
+    def get_form(self, form_class=None):
+        form = super(EventUpdateView, self).get_form()
+        bottom_unit = Calendar.objects.get(pk=self.kwargs['calendar_key']).get_bottom_level_time_unit()
+        form.fields['bottom_level_iteration'].label = \
+            'Which ' + str(bottom_unit.time_unit_name) + ' does this event take place on?'
+        return form
