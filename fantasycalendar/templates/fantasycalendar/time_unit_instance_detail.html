@@ -1,0 +1,21 @@
+{% extends "fantasycalendar/base.html" %}
+
+{% block title %}
+Time Unit Instance
+{% endblock %}
+
+{% block content %}
+<h2><a href="{% url 'fantasycalendar:world-detail' timeunit.calendar.world_id %}">{{ timeunit.calendar.world.world_name }}</a> - <a
+        href="{% url 'fantasycalendar:calendar-detail' timeunit.calendar.world_id timeunit.calendar_id %}">{{ timeunit.calendar.calendar_name }}</a> - {{ timeunit.time_unit_name }} {{ iteration }}</h2>
+<h3>Events</h3>
+{% if events %}
+    <ul>
+    {% for event in events %}
+        <li><a href="{% url 'fantasycalendar:event-detail' timeunit.calendar.world_id timeunit.calendar_id event.id %}">{{ event.event_name }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No events take place during this {{ timeunit.time_unit_name }}.</p>
+{% endif %}
+    <p><a href="{% url 'fantasycalendar:event-create' timeunit.calendar.world.id timeunit.calendar_id %}?bottom_level_iteration={{ first_bottom_level_iteration }}">Create a new event during this {{ timeunit.time_unit_name }}!</a></p>
+{% endblock %}

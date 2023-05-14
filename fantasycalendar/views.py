@@ -41,10 +41,10 @@ class CalendarDetailView(generic.DetailView):
             display_instances = context['display_unit'].get_base_unit_instances(iteration=context['iteration'])
             display_base_names = []
             nested_custom_names = context['display_unit'].base_unit.get_base_unit_instance_names()
+            first_middle_instance_iteration = context['display_unit'].\
+                get_first_base_unit_instance_iteration_at_iteration(iteration=context['iteration'])
             first_base_instance_iteration = context['display_unit'].base_unit.\
-                get_first_base_unit_instance_iteration_at_iteration(
-                iteration=context['display_unit'].get_first_base_unit_instance_iteration_at_iteration(
-                    iteration=context['iteration']))
+                get_first_base_unit_instance_iteration_at_iteration(iteration=first_middle_instance_iteration)
             for name, length in display_instances:
                 nested_display_base_names = []
                 for i in range(length):
@@ -53,12 +53,14 @@ class CalendarDetailView(generic.DetailView):
                     else:
                         nested_display_base_name = str(context['display_unit'].base_unit.base_unit.time_unit_name) + \
                                                    ' ' + str(i + 1)
-                    events = context['display_unit'].base_unit.base_unit.get_events_at_iteration(
-                        iteration=first_base_instance_iteration + i)
-                    nested_display_base_names.append((nested_display_base_name, events))
-                display_base_names.append((name, nested_display_base_names))
+                    iteration = first_base_instance_iteration + i
+                    events = context['display_unit'].base_unit.base_unit.get_events_at_iteration(iteration=iteration)
+                    nested_display_base_names.append((nested_display_base_name, iteration, events))
+                display_base_names.append((name, first_middle_instance_iteration, nested_display_base_names))
+                first_middle_instance_iteration += 1
                 first_base_instance_iteration += length
             context['display_base_names'] = display_base_names
+            context['smallest_display_unit'] = context['display_unit'].base_unit.base_unit
         else:
             context['display_nested'] = False
             display_amount = int(context['display_unit'].get_length_at_iteration(iteration=context['iteration']))
@@ -74,14 +76,29 @@ class CalendarDetailView(generic.DetailView):
                         display_base_name = custom_names[i - 1]
                     else:
                         display_base_name = str(context['display_unit'].base_unit.time_unit_name) + ' ' + str(i)
-                    events = context['display_unit'].base_unit.get_events_at_iteration(
-                        iteration=first_base_instance_iteration + (i - 1))
-                    display_base_names.append((display_base_name, events))
+                    iteration = first_base_instance_iteration + (i - 1)
+                    events = context['display_unit'].base_unit.get_events_at_iteration(iteration=iteration)
+                    display_base_names.append((display_base_name, iteration, events))
+                context['smallest_display_unit'] = context['display_unit'].base_unit
             else:
                 events = context['display_unit'].get_events_at_iteration(iteration=context['iteration'])
-                display_base_names.append((context['display_unit'].time_unit_name + ' 1', events))
+                display_base_names.append((context['display_unit'].time_unit_name + ' 1', context['iteration'], events))
+                context['smallest_display_unit'] = context['display_unit']
             context['display_base_names'] = display_base_names
 
+        return context
+
+
+class TimeUnitInstanceDetailView(generic.DetailView):
+    model = TimeUnit
+    template_name = 'fantasycalendar/time_unit_instance_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['iteration'] = self.kwargs['iteration']
+        context['first_bottom_level_iteration'] = self.object.get_first_bottom_level_iteration_at_iteration(
+            iteration=self.kwargs['iteration'])
+        context['events'] = self.object.get_events_at_iteration(iteration=self.kwargs['iteration'])
         return context
 
 
@@ -135,6 +152,10 @@ class EventCreateView(generic.CreateView):
     model = Event
     template_name = 'fantasycalendar/event_create_form.html'
     fields = ['event_name', 'event_description', 'bottom_level_iteration']
+
+    def get_initial(self):
+        if 'bottom_level_iteration' in self.request.GET:
+            return {'bottom_level_iteration': int(self.request.GET['bottom_level_iteration'])}
 
     def get_form(self, form_class=None):
         form = super(EventCreateView, self).get_form()

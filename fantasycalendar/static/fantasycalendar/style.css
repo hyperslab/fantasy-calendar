@@ -39,7 +39,7 @@ li a {
     text-decoration: none;
 }
 
-h2 a {
+h2 a, h3 a, h4 a {
     color: midnightblue;
     text-decoration: none;
 }

@@ -46,11 +46,11 @@ Calendar Detail
     <input type="submit" value="Submit">
 </form>
 {% if display_nested %}
-{% for display_base_name, nested_display_base_names in display_base_names %}
-    <h4>{{ display_base_name }}</h4>
+{% for display_base_name, iteration, nested_display_base_names in display_base_names %}
+    <h4><a href="{% url 'fantasycalendar:time-unit-instance-detail' calendar.world_id calendar.id display_unit.base_unit.id iteration %}">{{ display_base_name }}</a></h4>
     <div class="grid-container">
-    {% for nested_display_base_name, events in nested_display_base_names %}
-        <div class="grid-item">{{ nested_display_base_name }}
+    {% for nested_display_base_name, iteration, events in nested_display_base_names %}
+        <div class="grid-item"><a href="{% url 'fantasycalendar:time-unit-instance-detail' calendar.world_id calendar.id smallest_display_unit.id iteration %}">{{ nested_display_base_name }}</a>
         {% for event in events %}
             <br><a href="{% url 'fantasycalendar:event-detail' calendar.world_id calendar.id event.id %}">{{ event.event_name }}</a>
         {% endfor %}
@@ -60,8 +60,8 @@ Calendar Detail
 {% endfor %}
 {% else %}
 <div class="grid-container">
-{% for display_base_name, events in display_base_names %}
-    <div class="grid-item">{{ display_base_name }}
+{% for display_base_name, iteration, events in display_base_names %}
+    <div class="grid-item"><a href="{% url 'fantasycalendar:time-unit-instance-detail' calendar.world_id calendar.id smallest_display_unit.id iteration %}">{{ display_base_name }}</a>
     {% for event in events %}
         <br><a href="{% url 'fantasycalendar:event-detail' calendar.world_id calendar.id event.id %}">{{ event.event_name }}</a>
     {% endfor %}

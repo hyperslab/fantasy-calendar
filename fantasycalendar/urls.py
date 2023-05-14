@@ -23,4 +23,6 @@ urlpatterns = [
          name="event-create"),
     path("worlds/<int:world_key>/calendars/<int:calendar_key>/events/<int:pk>/edit/", views.EventUpdateView.as_view(),
          name="event-update"),
+    path("worlds/<int:world_key>/calendars/<int:calendar_key>/time-units/<int:pk>/instances/<int:iteration>/",
+         views.TimeUnitInstanceDetailView.as_view(), name="time-unit-instance-detail"),
 ]
