@@ -297,3 +297,13 @@ class Event(models.Model):
     def get_absolute_url(self):
         return reverse('fantasycalendar:event-detail', kwargs={'pk': self.pk, 'calendar_key': self.calendar.pk,
                                                                'world_key': self.calendar.world.pk})
+
+
+class DateFormat(models.Model):
+    calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
+    time_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE)
+    date_format_name = models.CharField(max_length=200)
+    format_string = models.CharField(max_length=200)
+
+    def __str__(self):
+        return self.date_format_name
