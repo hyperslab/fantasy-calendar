@@ -25,4 +25,10 @@ urlpatterns = [
          name="event-update"),
     path("worlds/<int:world_key>/calendars/<int:calendar_key>/time-units/<int:pk>/instances/<int:iteration>/",
          views.TimeUnitInstanceDetailView.as_view(), name="time-unit-instance-detail"),
+    path("worlds/<int:world_key>/calendars/<int:calendar_key>/date-formats/<int:pk>/",
+         views.DateFormatDetailView.as_view(), name="date-format-detail"),
+    path("worlds/<int:world_key>/calendars/<int:calendar_key>/date-formats/new/", views.DateFormatCreateView.as_view(),
+         name="date-format-create"),
+    path("worlds/<int:world_key>/calendars/<int:calendar_key>/date-formats/<int:pk>/edit/",
+         views.DateFormatUpdateView.as_view(), name="date-format-update"),
 ]

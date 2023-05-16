@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import generic
-from .models import World, Calendar, TimeUnit, Event
+from .models import World, Calendar, TimeUnit, Event, DateFormat
 from django import forms
 
 
@@ -107,6 +107,11 @@ class EventDetailView(generic.DetailView):
     template_name = 'fantasycalendar/event_detail.html'
 
 
+class DateFormatDetailView(generic.DetailView):
+    model = DateFormat
+    template_name = 'fantasycalendar/date_format_detail.html'
+
+
 class WorldCreateView(generic.CreateView):
     model = World
     template_name = 'fantasycalendar/world_create_form.html'
@@ -174,6 +179,17 @@ class EventCreateView(generic.CreateView):
                        kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
 
 
+class DateFormatCreateView(generic.CreateView):
+    model = DateFormat
+    template_name = 'fantasycalendar/date_format_create_form.html'
+    fields = ['time_unit', 'date_format_name', 'format_string']
+
+    def form_valid(self, form):
+        calendar = get_object_or_404(Calendar, pk=self.kwargs['calendar_key'])
+        form.instance.calendar = calendar
+        return super(DateFormatCreateView, self).form_valid(form)
+
+
 class WorldUpdateView(generic.UpdateView):
     model = World
     template_name = 'fantasycalendar/world_update_form.html'
@@ -218,3 +234,9 @@ class EventUpdateView(generic.UpdateView):
         form.fields['bottom_level_iteration'].label = \
             'Which ' + str(bottom_unit.time_unit_name) + ' does this event take place on?'
         return form
+
+
+class DateFormatUpdateView(generic.UpdateView):
+    model = DateFormat
+    template_name = 'fantasycalendar/date_format_update_form.html'
+    fields = ['date_format_name', 'format_string']
