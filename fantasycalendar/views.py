@@ -99,12 +99,26 @@ class TimeUnitInstanceDetailView(generic.DetailView):
         context['first_bottom_level_iteration'] = self.object.get_first_bottom_level_iteration_at_iteration(
             iteration=self.kwargs['iteration'])
         context['events'] = self.object.get_events_at_iteration(iteration=self.kwargs['iteration'])
+        if self.object.default_date_format:
+            context['display_name'] = self.object.default_date_format.get_formatted_date(self.kwargs['iteration'])
+        else:
+            context['display_name'] = str(self.object.time_unit_name) + ' ' + str(self.kwargs['iteration'])
         return context
 
 
 class EventDetailView(generic.DetailView):
     model = Event
     template_name = 'fantasycalendar/event_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.object.calendar.get_bottom_level_time_unit().default_date_format:
+            context['display_date'] = self.object.calendar.get_bottom_level_time_unit().default_date_format.\
+                get_formatted_date(self.object.bottom_level_iteration)
+        else:
+            context['display_date'] = str(self.object.calendar.get_bottom_level_time_unit.time_unit_name) + ' ' + \
+                                      str(self.object.bottom_level_iteration)
+        return context
 
 
 class DateFormatDetailView(generic.DetailView):
@@ -184,6 +198,11 @@ class DateFormatCreateView(generic.CreateView):
     template_name = 'fantasycalendar/date_format_create_form.html'
     fields = ['time_unit', 'date_format_name', 'format_string']
 
+    def get_form(self, form_class=None):
+        form = super(DateFormatCreateView, self).get_form()
+        form.fields['time_unit'].queryset = TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key'])
+        return form
+
     def form_valid(self, form):
         calendar = get_object_or_404(Calendar, pk=self.kwargs['calendar_key'])
         form.instance.calendar = calendar
@@ -205,7 +224,7 @@ class CalendarUpdateView(generic.UpdateView):
 class TimeUnitUpdateView(generic.UpdateView):
     model = TimeUnit
     template_name = 'fantasycalendar/time_unit_update_form.html'
-    fields = ['time_unit_name', 'base_unit', 'length_cycle', 'base_unit_instance_names']
+    fields = ['time_unit_name', 'base_unit', 'length_cycle', 'base_unit_instance_names', 'default_date_format']
 
     def get_form(self, form_class=None):
         form = super(TimeUnitUpdateView, self).get_form()
@@ -216,6 +235,7 @@ class TimeUnitUpdateView(generic.UpdateView):
                 .exclude(pk=self.kwargs['pk'])
         form.fields['base_unit_instance_names'].label = \
             'Enter names of individual base units separated by spaces, if desired'
+        form.fields['default_date_format'].queryset = DateFormat.objects.filter(time_unit_id=self.kwargs['pk'])
         return form
 
     def get_success_url(self):

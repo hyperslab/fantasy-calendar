@@ -40,6 +40,7 @@ class TimeUnit(models.Model):
     base_unit = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
     length_cycle = models.CharField(max_length=800, default='1')
     base_unit_instance_names = models.CharField(max_length=800, default='', blank=True)
+    default_date_format = models.ForeignKey('DateFormat', on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return self.time_unit_name
@@ -284,6 +285,72 @@ class TimeUnit(models.Model):
         return [x for x in Event.objects.filter(bottom_level_iteration__gte=first_bottom_level_iteration,
                                                 bottom_level_iteration__lte=last_bottom_level_iteration)]
 
+    def get_iteration_at_bottom_level_iteration(self, bottom_level_iteration: int) -> int:
+        """
+        Return the iteration value of the instance of this time unit
+        that encompasses the instance of the bottom level time unit for
+        this calendar that exists at a particular iteration.
+
+        As an example, if there are 30 "Day"s in a "Month", Day being
+        the bottom level time unit for this calendar, then calling this
+        method on the Month with a bottom_level_iteration value of 75
+        will return 3, as the Month containing Day 75 is the 3rd Month.
+        """
+        if self.is_bottom_level():  # save some time on bottom level units
+            return bottom_level_iteration
+        current_iteration = 1
+        running_bottom_level_length = self.get_bottom_level_length_at_iteration(current_iteration)
+        while bottom_level_iteration > running_bottom_level_length:  # TODO this algorithm needs to be better
+            current_iteration += 1
+            running_bottom_level_length += self.get_bottom_level_length_at_iteration(current_iteration)
+        return current_iteration
+
+    def get_first_sub_unit_instance_iteration_at_iteration(self, sub_unit: 'TimeUnit', iteration: int) -> int:
+        """
+        Return the iteration value of the first instance of a given
+        time unit contained in the instance of this time unit that
+        exists at a particular iteration.
+
+        The given sub_unit can be any time unit used in the composition
+        of this time unit, all the way down the tree, so to speak.
+        Raises AttributeError if sub_unit is not found by iteratively
+        checking base_unit.
+
+        Always returns 1 when the iteration value is 1.
+        """
+        current_unit = self
+        current_unit_iteration = iteration
+        while current_unit.pk is not sub_unit.pk:
+            if current_unit.base_unit is None:
+                raise AttributeError
+            current_unit_iteration = current_unit.get_first_base_unit_instance_iteration_at_iteration(
+                iteration=current_unit_iteration)
+            current_unit = current_unit.base_unit
+        return current_unit_iteration
+
+    def get_sub_unit_instance_iteration_within_higher_level_iteration(self, sub_unit: 'TimeUnit',
+                                                                      sub_unit_iteration: int) -> int:
+        """
+        Return the iteration value of the instance of a given time unit
+        at a given iteration relative to its position in the instance
+        of this time unit in which it exists.
+
+        As an example, if there are 30 "Day"s in a "Month", then
+        calling this method on the Month for the sub_unit Day with a
+        sub_unit_iteration value of 75 will return 15, as Day 75 is the
+        15th Day in the Month in which it exists.
+
+        If sub_unit is the same as this time unit, returns
+        sub_unit_iteration as-is.
+        """
+        if self.pk == sub_unit.pk:  # save some time when no calculations are needed
+            return sub_unit_iteration
+        parent_iteration = self.get_iteration_at_bottom_level_iteration(
+            bottom_level_iteration=sub_unit.get_first_bottom_level_iteration_at_iteration(iteration=sub_unit_iteration))
+        first_sub_instance_iteration = self.get_first_sub_unit_instance_iteration_at_iteration(
+            sub_unit=sub_unit, iteration=parent_iteration)
+        return sub_unit_iteration - first_sub_instance_iteration + 1
+
 
 class Event(models.Model):
     calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
@@ -311,3 +378,43 @@ class DateFormat(models.Model):
     def get_absolute_url(self):
         return reverse('fantasycalendar:date-format-detail', kwargs={'pk': self.pk, 'calendar_key': self.calendar.pk,
                                                                      'world_key': self.calendar.world.pk})
+
+    def get_formatted_date(self, iteration: int) -> str:
+        """
+        Return a string representing a human-readable date for the
+        instance of the time unit on this date format that exists at a
+        particular iteration, formatted according to the format_string
+        on this date format.
+        """
+        formatted_date = str(self.format_string)
+        codes = []
+        indexes = []
+        while '{' in formatted_date and '}' in formatted_date:
+            l_index = formatted_date.index('{')
+            r_index = formatted_date.index('}')
+            codes.append(formatted_date[l_index+1:r_index])
+            indexes.append(l_index)
+            formatted_date = formatted_date[:l_index] + formatted_date[r_index+1:]
+        answers = []
+        bottom_level_iteration = self.time_unit.get_first_bottom_level_iteration_at_iteration(iteration=iteration)
+        for code in codes:
+            [parent, sub, display] = code.split('-')
+            parent_unit = TimeUnit.objects.get(pk=int(parent))
+            sub_unit = TimeUnit.objects.get(pk=int(sub))
+            parent_iteration = parent_unit.get_iteration_at_bottom_level_iteration(
+                bottom_level_iteration=bottom_level_iteration)
+            sub_iteration = sub_unit.get_iteration_at_bottom_level_iteration(
+                bottom_level_iteration=bottom_level_iteration)
+            sub_iteration_in_parent_iteration = parent_unit.\
+                get_sub_unit_instance_iteration_within_higher_level_iteration(
+                    sub_unit=sub_unit, sub_unit_iteration=sub_iteration)
+            answer = 'unknown display type: "' + display + '"'
+            if display.lower() in ['n', 'name']:
+                instances = list(parent_unit.get_base_unit_instances(iteration=parent_iteration))
+                answer = instances[sub_iteration_in_parent_iteration-1][0]
+            elif display.lower() in ['i', 'iter', 'iteration']:
+                answer = str(sub_iteration_in_parent_iteration)
+            answers.append(answer)
+        for answer, index in zip(reversed(answers), reversed(indexes)):  # has to be backwards here so indexes work
+            formatted_date = formatted_date[:index] + answer + formatted_date[index:]
+        return formatted_date

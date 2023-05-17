@@ -6,7 +6,7 @@ Time Unit Instance
 
 {% block content %}
 <h2><a href="{% url 'fantasycalendar:world-detail' timeunit.calendar.world_id %}">{{ timeunit.calendar.world.world_name }}</a> - <a
-        href="{% url 'fantasycalendar:calendar-detail' timeunit.calendar.world_id timeunit.calendar_id %}">{{ timeunit.calendar.calendar_name }}</a> - {{ timeunit.time_unit_name }} {{ iteration }}</h2>
+        href="{% url 'fantasycalendar:calendar-detail' timeunit.calendar.world_id timeunit.calendar_id %}">{{ timeunit.calendar.calendar_name }}</a> - {{ display_name }}</h2>
 <h3>Events</h3>
 {% if events %}
     <ul>

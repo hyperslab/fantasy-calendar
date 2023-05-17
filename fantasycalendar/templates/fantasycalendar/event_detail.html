@@ -9,7 +9,7 @@ Event Detail
         href="{% url 'fantasycalendar:calendar-detail' event.calendar.world_id event.calendar_id %}">{{ event.calendar.calendar_name }}</a> - {{ event.event_name }}</h2>
 <h3>Event Description</h3>
 <p>{{ event.event_description }}</p>
-<h3>Takes Place on {{ event.calendar.get_bottom_level_time_unit.time_unit_name }}:</h3>
-<p>{{ event.bottom_level_iteration }}</p>
+<h3>Takes Place on:</h3>
+<p>{{ display_date }}</p>
 <p><a href="{% url 'fantasycalendar:event-update' event.calendar.world_id event.calendar_id event.id %}">Edit this event!</a></p>
 {% endblock %}
