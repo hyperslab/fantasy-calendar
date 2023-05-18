@@ -1,4 +1,5 @@
 import decimal
+import math
 from decimal import Decimal
 
 from django.db import models
@@ -285,6 +286,84 @@ class TimeUnit(models.Model):
         return [x for x in Event.objects.filter(bottom_level_iteration__gte=first_bottom_level_iteration,
                                                 bottom_level_iteration__lte=last_bottom_level_iteration)]
 
+    @staticmethod
+    def expand_length_cycle(length_cycle) -> list[int]:
+        """
+        Return the provided length cycle without any decimals,
+        recalculated to be functionally equivalent to the length cycle
+        with them.
+
+        As an example, calling this method with a length cycle of
+        [30.25] will return [30, 30, 30, 31].
+
+        Does not modify length_cycle.
+        """
+        required_iterations = []
+        running_decimal_totals = {}
+        for i, length in enumerate(length_cycle):
+            remainder = Decimal(length % 1)
+            if remainder == 0:
+                required_iterations.append(1)
+            else:
+                required_iterations.append(remainder.as_integer_ratio()[1])
+                running_decimal_totals[i] = Decimal(0)
+        total_iterations = math.lcm(*required_iterations)
+        final_cycle = []
+        for _ in range(total_iterations):
+            for i, length in enumerate(length_cycle):
+                base_length = int(length)
+                remainder_length = Decimal(length % 1)
+                if remainder_length > 0:
+                    running_decimal_totals[i] += remainder_length
+                    if running_decimal_totals[i] >= 1:
+                        base_length += 1
+                        running_decimal_totals[i] -= 1
+                final_cycle.append(base_length)
+        return final_cycle
+
+    def get_expanded_length_cycle(self) -> list[int]:
+        """
+        Return the length cycle of this time unit without any decimals,
+        recalculated to be functionally equivalent to the length cycle
+        with them.
+
+        As an example, if there are 30.25 "Day"s in a "Month", then
+        calling this method on the Month (on which get_length_cycle
+        will return [30.25]) will return [30, 30, 30, 31].
+        """
+        return TimeUnit.expand_length_cycle(self.get_length_cycle())
+
+    def get_bottom_level_length_cycle(self) -> list[decimal]:
+        """
+        Return the length cycle of ths time unit represented in bottom
+        level time units.
+
+        As an example, if there are 12 "Month"s in a "Year" and 30
+        "Day"s in a Month, Day being the bottom level time unit for
+        this calendar, then calling this method on the Year will return
+        [360], as there are 360 Days in a year.
+        """
+        current_cycle = self.get_length_cycle()
+        current_unit = self
+        while current_unit.base_unit and current_unit.base_unit.base_unit:
+            current_cycle = TimeUnit.expand_length_cycle(current_cycle)
+            lower_cycle = []
+            base_cycle = current_unit.base_unit.get_length_cycle()
+            base_cycle_location = 0
+            while True:
+                for current_length in current_cycle:
+                    lower_length = 0
+                    for _ in range(current_length):
+                        lower_length += base_cycle[base_cycle_location]
+                        base_cycle_location += 1
+                        base_cycle_location %= len(base_cycle)
+                    lower_cycle.append(lower_length)
+                if base_cycle_location == 0:
+                    break
+            current_cycle = lower_cycle
+            current_unit = current_unit.base_unit
+        return current_cycle
+
     def get_iteration_at_bottom_level_iteration(self, bottom_level_iteration: int) -> int:
         """
         Return the iteration value of the instance of this time unit
@@ -298,12 +377,15 @@ class TimeUnit(models.Model):
         """
         if self.is_bottom_level():  # save some time on bottom level units
             return bottom_level_iteration
-        current_iteration = 1
-        running_bottom_level_length = self.get_bottom_level_length_at_iteration(current_iteration)
-        while bottom_level_iteration > running_bottom_level_length:  # TODO this algorithm needs to be better
-            current_iteration += 1
-            running_bottom_level_length += self.get_bottom_level_length_at_iteration(current_iteration)
-        return current_iteration
+        bottom_level_length_cycle = TimeUnit.expand_length_cycle(self.get_bottom_level_length_cycle())
+        bottom_level_cycle_length = sum(bottom_level_length_cycle)  # this should never be 0
+        number_of_complete_cycles = int((bottom_level_iteration - 1) / bottom_level_cycle_length)
+        remaining_units_in_current_cycle = int((bottom_level_iteration - 1) % bottom_level_cycle_length)
+        current_cycle_position = 0
+        while remaining_units_in_current_cycle >= bottom_level_length_cycle[current_cycle_position]:
+            remaining_units_in_current_cycle -= bottom_level_length_cycle[current_cycle_position]
+            current_cycle_position += 1
+        return (number_of_complete_cycles * len(bottom_level_length_cycle)) + current_cycle_position + 1
 
     def get_first_sub_unit_instance_iteration_at_iteration(self, sub_unit: 'TimeUnit', iteration: int) -> int:
         """
