@@ -20,6 +20,7 @@ class World(models.Model):
 class Calendar(models.Model):
     world = models.ForeignKey(World, on_delete=models.CASCADE)
     calendar_name = models.CharField(max_length=200)
+    default_display_config = models.ForeignKey('DisplayConfig', on_delete=models.CASCADE, null=True, related_name='+')
 
     def __str__(self):
         return self.calendar_name
@@ -500,3 +501,13 @@ class DateFormat(models.Model):
         for answer, index in zip(reversed(answers), reversed(indexes)):  # has to be backwards here so indexes work
             formatted_date = formatted_date[:index] + answer + formatted_date[index:]
         return formatted_date
+
+
+class DisplayConfig(models.Model):
+    calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
+    display_config_name = models.CharField(max_length=200)
+    display_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE)
+    nest_level = models.IntegerField(default=0)
+
+    def __str__(self):
+        return self.display_config_name

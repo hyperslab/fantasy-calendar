@@ -31,4 +31,8 @@ urlpatterns = [
          name="date-format-create"),
     path("worlds/<int:world_key>/calendars/<int:calendar_key>/date-formats/<int:pk>/edit/",
          views.DateFormatUpdateView.as_view(), name="date-format-update"),
+    path("worlds/<int:world_key>/calendars/<int:calendar_key>/display-configs/new/",
+         views.DisplayConfigCreateView.as_view(), name="display-config-create"),
+    path("worlds/<int:world_key>/calendars/<int:calendar_key>/display-configs/<int:pk>/edit/",
+         views.DisplayConfigUpdateView.as_view(), name="display-config-update"),
 ]

@@ -33,10 +33,22 @@ Calendar Detail
 {% else %}
     <p>No date formats have been created for this calendar.</p>
 {% endif %}
+<h3>Display Configurations</h3>
+{% if calendar.displayconfig_set %}
+    <ul>
+    {% for display_config in calendar.displayconfig_set.all %}
+        <li>{{ display_config.display_config_name  }} <a
+                href="{% url 'fantasycalendar:display-config-update' calendar.world_id calendar.id display_config.id %}">(edit)</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No display configurations have been created for this calendar.</p>
+{% endif %}
     <p><a href="{% url 'fantasycalendar:time-unit-create' calendar.world_id calendar.id %}">Create a new time unit for this calendar!</a></p>
     <p><a href="{% url 'fantasycalendar:event-create' calendar.world_id calendar.id %}">Create a new event for this calendar!</a></p>
     <p><a href="{% url 'fantasycalendar:date-format-create' calendar.world_id calendar.id %}">Create a new date format for this calendar!</a></p>
-    <p><a href="{% url 'fantasycalendar:calendar-update' calendar.world_id calendar.id %}">Change the name of this calendar!</a></p>
+    <p><a href="{% url 'fantasycalendar:display-config-create' calendar.world_id calendar.id %}">Create a new display configuration for this calendar!</a></p>
+    <p><a href="{% url 'fantasycalendar:calendar-update' calendar.world_id calendar.id %}">Change the name or default display configuration of this calendar!</a></p>
 {% endblock %}
 
 {% block graphic %}

@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import generic
-from .models import World, Calendar, TimeUnit, Event, DateFormat
+from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig
 from django import forms
 
 
@@ -24,10 +24,14 @@ class CalendarDetailView(generic.DetailView):
         context = super().get_context_data(**kwargs)
         if 'display_unit_type' in self.request.GET:
             context['display_unit'] = TimeUnit.objects.get(pk=self.request.GET['display_unit_type'])
+        elif self.object.default_display_config:
+            context['display_unit'] = self.object.default_display_config.display_unit
         else:
             context['display_unit'] = TimeUnit.objects.filter(calendar_id=self.object.id).first()
         if 'nest_checkbox' in self.request.GET:
             context['nest_level'] = int(self.request.GET['nest_checkbox'])
+        elif self.object.default_display_config:
+            context['nest_level'] = self.object.default_display_config.nest_level
         else:
             context['nest_level'] = 0
         if 'iteration' in self.request.GET:
@@ -209,6 +213,26 @@ class DateFormatCreateView(generic.CreateView):
         return super(DateFormatCreateView, self).form_valid(form)
 
 
+class DisplayConfigCreateView(generic.CreateView):
+    model = DisplayConfig
+    template_name = 'fantasycalendar/display_config_create_form.html'
+    fields = ['display_config_name', 'display_unit', 'nest_level']
+
+    def get_form(self, form_class=None):
+        form = super(DisplayConfigCreateView, self).get_form()
+        form.fields['display_unit'].queryset = TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key'])
+        return form
+
+    def form_valid(self, form):
+        calendar = get_object_or_404(Calendar, pk=self.kwargs['calendar_key'])
+        form.instance.calendar = calendar
+        return super(DisplayConfigCreateView, self).form_valid(form)
+
+    def get_success_url(self):
+        return reverse('fantasycalendar:calendar-detail',
+                       kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
+
+
 class WorldUpdateView(generic.UpdateView):
     model = World
     template_name = 'fantasycalendar/world_update_form.html'
@@ -218,7 +242,12 @@ class WorldUpdateView(generic.UpdateView):
 class CalendarUpdateView(generic.UpdateView):
     model = Calendar
     template_name = 'fantasycalendar/calendar_update_form.html'
-    fields = ['calendar_name']
+    fields = ['calendar_name', 'default_display_config']
+
+    def get_form(self, form_class=None):
+        form = super(CalendarUpdateView, self).get_form()
+        form.fields['default_display_config'].queryset = DisplayConfig.objects.filter(calendar_id=self.kwargs['pk'])
+        return form
 
 
 class TimeUnitUpdateView(generic.UpdateView):
@@ -260,3 +289,18 @@ class DateFormatUpdateView(generic.UpdateView):
     model = DateFormat
     template_name = 'fantasycalendar/date_format_update_form.html'
     fields = ['date_format_name', 'format_string']
+
+
+class DisplayConfigUpdateView(generic.UpdateView):
+    model = DisplayConfig
+    template_name = 'fantasycalendar/display_config_update_form.html'
+    fields = ['display_config_name', 'display_unit', 'nest_level']
+
+    def get_form(self, form_class=None):
+        form = super(DisplayConfigUpdateView, self).get_form()
+        form.fields['display_unit'].queryset = TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key'])
+        return form
+
+    def get_success_url(self):
+        return reverse('fantasycalendar:calendar-detail',
+                       kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
