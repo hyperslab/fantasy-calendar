@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import resolve
 from django import forms
 
-from .models import World, Calendar, TimeUnit, Event
+from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig
 
 
 class TimeUnitInLineForm(forms.ModelForm):
@@ -58,3 +58,17 @@ class EventAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Event, EventAdmin)
+
+
+class DateFormatAdmin(admin.ModelAdmin):
+    fields = ('calendar', 'time_unit', 'date_format_name', 'format_string')
+
+
+admin.site.register(DateFormat, DateFormatAdmin)
+
+
+class DisplayConfigAdmin(admin.ModelAdmin):
+    fields = ('calendar', 'display_config_name', 'display_unit', 'nest_level')
+
+
+admin.site.register(DisplayConfig, DisplayConfigAdmin)
