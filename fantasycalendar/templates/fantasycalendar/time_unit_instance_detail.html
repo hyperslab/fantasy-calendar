@@ -7,7 +7,8 @@ Time Unit Instance
 {% block content %}
 <h2><a href="{% url 'fantasycalendar:world-detail' timeunit.calendar.world_id %}">{{ timeunit.calendar.world.world_name }}</a> - <a
         href="{% url 'fantasycalendar:calendar-detail' timeunit.calendar.world_id timeunit.calendar_id %}">{{ timeunit.calendar.calendar_name }}</a> - {{ display_name }}</h2>
-<h3>Events</h3>
+<h3>Events <a
+        href="{% url 'fantasycalendar:event-create' timeunit.calendar.world.id timeunit.calendar_id %}?bottom_level_iteration={{ first_bottom_level_iteration }}">(+new)</a></h3>
 {% if events %}
     <ul>
     {% for event in events %}
@@ -17,5 +18,4 @@ Time Unit Instance
 {% else %}
     <p>No events take place during this {{ timeunit.time_unit_name }}.</p>
 {% endif %}
-    <p><a href="{% url 'fantasycalendar:event-create' timeunit.calendar.world.id timeunit.calendar_id %}?bottom_level_iteration={{ first_bottom_level_iteration }}">Create a new event during this {{ timeunit.time_unit_name }}!</a></p>
 {% endblock %}

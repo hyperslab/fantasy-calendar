@@ -6,10 +6,10 @@ Date Format Detail
 
 {% block content %}
 <h2><a href="{% url 'fantasycalendar:world-detail' dateformat.calendar.world_id %}">{{ dateformat.calendar.world.world_name }}</a> - <a
-        href="{% url 'fantasycalendar:calendar-detail' dateformat.calendar.world_id dateformat.calendar_id %}">{{ dateformat.calendar.calendar_name }}</a> - {{ dateformat.date_format_name }}</h2>
+        href="{% url 'fantasycalendar:calendar-detail' dateformat.calendar.world_id dateformat.calendar_id %}">{{ dateformat.calendar.calendar_name }}</a> - {{ dateformat.date_format_name }}
+    <a href="{% url 'fantasycalendar:date-format-update' dateformat.calendar.world_id dateformat.calendar_id dateformat.id %}">(edit)</a></h2>
 <h3>Date Format for {{ dateformat.time_unit.time_unit_name }}</h3>
 <p>{{ dateformat.date_format_description }}</p>
 <h3>Format String:</h3>
 <p>{{ dateformat.format_string }}</p>
-<p><a href="{% url 'fantasycalendar:date-format-update' dateformat.calendar.world_id dateformat.calendar_id dateformat.id %}">Edit this date format!</a></p>
 {% endblock %}

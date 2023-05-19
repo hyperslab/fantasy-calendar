@@ -5,7 +5,8 @@ World Detail
 {% endblock %}
 
 {% block content %}
-<h2>{{ world.world_name }}</h2>
+<h2>{{ world.world_name }} <a href="{% url 'fantasycalendar:world-update' world.id %}">(edit)</a></h2>
+<h3>Calendars <a href="{% url 'fantasycalendar:calendar-create' world.id %}">(+new)</a></h3>
 {% if world.calendar_set %}
     <ul>
     {% for calendar in world.calendar_set.all %}
@@ -15,6 +16,4 @@ World Detail
 {% else %}
     <p>No calendars have been created for this world.</p>
 {% endif %}
-    <p><a href="{% url 'fantasycalendar:calendar-create' world.id %}">Create a new calendar in this world!</a></p>
-    <p><a href="{% url 'fantasycalendar:world-update' world.id %}">Change the name of this world!</a></p>
 {% endblock %}

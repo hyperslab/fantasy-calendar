@@ -5,6 +5,7 @@ World Index
 {% endblock %}
 
 {% block content %}
+<h3>Worlds <a href="{% url 'fantasycalendar:world-create' %}">(+new)</a></h3>
 {% if world_list %}
     <ul>
     {% for world in world_list %}
@@ -14,5 +15,4 @@ World Index
 {% else %}
     <p>No worlds have been created.</p>
 {% endif %}
-    <p><a href="{% url 'fantasycalendar:world-create' %}">Create a new world!</a></p>
 {% endblock %}
