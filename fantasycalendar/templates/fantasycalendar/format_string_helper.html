@@ -1,0 +1,28 @@
+<script src="//unpkg.com/alpinejs" defer></script>
+<h3>Format String Helper</h3>
+<div x-data="{ parent_unit_id: '', base_unit_id: '', display_type: '' }">
+    <label for="base_unit">Time Unit:</label>
+    <select name="base_unit" id="base_unit" x-model="base_unit_id" @change="parent_unit_id = ''; display_type = ''">
+    <option value="" disabled selected>Select Time Unit</option>
+    {% for time_unit, parent_units in units_and_parents %}
+        <option value="{{ time_unit.id }}">{{ time_unit.time_unit_name }}</option>
+    {% endfor %}
+    </select>
+    {% for time_unit, parent_units in units_and_parents %}
+        <label x-cloak for="{{ time_unit.time_unit_name }}_parents" x-show="base_unit_id == {{ time_unit.id }}">Relative to:</label>
+        <select x-cloak name="{{ time_unit.time_unit_name }}_parents" id="{{ time_unit.time_unit_name }}_parents" x-model="parent_unit_id" x-show="base_unit_id == {{ time_unit.id }}" @change="if (parent_unit_id == base_unit_id) {display_type = 'i';} else {display_type = '';}">
+        <option value="" disabled>Relative to which Time Unit?</option>
+        <option value="{{ time_unit.id }}">Use Absolute Number</option>
+        {% for parent_unit in parent_units %}
+            <option value="{{ parent_unit.id }}">{{ parent_unit.time_unit_name }}</option>
+        {% endfor %}
+        </select>
+    {% endfor %}
+    <label x-cloak for="display_type" x-show="parent_unit_id != '' && base_unit_id != '' && parent_unit_id != base_unit_id">Shown as:</label>
+    <select x-cloak name="display_type" id="display_type" x-model="display_type" x-show="parent_unit_id != '' && base_unit_id != '' && parent_unit_id != base_unit_id">
+        <option value="" disabled>Select Display Type</option>
+        <option value="i">Number</option>
+        <option value="n">Name</option>
+    </select>
+    <p x-show="parent_unit_id != '' && base_unit_id != '' && display_type != ''" x-text="'Format String Representation: {' + parent_unit_id + '-' + base_unit_id + '-' + display_type + '}'"></p>
+</div>

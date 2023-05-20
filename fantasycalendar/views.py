@@ -202,6 +202,14 @@ class DateFormatCreateView(generic.CreateView):
     template_name = 'fantasycalendar/date_format_create_form.html'
     fields = ['time_unit', 'date_format_name', 'format_string']
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        units_and_parents = []
+        for unit in TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key']):
+            units_and_parents.append((unit, unit.get_all_higher_containing_units()))
+        context['units_and_parents'] = units_and_parents
+        return context
+
     def get_form(self, form_class=None):
         form = super(DateFormatCreateView, self).get_form()
         form.fields['time_unit'].queryset = TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key'])
@@ -289,6 +297,14 @@ class DateFormatUpdateView(generic.UpdateView):
     model = DateFormat
     template_name = 'fantasycalendar/date_format_update_form.html'
     fields = ['date_format_name', 'format_string']
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        units_and_parents = []
+        for unit in TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key']):
+            units_and_parents.append((unit, unit.get_all_higher_containing_units()))
+        context['units_and_parents'] = units_and_parents
+        return context
 
 
 class DisplayConfigUpdateView(generic.UpdateView):

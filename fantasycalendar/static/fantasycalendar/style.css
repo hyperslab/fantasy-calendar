@@ -1,3 +1,5 @@
+[x-cloak] { display: none !important; }
+
 * {
     box-sizing: border-box;
 }

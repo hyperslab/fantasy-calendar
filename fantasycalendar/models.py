@@ -434,6 +434,22 @@ class TimeUnit(models.Model):
             sub_unit=sub_unit, iteration=parent_iteration)
         return sub_unit_iteration - first_sub_instance_iteration + 1
 
+    def get_all_higher_containing_units(self) -> list['TimeUnit']:
+        """
+        Return a list of all time units that are composed of this time
+        unit either directly through base_unit or indirectly through
+        some chaining of base_unit.
+        """
+        parents = []
+        new_parents = [x for x in TimeUnit.objects.filter(base_unit_id=self.id)]
+        while len(new_parents) > 0:
+            one_level_higher = []
+            for parent in new_parents:
+                one_level_higher += [x for x in TimeUnit.objects.filter(base_unit_id=parent.id)]
+            parents += new_parents
+            new_parents = one_level_higher
+        return parents
+
 
 class Event(models.Model):
     calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
