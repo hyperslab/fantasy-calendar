@@ -1,0 +1,13 @@
+{% extends "fantasycalendar/base.html" %}
+
+{% block title %}
+Edit a Date Bookmark
+{% endblock %}
+
+{% block content %}
+<h3>Bookmark for {{ datebookmark.bookmark_unit.time_unit_name }}</h3>
+<form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Save">
+</form>
+{% endblock %}

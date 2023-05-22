@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import generic
-from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig
+from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig, DateBookmark
 from django import forms
 
 
@@ -103,6 +103,8 @@ class TimeUnitInstanceDetailView(generic.DetailView):
         context['first_bottom_level_iteration'] = self.object.get_first_bottom_level_iteration_at_iteration(
             iteration=self.kwargs['iteration'])
         context['events'] = self.object.get_events_at_iteration(iteration=self.kwargs['iteration'])
+        context['date_bookmarks'] = DateBookmark.objects.filter(bookmark_unit_id=self.object.id).\
+            filter(bookmark_iteration=self.kwargs['iteration'])
         if self.object.default_date_format:
             context['display_name'] = self.object.default_date_format.get_formatted_date(self.kwargs['iteration'])
         else:
@@ -241,6 +243,34 @@ class DisplayConfigCreateView(generic.CreateView):
                        kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
 
 
+class DateBookmarkCreateView(generic.CreateView):
+    model = DateBookmark
+    template_name = 'fantasycalendar/date_bookmark_create_form.html'
+    fields = ['date_bookmark_name', 'bookmark_unit', 'bookmark_iteration']
+
+    def get_initial(self):
+        initial = {}
+        if 'bookmark_unit' in self.request.GET:
+            initial['bookmark_unit'] = TimeUnit.objects.get(pk=int(self.request.GET['bookmark_unit']))
+        if 'bookmark_iteration' in self.request.GET:
+            initial['bookmark_iteration'] = int(self.request.GET['bookmark_iteration'])
+        return initial
+
+    def get_form(self, form_class=None):
+        form = super(DateBookmarkCreateView, self).get_form()
+        form.fields['bookmark_unit'].queryset = TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key'])
+        return form
+
+    def form_valid(self, form):
+        calendar = get_object_or_404(Calendar, pk=self.kwargs['calendar_key'])
+        form.instance.calendar = calendar
+        return super(DateBookmarkCreateView, self).form_valid(form)
+
+    def get_success_url(self):
+        return reverse('fantasycalendar:calendar-detail',
+                       kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
+
+
 class WorldUpdateView(generic.UpdateView):
     model = World
     template_name = 'fantasycalendar/world_update_form.html'
@@ -316,6 +346,16 @@ class DisplayConfigUpdateView(generic.UpdateView):
         form = super(DisplayConfigUpdateView, self).get_form()
         form.fields['display_unit'].queryset = TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key'])
         return form
+
+    def get_success_url(self):
+        return reverse('fantasycalendar:calendar-detail',
+                       kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
+
+
+class DateBookmarkUpdateView(generic.UpdateView):
+    model = DateBookmark
+    template_name = 'fantasycalendar/date_bookmark_update_form.html'
+    fields = ['date_bookmark_name', 'bookmark_iteration']
 
     def get_success_url(self):
         return reverse('fantasycalendar:calendar-detail',

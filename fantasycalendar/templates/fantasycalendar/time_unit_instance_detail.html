@@ -18,4 +18,16 @@ Time Unit Instance
 {% else %}
     <p>No events take place during this {{ timeunit.time_unit_name }}.</p>
 {% endif %}
+<h3>Date Bookmarks <a
+        href="{% url 'fantasycalendar:date-bookmark-create' timeunit.calendar.world_id timeunit.calendar_id  %}?bookmark_unit={{ timeunit.id }}&bookmark_iteration={{ iteration }}">(+new)</a></h3>
+{% if date_bookmarks %}
+    <ul>
+    {% for date_bookmark in date_bookmarks %}
+        <li>{{ date_bookmark.get_display_name }} <a
+                href="{% url 'fantasycalendar:date-bookmark-update' timeunit.calendar.world_id timeunit.calendar.id date_bookmark.id %}">(edit)</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No bookmarks are present for this {{ timeunit.time_unit_name }}.</p>
+{% endif %}
 {% endblock %}

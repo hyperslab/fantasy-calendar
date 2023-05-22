@@ -537,4 +537,18 @@ class DateBookmark(models.Model):
     bookmark_iteration = models.IntegerField()
 
     def __str__(self):
-        return self.date_bookmark_name
+        return self.get_display_name()
+
+    def get_display_name(self):
+        """
+        Return the name of this date bookmark if set, otherwise return
+        the default date format string for the bookmarked date. If that
+        also isn't set, return something like
+        (bookmark_unit + " " + bookmark_iteration).
+        """
+        if self.date_bookmark_name:
+            return self.date_bookmark_name
+        elif self.bookmark_unit.default_date_format:
+            return self.bookmark_unit.default_date_format.get_formatted_date(iteration=self.bookmark_iteration)
+        else:
+            return str(self.bookmark_unit.time_unit_name) + ' ' + str(self.bookmark_iteration)

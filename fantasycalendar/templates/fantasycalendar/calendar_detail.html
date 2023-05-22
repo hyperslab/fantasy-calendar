@@ -46,6 +46,19 @@ Calendar Detail
 {% else %}
     <p>No display configurations have been created for this calendar.</p>
 {% endif %}
+<h3>Date Bookmarks <a
+        href="{% url 'fantasycalendar:date-bookmark-create' calendar.world_id calendar.id %}">(+new)</a></h3>
+{% if calendar.datebookmark_set %}
+    <ul>
+    {% for date_bookmark in calendar.datebookmark_set.all %}
+        <li>{{ date_bookmark.get_display_name  }} <a
+                href="{% url 'fantasycalendar:date-bookmark-update' calendar.world_id calendar.id date_bookmark.id %}">(edit)</a> <a
+                href="{% url 'fantasycalendar:calendar-detail' calendar.world_id calendar.id %}?display_unit_type={{ date_bookmark.bookmark_unit.id }}&nest_checkbox={{ nest_level }}&iteration={{ date_bookmark.bookmark_iteration }}">(go to bookmark)</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No date bookmarks have been created for this calendar.</p>
+{% endif %}
 {% endblock %}
 
 {% block graphic %}
