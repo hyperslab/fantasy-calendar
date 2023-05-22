@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import resolve
 from django import forms
 
-from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig
+from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig, DateBookmark
 
 
 class TimeUnitInLineForm(forms.ModelForm):
@@ -72,3 +72,10 @@ class DisplayConfigAdmin(admin.ModelAdmin):
 
 
 admin.site.register(DisplayConfig, DisplayConfigAdmin)
+
+
+class DateBookmarkAdmin(admin.ModelAdmin):
+    fields = ('calendar', 'date_bookmark_name', 'bookmark_unit', 'bookmark_iteration')
+
+
+admin.site.register(DateBookmark, DateBookmarkAdmin)

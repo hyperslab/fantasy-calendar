@@ -524,6 +524,17 @@ class DisplayConfig(models.Model):
     display_config_name = models.CharField(max_length=200)
     display_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE)
     nest_level = models.IntegerField(default=0)
+    default_date_bookmark = models.ForeignKey('DateBookmark', on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return self.display_config_name
+
+
+class DateBookmark(models.Model):
+    calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
+    date_bookmark_name = models.CharField(max_length=200, blank=True)
+    bookmark_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE)
+    bookmark_iteration = models.IntegerField()
+
+    def __str__(self):
+        return self.date_bookmark_name
