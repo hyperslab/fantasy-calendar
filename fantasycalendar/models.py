@@ -20,7 +20,8 @@ class World(models.Model):
 class Calendar(models.Model):
     world = models.ForeignKey(World, on_delete=models.CASCADE)
     calendar_name = models.CharField(max_length=200)
-    default_display_config = models.ForeignKey('DisplayConfig', on_delete=models.CASCADE, null=True, related_name='+')
+    default_display_config = models.ForeignKey('DisplayConfig', on_delete=models.CASCADE, null=True, related_name='+',
+                                               blank=True)
 
     def __str__(self):
         return self.calendar_name
@@ -42,7 +43,7 @@ class TimeUnit(models.Model):
     base_unit = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
     length_cycle = models.CharField(max_length=800, default='1')
     base_unit_instance_names = models.CharField(max_length=800, default='', blank=True)
-    default_date_format = models.ForeignKey('DateFormat', on_delete=models.CASCADE, null=True)
+    default_date_format = models.ForeignKey('DateFormat', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return self.time_unit_name
@@ -524,7 +525,7 @@ class DisplayConfig(models.Model):
     display_config_name = models.CharField(max_length=200)
     display_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE)
     nest_level = models.IntegerField(default=0)
-    default_date_bookmark = models.ForeignKey('DateBookmark', on_delete=models.CASCADE, null=True)
+    default_date_bookmark = models.ForeignKey('DateBookmark', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return self.display_config_name
