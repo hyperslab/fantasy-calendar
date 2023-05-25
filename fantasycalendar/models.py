@@ -451,6 +451,25 @@ class TimeUnit(models.Model):
             new_parents = one_level_higher
         return parents
 
+    def get_instance_display_name(self, iteration: int, date_format: 'DateFormat' = None) -> str:
+        """
+        Return a human-readable name for the instance of this time unit
+        that exists at a particular iteration.
+
+        In order, prefers a given date format, then the default date
+        format for this time unit if none is given, then something like
+        (time_unit_name + " " + iteration) if there is no default date
+        format for this time unit.
+        """
+        if date_format is None:
+            date_format = self.default_date_format
+        if date_format:
+            if date_format.time_unit != self:
+                raise ValueError
+            return date_format.get_formatted_date(iteration)
+        else:
+            return str(self.time_unit_name) + ' ' + str(iteration)
+
 
 class Event(models.Model):
     calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)

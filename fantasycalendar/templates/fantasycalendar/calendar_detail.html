@@ -63,7 +63,7 @@ Calendar Detail
 
 {% block graphic %}
 {% if calendar.timeunit_set %}
-<h3>{{ display_unit.time_unit_name }} {{ iteration }} View</h3>
+<h3><a href="{% url 'fantasycalendar:time-unit-instance-detail' calendar.world_id calendar.id display_unit.id iteration %}">{{ instance_display_name }}</a></h3>
 <form action="{% url 'fantasycalendar:calendar-detail' calendar.world_id calendar.id %}" method="get">
     <label for="display_unit_type">Change display level: </label>
     <select name="display_unit_type" id="display_unit_type">

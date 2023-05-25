@@ -41,6 +41,8 @@ class CalendarDetailView(generic.DetailView):
         else:
             context['iteration'] = 1
 
+        context['instance_display_name'] = context['display_unit'].get_instance_display_name(context['iteration'])
+
         if context['nest_level'] > 0 and context['display_unit'].base_unit is not None and \
                 context['display_unit'].base_unit.base_unit is not None:
             context['display_nested'] = True
