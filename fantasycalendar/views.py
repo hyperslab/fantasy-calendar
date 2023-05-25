@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import generic
 from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig, DateBookmark
-from django import forms
+from .forms import DisplayConfigCreateForm, DisplayConfigUpdateForm
 
 
 class WorldIndexView(generic.ListView):
@@ -36,6 +36,8 @@ class CalendarDetailView(generic.DetailView):
             context['nest_level'] = 0
         if 'iteration' in self.request.GET:
             context['iteration'] = int(self.request.GET['iteration'])
+        elif self.object.default_display_config and self.object.default_display_config.default_date_bookmark:
+            context['iteration'] = self.object.default_display_config.default_date_bookmark.bookmark_iteration
         else:
             context['iteration'] = 1
 
@@ -225,12 +227,14 @@ class DateFormatCreateView(generic.CreateView):
 
 class DisplayConfigCreateView(generic.CreateView):
     model = DisplayConfig
+    form_class = DisplayConfigCreateForm
     template_name = 'fantasycalendar/display_config_create_form.html'
-    fields = ['display_config_name', 'display_unit', 'nest_level']
 
     def get_form(self, form_class=None):
         form = super(DisplayConfigCreateView, self).get_form()
         form.fields['display_unit'].queryset = TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key'])
+        form.fields['default_date_bookmark'].queryset = DateBookmark.objects.filter(
+            calendar_id=self.kwargs['calendar_key'])
         return form
 
     def form_valid(self, form):
@@ -339,12 +343,14 @@ class DateFormatUpdateView(generic.UpdateView):
 
 class DisplayConfigUpdateView(generic.UpdateView):
     model = DisplayConfig
+    form_class = DisplayConfigUpdateForm
     template_name = 'fantasycalendar/display_config_update_form.html'
-    fields = ['display_config_name', 'display_unit', 'nest_level']
 
     def get_form(self, form_class=None):
         form = super(DisplayConfigUpdateView, self).get_form()
         form.fields['display_unit'].queryset = TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key'])
+        form.fields['default_date_bookmark'].queryset = DateBookmark.objects.filter(
+            calendar_id=self.kwargs['calendar_key'])
         return form
 
     def get_success_url(self):
