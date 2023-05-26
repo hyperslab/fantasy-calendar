@@ -73,7 +73,7 @@ Calendar Detail
     </select>
     <br>
     <label for="nest_checkbox">Show base time unit detail?</label>
-    <input type="checkbox" id="nest_checkbox" name="nest_checkbox" value="1" {% if nest_level == 1 %}checked{% endif %}>
+    <input type="hidden" id="nest_checkbox_hidden" name="nest_checkbox" value="{% if nest_level == 1 %}1{% else %}0{% endif %}"><input type="checkbox" id="nest_checkbox" value="1" {% if nest_level == 1 %}checked{% endif %} onclick="this.previousSibling.value=1-this.previousSibling.value">
     <br>
     <label for="iteration">Display specific time unit instance:</label>
     <input type="text" id="iteration" name="iteration" value="{{ iteration }}">
