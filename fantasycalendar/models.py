@@ -286,7 +286,8 @@ class TimeUnit(models.Model):
         first_bottom_level_iteration = self.get_first_bottom_level_iteration_at_iteration(iteration=iteration)
         last_bottom_level_iteration = self.get_last_bottom_level_iteration_at_iteration(iteration=iteration)
         return [x for x in Event.objects.filter(bottom_level_iteration__gte=first_bottom_level_iteration,
-                                                bottom_level_iteration__lte=last_bottom_level_iteration)]
+                                                bottom_level_iteration__lte=last_bottom_level_iteration,
+                                                calendar_id=self.calendar.id)]
 
     @staticmethod
     def expand_length_cycle(length_cycle) -> list[int]:
