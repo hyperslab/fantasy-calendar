@@ -24,6 +24,9 @@
             </span>
             {% else %}
             <span>
+                <h5><a href="{% url 'fantasycalendar:user-create' %}">Sign Up</a></h5>
+            </span>
+            <span>
                 <h5><a href="{% url 'fantasycalendar:login' %}">Log In</a></h5>
             </span>
             {% endif %}

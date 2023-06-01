@@ -1,8 +1,19 @@
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import generic
+from django.contrib.auth import forms as auth_forms, authenticate, login
+from django.contrib.auth.models import User
 from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig, DateBookmark
 from .forms import DisplayConfigCreateForm, DisplayConfigUpdateForm
+
+
+class UserCreateView(generic.CreateView):
+    model = User
+    form_class = auth_forms.UserCreationForm
+    template_name = 'fantasycalendar/user_create_form.html'
+
+    def get_success_url(self):
+        return reverse('fantasycalendar:login')
 
 
 class WorldIndexView(generic.ListView):

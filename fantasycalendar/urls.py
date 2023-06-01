@@ -11,6 +11,7 @@ urlpatterns = [
                                                          next_page='fantasycalendar:world-index'), name="login"),
     path("accounts/logout/", auth_views.LogoutView.as_view(template_name=app_name + "/login.html",
                                                            next_page='fantasycalendar:world-index'), name="logout"),
+    path("accounts/new/", views.UserCreateView.as_view(), name="user-create"),
     path("worlds/", views.WorldIndexView.as_view(), name="world-index"),
     path("worlds/<int:pk>/", views.WorldDetailView.as_view(), name="world-detail"),
     path("worlds/new/", views.WorldCreateView.as_view(), name="world-create"),
