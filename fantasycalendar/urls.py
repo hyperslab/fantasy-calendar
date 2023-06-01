@@ -1,11 +1,16 @@
 from django.shortcuts import redirect
 from django.urls import path, reverse
 from . import views
+from django.contrib.auth import views as auth_views
 
 
 app_name = 'fantasycalendar'
 urlpatterns = [
     path("", lambda req: redirect(reverse('fantasycalendar:world-index'))),
+    path("accounts/login/", auth_views.LoginView.as_view(template_name=app_name + "/login.html",
+                                                         next_page='fantasycalendar:world-index'), name="login"),
+    path("accounts/logout/", auth_views.LogoutView.as_view(template_name=app_name + "/login.html",
+                                                           next_page='fantasycalendar:world-index'), name="logout"),
     path("worlds/", views.WorldIndexView.as_view(), name="world-index"),
     path("worlds/<int:pk>/", views.WorldDetailView.as_view(), name="world-detail"),
     path("worlds/new/", views.WorldCreateView.as_view(), name="world-create"),

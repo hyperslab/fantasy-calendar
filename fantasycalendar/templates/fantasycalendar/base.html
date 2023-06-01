@@ -11,7 +11,23 @@
 <body>
     <div id="header">
         {% block header %}
-        <h1><a href="{% url 'fantasycalendar:world-index' %}">Fantasy Calendar</a></h1>
+        <span>
+            <h1><a href="{% url 'fantasycalendar:world-index' %}">Fantasy Calendar</a></h1>
+        </span>
+        <div id="header-buttons">
+            {% if user.is_authenticated %}
+            <span>
+                <h5>{{ user.username }}</h5>
+            </span>
+            <span>
+                <h5><a href="{% url 'fantasycalendar:logout' %}">Log Out</a></h5>
+            </span>
+            {% else %}
+            <span>
+                <h5><a href="{% url 'fantasycalendar:login' %}">Log In</a></h5>
+            </span>
+            {% endif %}
+        </div>
         {% endblock %}
     </div>
     <div id="row">
