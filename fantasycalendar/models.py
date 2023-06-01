@@ -5,9 +5,11 @@ from decimal import Decimal
 from django.db import models
 from django.contrib import admin
 from django.urls import reverse
+from django.conf import settings
 
 
 class World(models.Model):
+    creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)  # remove null=True later
     world_name = models.CharField(max_length=200)
 
     def __str__(self):

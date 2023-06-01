@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import generic
@@ -152,13 +153,18 @@ class DateFormatDetailView(generic.DetailView):
     template_name = 'fantasycalendar/date_format_detail.html'
 
 
-class WorldCreateView(generic.CreateView):
+class WorldCreateView(LoginRequiredMixin, generic.CreateView):
     model = World
     template_name = 'fantasycalendar/world_create_form.html'
     fields = ['world_name']
 
+    def form_valid(self, form):
+        form.instance.creator = self.request.user
+        form.instance.save()
+        return super(WorldCreateView, self).form_valid(form)
 
-class CalendarCreateView(generic.CreateView):
+
+class CalendarCreateView(LoginRequiredMixin, generic.CreateView):
     model = Calendar
     template_name = 'fantasycalendar/calendar_create_form.html'
     fields = ['calendar_name']
@@ -171,7 +177,7 @@ class CalendarCreateView(generic.CreateView):
         return super(CalendarCreateView, self).form_valid(form)
 
 
-class TimeUnitCreateView(generic.CreateView):
+class TimeUnitCreateView(LoginRequiredMixin, generic.CreateView):
     model = TimeUnit
     template_name = 'fantasycalendar/time_unit_create_form.html'
     fields = ['time_unit_name', 'base_unit', 'length_cycle', 'base_unit_instance_names']
@@ -193,7 +199,7 @@ class TimeUnitCreateView(generic.CreateView):
                        kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
 
 
-class EventCreateView(generic.CreateView):
+class EventCreateView(LoginRequiredMixin, generic.CreateView):
     model = Event
     template_name = 'fantasycalendar/event_create_form.html'
     fields = ['event_name', 'event_description', 'bottom_level_iteration']
@@ -219,7 +225,7 @@ class EventCreateView(generic.CreateView):
                        kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
 
 
-class DateFormatCreateView(generic.CreateView):
+class DateFormatCreateView(LoginRequiredMixin, generic.CreateView):
     model = DateFormat
     template_name = 'fantasycalendar/date_format_create_form.html'
     fields = ['time_unit', 'date_format_name', 'format_string']
@@ -247,7 +253,7 @@ class DateFormatCreateView(generic.CreateView):
         return super(DateFormatCreateView, self).form_valid(form)
 
 
-class DisplayConfigCreateView(generic.CreateView):
+class DisplayConfigCreateView(LoginRequiredMixin, generic.CreateView):
     model = DisplayConfig
     form_class = DisplayConfigCreateForm
     template_name = 'fantasycalendar/display_config_create_form.html'
@@ -269,7 +275,7 @@ class DisplayConfigCreateView(generic.CreateView):
                        kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
 
 
-class DateBookmarkCreateView(generic.CreateView):
+class DateBookmarkCreateView(LoginRequiredMixin, generic.CreateView):
     model = DateBookmark
     template_name = 'fantasycalendar/date_bookmark_create_form.html'
     fields = ['date_bookmark_name', 'bookmark_unit', 'bookmark_iteration']

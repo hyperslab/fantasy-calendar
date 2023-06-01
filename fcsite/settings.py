@@ -82,6 +82,12 @@ DATABASES = {
 }
 
 
+# Login URL
+# https://docs.djangoproject.com/en/4.2/ref/settings/#std-setting-LOGIN_URL
+
+LOGIN_URL = 'fantasycalendar:login'
+
+
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
