@@ -97,6 +97,11 @@ class CalendarDetailView(generic.DetailView):
         return context
 
 
+class TimeUnitDetailView(generic.DetailView):
+    model = TimeUnit
+    template_name = 'fantasycalendar/time_unit_detail.html'
+
+
 class TimeUnitInstanceDetailView(generic.DetailView):
     model = TimeUnit
     template_name = 'fantasycalendar/time_unit_instance_detail.html'
@@ -207,6 +212,10 @@ class DateFormatCreateView(generic.CreateView):
     model = DateFormat
     template_name = 'fantasycalendar/date_format_create_form.html'
     fields = ['time_unit', 'date_format_name', 'format_string']
+
+    def get_initial(self):
+        if 'time_unit' in self.request.GET:
+            return {'time_unit': TimeUnit.objects.get(pk=int(self.request.GET['time_unit']))}
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

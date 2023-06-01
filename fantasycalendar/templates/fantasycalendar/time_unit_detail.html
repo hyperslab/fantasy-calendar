@@ -1,0 +1,38 @@
+{% extends "fantasycalendar/base.html" %}
+
+{% block title %}
+Time Unit Detail
+{% endblock %}
+
+{% block content %}
+<h2><a href="{% url 'fantasycalendar:world-detail' timeunit.calendar.world_id %}">{{ timeunit.calendar.world.world_name }}</a> - <a
+        href="{% url 'fantasycalendar:calendar-detail' timeunit.calendar.world_id timeunit.calendar_id %}">{{ timeunit.calendar.calendar_name }}</a> - {{ timeunit.time_unit_name }}
+    <a href="{% url 'fantasycalendar:time-unit-update' timeunit.calendar.world_id timeunit.calendar_id timeunit.id %}">(edit)</a></h2>
+{% if timeunit.base_unit %}
+    <h3>Base Unit</h3>
+    <p><a href="{% url 'fantasycalendar:time-unit-detail' timeunit.calendar.world_id timeunit.calendar_id timeunit.base_unit.id %}">{{ timeunit.base_unit.time_unit_name }}</a></p>
+    <h3>Length Cycle</h3>
+    <p>{{ timeunit.get_length_cycle_display }}</p>
+    {% if timeunit.base_unit_instance_names %}
+        <h3>Base Unit Instance Names</h3>
+        <ul>
+            {% for base_name in timeunit.get_base_unit_instance_names %}
+                <li>{{ base_name }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% else %}
+    <h3>This is a Bottom Level Time Unit</h3>
+{% endif %}
+<h3>Date Formats <a href="{% url 'fantasycalendar:date-format-create' timeunit.calendar.world_id timeunit.calendar.id %}?time_unit={{ timeunit.id }}">(+new)</a></h3>
+{% if timeunit.dateformat_set %}
+    <ul>
+    {% for date_format in timeunit.dateformat_set.all %}
+        <li><a href="{% url 'fantasycalendar:date-format-detail' timeunit.calendar.world_id timeunit.calendar.id date_format.id %}">{{ date_format.date_format_name }}</a> <a
+                    href="{% url 'fantasycalendar:date-format-update' timeunit.calendar.world_id timeunit.calendar.id date_format.id %}">(edit)</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No date formats have been created for this calendar.</p>
+{% endif %}
+{% endblock %}

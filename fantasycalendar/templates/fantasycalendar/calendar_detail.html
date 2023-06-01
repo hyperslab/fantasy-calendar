@@ -12,27 +12,16 @@ Calendar Detail
     <ul>
     {% for time_unit in calendar.timeunit_set.all %}
         {% if time_unit.is_bottom_level %}
-        <li>{{ time_unit.time_unit_name }} - base calendar unit <a
+        <li><a href="{% url 'fantasycalendar:time-unit-detail' calendar.world_id calendar.id time_unit.id %}">{{ time_unit.time_unit_name }}</a> - base calendar unit <a
                 href="{% url 'fantasycalendar:time-unit-update' calendar.world_id calendar.id time_unit.id %}">(edit)</a></li>
         {% else %}
-        <li>{{ time_unit.time_unit_name }} - {{ time_unit.get_length_cycle_display  }} {{ time_unit.base_unit.time_unit_name }}s long <a
+        <li><a href="{% url 'fantasycalendar:time-unit-detail' calendar.world_id calendar.id time_unit.id %}">{{ time_unit.time_unit_name }}</a> - {{ time_unit.get_length_cycle_display  }} {{ time_unit.base_unit.time_unit_name }}s long <a
                 href="{% url 'fantasycalendar:time-unit-update' calendar.world_id calendar.id time_unit.id %}">(edit)</a></li>
         {% endif %}
     {% endfor %}
     </ul>
 {% else %}
     <p>No time units have been created for this calendar.</p>
-{% endif %}
-<h3>Date Formats <a href="{% url 'fantasycalendar:date-format-create' calendar.world_id calendar.id %}">(+new)</a></h3>
-{% if calendar.dateformat_set %}
-    <ul>
-    {% for date_format in calendar.dateformat_set.all %}
-        <li>{{ date_format.date_format_name  }} <a
-                href="{% url 'fantasycalendar:date-format-update' calendar.world_id calendar.id date_format.id %}">(edit)</a></li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>No date formats have been created for this calendar.</p>
 {% endif %}
 <h3>Display Configurations <a
         href="{% url 'fantasycalendar:display-config-create' calendar.world_id calendar.id %}">(+new)</a></h3>
