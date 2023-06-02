@@ -1,4 +1,4 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import generic
@@ -303,16 +303,24 @@ class DateBookmarkCreateView(LoginRequiredMixin, generic.CreateView):
                        kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
 
 
-class WorldUpdateView(generic.UpdateView):
+class WorldUpdateView(UserPassesTestMixin, generic.UpdateView):
     model = World
     template_name = 'fantasycalendar/world_update_form.html'
     fields = ['world_name']
 
+    def test_func(self):
+        world = get_object_or_404(World, pk=self.kwargs['pk'])
+        return self.request.user == world.creator
 
-class CalendarUpdateView(generic.UpdateView):
+
+class CalendarUpdateView(UserPassesTestMixin, generic.UpdateView):
     model = Calendar
     template_name = 'fantasycalendar/calendar_update_form.html'
     fields = ['calendar_name', 'default_display_config']
+
+    def test_func(self):
+        world = get_object_or_404(Calendar, pk=self.kwargs['pk']).world
+        return self.request.user == world.creator
 
     def get_form(self, form_class=None):
         form = super(CalendarUpdateView, self).get_form()
@@ -320,10 +328,14 @@ class CalendarUpdateView(generic.UpdateView):
         return form
 
 
-class TimeUnitUpdateView(generic.UpdateView):
+class TimeUnitUpdateView(UserPassesTestMixin, generic.UpdateView):
     model = TimeUnit
     template_name = 'fantasycalendar/time_unit_update_form.html'
     fields = ['time_unit_name', 'base_unit', 'length_cycle', 'base_unit_instance_names', 'default_date_format']
+
+    def test_func(self):
+        world = get_object_or_404(TimeUnit, pk=self.kwargs['pk']).calendar.world
+        return self.request.user == world.creator
 
     def get_form(self, form_class=None):
         form = super(TimeUnitUpdateView, self).get_form()
@@ -342,10 +354,14 @@ class TimeUnitUpdateView(generic.UpdateView):
                        kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
 
 
-class EventUpdateView(generic.UpdateView):
+class EventUpdateView(UserPassesTestMixin, generic.UpdateView):
     model = Event
     template_name = 'fantasycalendar/event_update_form.html'
     fields = ['event_name', 'event_description', 'bottom_level_iteration']
+
+    def test_func(self):
+        world = get_object_or_404(Event, pk=self.kwargs['pk']).calendar.world
+        return self.request.user == world.creator
 
     def get_form(self, form_class=None):
         form = super(EventUpdateView, self).get_form()
@@ -355,10 +371,14 @@ class EventUpdateView(generic.UpdateView):
         return form
 
 
-class DateFormatUpdateView(generic.UpdateView):
+class DateFormatUpdateView(UserPassesTestMixin, generic.UpdateView):
     model = DateFormat
     template_name = 'fantasycalendar/date_format_update_form.html'
     fields = ['date_format_name', 'format_string']
+
+    def test_func(self):
+        world = get_object_or_404(DateFormat, pk=self.kwargs['pk']).calendar.world
+        return self.request.user == world.creator
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -369,10 +389,14 @@ class DateFormatUpdateView(generic.UpdateView):
         return context
 
 
-class DisplayConfigUpdateView(generic.UpdateView):
+class DisplayConfigUpdateView(UserPassesTestMixin, generic.UpdateView):
     model = DisplayConfig
     form_class = DisplayConfigUpdateForm
     template_name = 'fantasycalendar/display_config_update_form.html'
+
+    def test_func(self):
+        world = get_object_or_404(DisplayConfig, pk=self.kwargs['pk']).calendar.world
+        return self.request.user == world.creator
 
     def get_form(self, form_class=None):
         form = super(DisplayConfigUpdateView, self).get_form()
@@ -386,10 +410,14 @@ class DisplayConfigUpdateView(generic.UpdateView):
                        kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
 
 
-class DateBookmarkUpdateView(generic.UpdateView):
+class DateBookmarkUpdateView(UserPassesTestMixin, generic.UpdateView):
     model = DateBookmark
     template_name = 'fantasycalendar/date_bookmark_update_form.html'
     fields = ['date_bookmark_name', 'bookmark_iteration']
+
+    def test_func(self):
+        world = get_object_or_404(DateBookmark, pk=self.kwargs['pk']).calendar.world
+        return self.request.user == world.creator
 
     def get_success_url(self):
         return reverse('fantasycalendar:calendar-detail',
