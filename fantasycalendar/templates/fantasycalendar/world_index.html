@@ -5,7 +5,7 @@ World Index
 {% endblock %}
 
 {% block content %}
-<h3>Worlds <a href="{% url 'fantasycalendar:world-create' %}">(+new)</a></h3>
+<h3>Worlds{% if user.is_authenticated %} <a href="{% url 'fantasycalendar:world-create' %}">(+new)</a>{% endif %}</h3>
 {% if world_list %}
     <ul>
     {% for world in world_list %}

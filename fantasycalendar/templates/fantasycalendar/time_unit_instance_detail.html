@@ -7,8 +7,8 @@ Time Unit Instance
 {% block content %}
 <h2><a href="{% url 'fantasycalendar:world-detail' timeunit.calendar.world_id %}">{{ timeunit.calendar.world.world_name }}</a> - <a
         href="{% url 'fantasycalendar:calendar-detail' timeunit.calendar.world_id timeunit.calendar_id %}">{{ timeunit.calendar.calendar_name }}</a> - {{ display_name }}</h2>
-<h3>Events <a
-        href="{% url 'fantasycalendar:event-create' timeunit.calendar.world.id timeunit.calendar_id %}?bottom_level_iteration={{ first_bottom_level_iteration }}">(+new)</a></h3>
+<h3>Events{% if user.pk == timeunit.calendar.world.creator.pk %} <a
+        href="{% url 'fantasycalendar:event-create' timeunit.calendar.world.id timeunit.calendar_id %}?bottom_level_iteration={{ first_bottom_level_iteration }}">(+new)</a>{% endif %}</h3>
 {% if events %}
     <ul>
     {% for event in events %}
@@ -18,13 +18,13 @@ Time Unit Instance
 {% else %}
     <p>No events take place during this {{ timeunit.time_unit_name }}.</p>
 {% endif %}
-<h3>Date Bookmarks <a
-        href="{% url 'fantasycalendar:date-bookmark-create' timeunit.calendar.world_id timeunit.calendar_id  %}?bookmark_unit={{ timeunit.id }}&bookmark_iteration={{ iteration }}">(+new)</a></h3>
+<h3>Date Bookmarks{% if user.pk == timeunit.calendar.world.creator.pk %} <a
+        href="{% url 'fantasycalendar:date-bookmark-create' timeunit.calendar.world_id timeunit.calendar_id  %}?bookmark_unit={{ timeunit.id }}&bookmark_iteration={{ iteration }}">(+new)</a>{% endif %}</h3>
 {% if date_bookmarks %}
     <ul>
     {% for date_bookmark in date_bookmarks %}
-        <li>{{ date_bookmark.get_display_name }} <a
-                href="{% url 'fantasycalendar:date-bookmark-update' timeunit.calendar.world_id timeunit.calendar.id date_bookmark.id %}">(edit)</a></li>
+        <li>{{ date_bookmark.get_display_name }}{% if user.pk == timeunit.calendar.world.creator.pk %} <a
+                href="{% url 'fantasycalendar:date-bookmark-update' timeunit.calendar.world_id timeunit.calendar.id date_bookmark.id %}">(edit)</a>{% endif %}</li>
     {% endfor %}
     </ul>
 {% else %}

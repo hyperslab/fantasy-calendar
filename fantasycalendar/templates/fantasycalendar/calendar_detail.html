@@ -5,43 +5,43 @@ Calendar Detail
 {% endblock %}
 
 {% block content %}
-<h2><a href="{% url 'fantasycalendar:world-detail' calendar.world_id %}">{{ calendar.world.world_name }}</a> - {{ calendar.calendar_name }}
-    <a href="{% url 'fantasycalendar:calendar-update' calendar.world_id calendar.id %}">(edit)</a></h2>
-<h3>Time Units <a href="{% url 'fantasycalendar:time-unit-create' calendar.world_id calendar.id %}">(+new)</a></h3>
+<h2><a href="{% url 'fantasycalendar:world-detail' calendar.world_id %}">{{ calendar.world.world_name }}</a> - {{ calendar.calendar_name }}{% if user.pk == calendar.world.creator.pk %}
+    <a href="{% url 'fantasycalendar:calendar-update' calendar.world_id calendar.id %}">(edit)</a>{% endif %}</h2>
+<h3>Time Units{% if user.pk == calendar.world.creator.pk %} <a href="{% url 'fantasycalendar:time-unit-create' calendar.world_id calendar.id %}">(+new)</a>{% endif %}</h3>
 {% if calendar.timeunit_set %}
     <ul>
     {% for time_unit in calendar.timeunit_set.all %}
         {% if time_unit.is_bottom_level %}
-        <li><a href="{% url 'fantasycalendar:time-unit-detail' calendar.world_id calendar.id time_unit.id %}">{{ time_unit.time_unit_name }}</a> - base calendar unit <a
-                href="{% url 'fantasycalendar:time-unit-update' calendar.world_id calendar.id time_unit.id %}">(edit)</a></li>
+        <li><a href="{% url 'fantasycalendar:time-unit-detail' calendar.world_id calendar.id time_unit.id %}">{{ time_unit.time_unit_name }}</a> - base calendar unit{% if user.pk == calendar.world.creator.pk %} <a
+                href="{% url 'fantasycalendar:time-unit-update' calendar.world_id calendar.id time_unit.id %}">(edit)</a>{% endif %}</li>
         {% else %}
-        <li><a href="{% url 'fantasycalendar:time-unit-detail' calendar.world_id calendar.id time_unit.id %}">{{ time_unit.time_unit_name }}</a> - {{ time_unit.get_length_cycle_display  }} {{ time_unit.base_unit.time_unit_name }}s long <a
-                href="{% url 'fantasycalendar:time-unit-update' calendar.world_id calendar.id time_unit.id %}">(edit)</a></li>
+        <li><a href="{% url 'fantasycalendar:time-unit-detail' calendar.world_id calendar.id time_unit.id %}">{{ time_unit.time_unit_name }}</a> - {{ time_unit.get_length_cycle_display  }} {{ time_unit.base_unit.time_unit_name }}s long{% if user.pk == calendar.world.creator.pk %} <a
+                href="{% url 'fantasycalendar:time-unit-update' calendar.world_id calendar.id time_unit.id %}">(edit)</a>{% endif %}</li>
         {% endif %}
     {% endfor %}
     </ul>
 {% else %}
     <p>No time units have been created for this calendar.</p>
 {% endif %}
-<h3>Display Configurations <a
-        href="{% url 'fantasycalendar:display-config-create' calendar.world_id calendar.id %}">(+new)</a></h3>
+<h3>Display Configurations{% if user.pk == calendar.world.creator.pk %} <a
+        href="{% url 'fantasycalendar:display-config-create' calendar.world_id calendar.id %}">(+new)</a>{% endif %}</h3>
 {% if calendar.displayconfig_set %}
     <ul>
     {% for display_config in calendar.displayconfig_set.all %}
-        <li>{{ display_config.display_config_name  }} <a
-                href="{% url 'fantasycalendar:display-config-update' calendar.world_id calendar.id display_config.id %}">(edit)</a></li>
+        <li>{{ display_config.display_config_name  }}{% if user.pk == calendar.world.creator.pk %} <a
+                href="{% url 'fantasycalendar:display-config-update' calendar.world_id calendar.id display_config.id %}">(edit)</a>{% endif %}</li>
     {% endfor %}
     </ul>
 {% else %}
     <p>No display configurations have been created for this calendar.</p>
 {% endif %}
-<h3>Date Bookmarks <a
-        href="{% url 'fantasycalendar:date-bookmark-create' calendar.world_id calendar.id %}">(+new)</a></h3>
+<h3>Date Bookmarks{% if user.pk == calendar.world.creator.pk %} <a
+        href="{% url 'fantasycalendar:date-bookmark-create' calendar.world_id calendar.id %}">(+new)</a>{% endif %}</h3>
 {% if calendar.datebookmark_set %}
     <ul>
     {% for date_bookmark in calendar.datebookmark_set.all %}
-        <li>{{ date_bookmark.get_display_name  }} <a
-                href="{% url 'fantasycalendar:date-bookmark-update' calendar.world_id calendar.id date_bookmark.id %}">(edit)</a> <a
+        <li>{{ date_bookmark.get_display_name  }}{% if user.pk == calendar.world.creator.pk %} <a
+                href="{% url 'fantasycalendar:date-bookmark-update' calendar.world_id calendar.id date_bookmark.id %}">(edit)</a>{% endif %} <a
                 href="{% url 'fantasycalendar:calendar-detail' calendar.world_id calendar.id %}?display_unit_type={{ date_bookmark.bookmark_unit.id }}&nest_checkbox={{ nest_level }}&iteration={{ date_bookmark.bookmark_iteration }}">(go to bookmark)</a></li>
     {% endfor %}
     </ul>
