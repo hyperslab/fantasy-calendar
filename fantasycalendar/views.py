@@ -164,10 +164,14 @@ class WorldCreateView(LoginRequiredMixin, generic.CreateView):
         return super(WorldCreateView, self).form_valid(form)
 
 
-class CalendarCreateView(LoginRequiredMixin, generic.CreateView):
+class CalendarCreateView(UserPassesTestMixin, generic.CreateView):
     model = Calendar
     template_name = 'fantasycalendar/calendar_create_form.html'
     fields = ['calendar_name']
+
+    def test_func(self):
+        world = get_object_or_404(World, pk=self.kwargs['world_key'])
+        return self.request.user == world.creator
 
     def form_valid(self, form):
         world = get_object_or_404(World, pk=self.kwargs['world_key'])
@@ -177,10 +181,14 @@ class CalendarCreateView(LoginRequiredMixin, generic.CreateView):
         return super(CalendarCreateView, self).form_valid(form)
 
 
-class TimeUnitCreateView(LoginRequiredMixin, generic.CreateView):
+class TimeUnitCreateView(UserPassesTestMixin, generic.CreateView):
     model = TimeUnit
     template_name = 'fantasycalendar/time_unit_create_form.html'
     fields = ['time_unit_name', 'base_unit', 'length_cycle', 'base_unit_instance_names']
+
+    def test_func(self):
+        world = get_object_or_404(World, pk=self.kwargs['world_key'])
+        return self.request.user == world.creator
 
     def get_form(self, form_class=None):
         form = super(TimeUnitCreateView, self).get_form()
@@ -199,10 +207,14 @@ class TimeUnitCreateView(LoginRequiredMixin, generic.CreateView):
                        kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
 
 
-class EventCreateView(LoginRequiredMixin, generic.CreateView):
+class EventCreateView(UserPassesTestMixin, generic.CreateView):
     model = Event
     template_name = 'fantasycalendar/event_create_form.html'
     fields = ['event_name', 'event_description', 'bottom_level_iteration']
+
+    def test_func(self):
+        world = get_object_or_404(World, pk=self.kwargs['world_key'])
+        return self.request.user == world.creator
 
     def get_initial(self):
         if 'bottom_level_iteration' in self.request.GET:
@@ -225,10 +237,14 @@ class EventCreateView(LoginRequiredMixin, generic.CreateView):
                        kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
 
 
-class DateFormatCreateView(LoginRequiredMixin, generic.CreateView):
+class DateFormatCreateView(UserPassesTestMixin, generic.CreateView):
     model = DateFormat
     template_name = 'fantasycalendar/date_format_create_form.html'
     fields = ['time_unit', 'date_format_name', 'format_string']
+
+    def test_func(self):
+        world = get_object_or_404(World, pk=self.kwargs['world_key'])
+        return self.request.user == world.creator
 
     def get_initial(self):
         if 'time_unit' in self.request.GET:
@@ -253,10 +269,14 @@ class DateFormatCreateView(LoginRequiredMixin, generic.CreateView):
         return super(DateFormatCreateView, self).form_valid(form)
 
 
-class DisplayConfigCreateView(LoginRequiredMixin, generic.CreateView):
+class DisplayConfigCreateView(UserPassesTestMixin, generic.CreateView):
     model = DisplayConfig
     form_class = DisplayConfigCreateForm
     template_name = 'fantasycalendar/display_config_create_form.html'
+
+    def test_func(self):
+        world = get_object_or_404(World, pk=self.kwargs['world_key'])
+        return self.request.user == world.creator
 
     def get_form(self, form_class=None):
         form = super(DisplayConfigCreateView, self).get_form()
@@ -275,10 +295,14 @@ class DisplayConfigCreateView(LoginRequiredMixin, generic.CreateView):
                        kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
 
 
-class DateBookmarkCreateView(LoginRequiredMixin, generic.CreateView):
+class DateBookmarkCreateView(UserPassesTestMixin, generic.CreateView):
     model = DateBookmark
     template_name = 'fantasycalendar/date_bookmark_create_form.html'
     fields = ['date_bookmark_name', 'bookmark_unit', 'bookmark_iteration']
+
+    def test_func(self):
+        world = get_object_or_404(World, pk=self.kwargs['world_key'])
+        return self.request.user == world.creator
 
     def get_initial(self):
         initial = {}
