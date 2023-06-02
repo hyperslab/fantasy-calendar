@@ -11,6 +11,7 @@ from django.conf import settings
 class World(models.Model):
     creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)  # remove null=True later
     world_name = models.CharField(max_length=200)
+    public = models.BooleanField(default=False)
 
     def __str__(self):
         return self.world_name

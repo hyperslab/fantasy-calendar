@@ -5,7 +5,19 @@ World Index
 {% endblock %}
 
 {% block content %}
-<h3>Worlds{% if user.is_authenticated %} <a href="{% url 'fantasycalendar:world-create' %}">(+new)</a>{% endif %}</h3>
+{% if user.is_authenticated %}
+<h3>My Worlds <a href="{% url 'fantasycalendar:world-create' %}">(+new)</a></h3>
+{% if user_world_list %}
+    <ul>
+    {% for world in user_world_list %}
+        <li><a href="{% url 'fantasycalendar:world-detail' world.id %}">{{ world.world_name }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>You have not created any worlds.</p>
+{% endif %}
+{% endif %}
+<h3>{% if user.is_authenticated %}Public {% endif %}Worlds</h3>
 {% if world_list %}
     <ul>
     {% for world in world_list %}
@@ -13,6 +25,6 @@ World Index
     {% endfor %}
     </ul>
 {% else %}
-    <p>No worlds have been created.</p>
+    <p>No public worlds {% if user.is_authenticated %}from other creators {% endif %}are available.</p>
 {% endif %}
 {% endblock %}

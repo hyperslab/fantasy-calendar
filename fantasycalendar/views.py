@@ -22,15 +22,35 @@ class WorldIndexView(generic.ListView):
     template_name = 'fantasycalendar/world_index.html'
     context_object_name = 'world_list'
 
+    def get_queryset(self):
+        worlds = World.objects.filter(public=True)
+        if self.request.user.is_authenticated:
+            worlds = worlds.exclude(creator_id=self.request.user.id)
+        return worlds
 
-class WorldDetailView(generic.DetailView):
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super(WorldIndexView, self).get_context_data(object_list=object_list, **kwargs)
+        if self.request.user.is_authenticated:
+            context['user_world_list'] = World.objects.filter(creator_id=self.request.user.id)
+        return context
+
+
+class WorldDetailView(UserPassesTestMixin, generic.DetailView):
     model = World
     template_name = 'fantasycalendar/world_detail.html'
 
+    def test_func(self):
+        world = get_object_or_404(World, pk=self.kwargs['pk'])
+        return world.public or self.request.user == world.creator
 
-class CalendarDetailView(generic.DetailView):
+
+class CalendarDetailView(UserPassesTestMixin, generic.DetailView):
     model = Calendar
     template_name = 'fantasycalendar/calendar_detail.html'
+
+    def test_func(self):
+        world = get_object_or_404(World, pk=self.kwargs['world_key'])
+        return world.public or self.request.user == world.creator
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -109,14 +129,22 @@ class CalendarDetailView(generic.DetailView):
         return context
 
 
-class TimeUnitDetailView(generic.DetailView):
+class TimeUnitDetailView(UserPassesTestMixin, generic.DetailView):
     model = TimeUnit
     template_name = 'fantasycalendar/time_unit_detail.html'
 
+    def test_func(self):
+        world = get_object_or_404(World, pk=self.kwargs['world_key'])
+        return world.public or self.request.user == world.creator
 
-class TimeUnitInstanceDetailView(generic.DetailView):
+
+class TimeUnitInstanceDetailView(UserPassesTestMixin, generic.DetailView):
     model = TimeUnit
     template_name = 'fantasycalendar/time_unit_instance_detail.html'
+
+    def test_func(self):
+        world = get_object_or_404(World, pk=self.kwargs['world_key'])
+        return world.public or self.request.user == world.creator
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -133,9 +161,13 @@ class TimeUnitInstanceDetailView(generic.DetailView):
         return context
 
 
-class EventDetailView(generic.DetailView):
+class EventDetailView(UserPassesTestMixin, generic.DetailView):
     model = Event
     template_name = 'fantasycalendar/event_detail.html'
+
+    def test_func(self):
+        world = get_object_or_404(World, pk=self.kwargs['world_key'])
+        return world.public or self.request.user == world.creator
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -148,15 +180,19 @@ class EventDetailView(generic.DetailView):
         return context
 
 
-class DateFormatDetailView(generic.DetailView):
+class DateFormatDetailView(UserPassesTestMixin, generic.DetailView):
     model = DateFormat
     template_name = 'fantasycalendar/date_format_detail.html'
+
+    def test_func(self):
+        world = get_object_or_404(World, pk=self.kwargs['world_key'])
+        return world.public or self.request.user == world.creator
 
 
 class WorldCreateView(LoginRequiredMixin, generic.CreateView):
     model = World
     template_name = 'fantasycalendar/world_create_form.html'
-    fields = ['world_name']
+    fields = ['world_name', 'public']
 
     def form_valid(self, form):
         form.instance.creator = self.request.user
@@ -330,7 +366,7 @@ class DateBookmarkCreateView(UserPassesTestMixin, generic.CreateView):
 class WorldUpdateView(UserPassesTestMixin, generic.UpdateView):
     model = World
     template_name = 'fantasycalendar/world_update_form.html'
-    fields = ['world_name']
+    fields = ['world_name', 'public']
 
     def test_func(self):
         world = get_object_or_404(World, pk=self.kwargs['pk'])
