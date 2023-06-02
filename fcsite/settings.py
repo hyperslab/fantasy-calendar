@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,10 +21,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'set this in local_settings.py'
+SECRET_KEY = 'set this in local_settings.py or azure_settings.py'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -130,10 +131,13 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-# Copy local settings which should contain the real SECRET_KEY
-# can also override any other settings
+# Copy environment settings which should contain the real SECRET_KEY
+# Can also override any other settings
 
-try:
-    from local_settings import *
-except ImportError:
-    pass
+if 'WEBSITE_HOSTNAME' in os.environ:
+    from .azure_settings import *
+else:
+    try:
+        from .local_settings import *
+    except ImportError:
+        pass
