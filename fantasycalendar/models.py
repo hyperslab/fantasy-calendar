@@ -6,12 +6,14 @@ from django.db import models
 from django.contrib import admin
 from django.urls import reverse
 from django.conf import settings
+from .utils import html_tooltip
 
 
 class World(models.Model):
     creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)  # remove null=True later
-    world_name = models.CharField(max_length=200)
-    public = models.BooleanField(default=False)
+    world_name = models.CharField(max_length=200, help_text=html_tooltip('The name of this world'))
+    public = models.BooleanField(default=False,
+                                 help_text=html_tooltip('Whether this world is viewable by other people'))
 
     def __str__(self):
         return self.world_name
@@ -22,9 +24,11 @@ class World(models.Model):
 
 class Calendar(models.Model):
     world = models.ForeignKey(World, on_delete=models.CASCADE)
-    calendar_name = models.CharField(max_length=200)
+    calendar_name = models.CharField(max_length=200, help_text=html_tooltip('The name of this calendar'))
     default_display_config = models.ForeignKey('DisplayConfig', on_delete=models.CASCADE, null=True, related_name='+',
-                                               blank=True)
+                                               blank=True,
+                                               help_text=html_tooltip('The display configuration for this calendar to '
+                                                                      'use when initially loading into the page'))
 
     def __str__(self):
         return self.calendar_name
@@ -42,11 +46,24 @@ class Calendar(models.Model):
 
 class TimeUnit(models.Model):
     calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
-    time_unit_name = models.CharField(max_length=200, default='')
-    base_unit = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
-    length_cycle = models.CharField(max_length=800, default='1')
-    base_unit_instance_names = models.CharField(max_length=800, default='', blank=True)
-    default_date_format = models.ForeignKey('DateFormat', on_delete=models.CASCADE, null=True, blank=True)
+    time_unit_name = models.CharField(max_length=200, default='',
+                                      help_text=html_tooltip('The name of this time unit, e.g. "Month" or "Day"'))
+    base_unit = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True,
+                                  help_text=html_tooltip('The type of time unit that this time unit consists of,  e.g. '
+                                                         '"Year" could have a base unit of "Month"'))
+    length_cycle = models.CharField(max_length=800, default='1',
+                                    help_text=html_tooltip('The number of base time units in this time unit; if the '
+                                                           'length varies, specify multiple lengths separated by '
+                                                           'spaces, e.g. "10 11 12" would result in a length of 10, '
+                                                           'then 11, then 12, then repeat from 10, etc.'))
+    base_unit_instance_names = models.CharField(max_length=800, default='', blank=True,
+                                                help_text=html_tooltip('The name(s) of each instance of a base time '
+                                                                       'unit within this time unit, separated by '
+                                                                       'spaces, e.g. "Year" could have base units '
+                                                                       'called "January February (...) December"'))
+    default_date_format = models.ForeignKey('DateFormat', on_delete=models.CASCADE, null=True, blank=True,
+                                            help_text=html_tooltip('The format for instances of this time unit to be '
+                                                                   'displayed as most prominently'))
 
     def __str__(self):
         return self.time_unit_name
@@ -278,7 +295,7 @@ class TimeUnit(models.Model):
         4 is Day 1440.
         """
         return self.get_first_bottom_level_iteration_at_iteration(iteration=iteration) + \
-            self.get_bottom_level_length_at_iteration(iteration=iteration) - 1
+               self.get_bottom_level_length_at_iteration(iteration=iteration) - 1
 
     def get_events_at_iteration(self, iteration: int) -> list['Event']:
         """
@@ -477,9 +494,12 @@ class TimeUnit(models.Model):
 
 class Event(models.Model):
     calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
-    event_name = models.CharField(max_length=200)
-    event_description = models.TextField(max_length=800, blank=True)
-    bottom_level_iteration = models.BigIntegerField()
+    event_name = models.CharField(max_length=200, help_text=html_tooltip('The name of this event'))
+    event_description = models.TextField(max_length=800, blank=True,
+                                         help_text=html_tooltip('A description for this event'))
+    bottom_level_iteration = models.BigIntegerField(help_text=html_tooltip('The bottom level time unit ("Day" by '
+                                                                           'default) instance that this event takes '
+                                                                           'place on'))
 
     def __str__(self):
         return self.event_name
@@ -492,8 +512,16 @@ class Event(models.Model):
 class DateFormat(models.Model):
     calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
     time_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE)
-    date_format_name = models.CharField(max_length=200)
-    format_string = models.CharField(max_length=200)
+    date_format_name = models.CharField(max_length=200, help_text=html_tooltip('The name of this date format'))
+    format_string = models.CharField(max_length=200,
+                                     help_text=html_tooltip('A representation of the rules for formatting the date; '
+                                                            'use curly braces containing\n1) the ID of the parent time '
+                                                            'unit\n2) the ID of the time unit in question\n3) "i" for '
+                                                            'the numeric iteration or "n" for the name\nseparated by '
+                                                            'dashes to display information about the specific date '
+                                                            'being formatted, e.g. {02-01-i} (you can use the Format '
+                                                            'String Helper to generate this text for you); all other '
+                                                            'characters will be displayed as-is'))
 
     def __str__(self):
         return self.date_format_name
@@ -515,9 +543,9 @@ class DateFormat(models.Model):
         while '{' in formatted_date and '}' in formatted_date:
             l_index = formatted_date.index('{')
             r_index = formatted_date.index('}')
-            codes.append(formatted_date[l_index+1:r_index])
+            codes.append(formatted_date[l_index + 1:r_index])
             indexes.append(l_index)
-            formatted_date = formatted_date[:l_index] + formatted_date[r_index+1:]
+            formatted_date = formatted_date[:l_index] + formatted_date[r_index + 1:]
         answers = []
         bottom_level_iteration = self.time_unit.get_first_bottom_level_iteration_at_iteration(iteration=iteration)
         for code in codes:
@@ -528,13 +556,13 @@ class DateFormat(models.Model):
                 bottom_level_iteration=bottom_level_iteration)
             sub_iteration = sub_unit.get_iteration_at_bottom_level_iteration(
                 bottom_level_iteration=bottom_level_iteration)
-            sub_iteration_in_parent_iteration = parent_unit.\
+            sub_iteration_in_parent_iteration = parent_unit. \
                 get_sub_unit_instance_iteration_within_higher_level_iteration(
-                    sub_unit=sub_unit, sub_unit_iteration=sub_iteration)
+                sub_unit=sub_unit, sub_unit_iteration=sub_iteration)
             answer = 'unknown display type: "' + display + '"'
             if display.lower() in ['n', 'name']:
                 instances = list(parent_unit.get_base_unit_instances(iteration=parent_iteration))
-                answer = instances[sub_iteration_in_parent_iteration-1][0]
+                answer = instances[sub_iteration_in_parent_iteration - 1][0]
             elif display.lower() in ['i', 'iter', 'iteration']:
                 answer = str(sub_iteration_in_parent_iteration)
             answers.append(answer)
@@ -545,10 +573,15 @@ class DateFormat(models.Model):
 
 class DisplayConfig(models.Model):
     calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
-    display_config_name = models.CharField(max_length=200)
-    display_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE)
-    nest_level = models.IntegerField(default=0)
-    default_date_bookmark = models.ForeignKey('DateBookmark', on_delete=models.CASCADE, null=True, blank=True)
+    display_config_name = models.CharField(max_length=200,
+                                           help_text=html_tooltip('The name of this display configuration'))
+    display_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE,
+                                     help_text=html_tooltip('The type of time unit to display'))
+    nest_level = models.IntegerField(default=0,
+                                     help_text=html_tooltip('"0" for no nested display, "1" for nested display'))
+    default_date_bookmark = models.ForeignKey('DateBookmark', on_delete=models.CASCADE, null=True, blank=True,
+                                              help_text=html_tooltip('The date to show by default when this display '
+                                                                     'configuration is initially loaded'))
 
     def __str__(self):
         return self.display_config_name
@@ -556,9 +589,12 @@ class DisplayConfig(models.Model):
 
 class DateBookmark(models.Model):
     calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
-    date_bookmark_name = models.CharField(max_length=200, blank=True)
-    bookmark_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE)
-    bookmark_iteration = models.IntegerField()
+    date_bookmark_name = models.CharField(max_length=200, blank=True,
+                                          help_text=html_tooltip('The name of this date bookmark'))
+    bookmark_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE,
+                                      help_text=html_tooltip('The type of time unit that this bookmark is for'))
+    bookmark_iteration = models.IntegerField(help_text=html_tooltip('The instance of the specified time unit type for '
+                                                                    'this bookmark to link to'))
 
     def __str__(self):
         return self.get_display_name()
