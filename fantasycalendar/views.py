@@ -276,15 +276,11 @@ class EventCreateView(UserPassesTestMixin, generic.CreateView):
 class DateFormatCreateView(UserPassesTestMixin, generic.CreateView):
     model = DateFormat
     template_name = 'fantasycalendar/date_format_create_form.html'
-    fields = ['time_unit', 'date_format_name', 'format_string']
+    fields = ['date_format_name', 'format_string']
 
     def test_func(self):
         world = get_object_or_404(World, pk=self.kwargs['world_key'])
         return self.request.user == world.creator
-
-    def get_initial(self):
-        if 'time_unit' in self.request.GET:
-            return {'time_unit': TimeUnit.objects.get(pk=int(self.request.GET['time_unit']))}
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -294,14 +290,11 @@ class DateFormatCreateView(UserPassesTestMixin, generic.CreateView):
         context['units_and_parents'] = units_and_parents
         return context
 
-    def get_form(self, form_class=None):
-        form = super(DateFormatCreateView, self).get_form()
-        form.fields['time_unit'].queryset = TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key'])
-        return form
-
     def form_valid(self, form):
         calendar = get_object_or_404(Calendar, pk=self.kwargs['calendar_key'])
+        time_unit = get_object_or_404(TimeUnit, pk=self.kwargs['timeunit_key'])
         form.instance.calendar = calendar
+        form.instance.time_unit = time_unit
         return super(DateFormatCreateView, self).form_valid(form)
 
 

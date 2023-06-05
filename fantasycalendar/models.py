@@ -527,7 +527,8 @@ class DateFormat(models.Model):
         return self.date_format_name
 
     def get_absolute_url(self):
-        return reverse('fantasycalendar:date-format-detail', kwargs={'pk': self.pk, 'calendar_key': self.calendar.pk,
+        return reverse('fantasycalendar:date-format-detail', kwargs={'pk': self.pk, 'timeunit_key': self.time_unit.pk,
+                                                                     'calendar_key': self.calendar.pk,
                                                                      'world_key': self.calendar.world.pk})
 
     def get_formatted_date(self, iteration: int) -> str:
