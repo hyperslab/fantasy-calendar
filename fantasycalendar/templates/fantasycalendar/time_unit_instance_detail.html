@@ -7,6 +7,17 @@ Time Unit Instance
 {% block content %}
 <h2><a href="{% url 'fantasycalendar:world-detail' timeunit.calendar.world_id %}">{{ timeunit.calendar.world.world_name }}</a> - <a
         href="{% url 'fantasycalendar:calendar-detail' timeunit.calendar.world_id timeunit.calendar_id %}">{{ timeunit.calendar.calendar_name }}</a> - {{ display_name }}</h2>
+<h3>Date Representations{% if user.pk == timeunit.calendar.world.creator.pk %} <a href="{% url 'fantasycalendar:date-format-create' timeunit.calendar.world_id timeunit.calendar.id timeunit.id %}">(+new)</a>{% endif %}</h3>
+{% if date_representations %}
+    <ul>
+    {% for date_format, formatted_date in date_representations %}
+        <li>{{ formatted_date }} - <a href="{% url 'fantasycalendar:date-format-detail' timeunit.calendar.world_id timeunit.calendar.id timeunit.id date_format.id %}">{{ date_format.date_format_name }}</a>{% if user.pk == timeunit.calendar.world.creator.pk %} <a
+                    href="{% url 'fantasycalendar:date-format-update' timeunit.calendar.world_id timeunit.calendar.id timeunit.id date_format.id %}">(edit)</a>{% endif %}</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No date formats exist for dates of type {{ timeunit.time_unit_name }}.</p>
+{% endif %}
 <h3>Events{% if user.pk == timeunit.calendar.world.creator.pk %} <a
         href="{% url 'fantasycalendar:event-create' timeunit.calendar.world.id timeunit.calendar_id %}?bottom_level_iteration={{ first_bottom_level_iteration }}">(+new)</a>{% endif %}</h3>
 {% if events %}

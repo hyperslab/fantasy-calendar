@@ -158,6 +158,9 @@ class TimeUnitInstanceDetailView(UserPassesTestMixin, generic.DetailView):
             context['display_name'] = self.object.default_date_format.get_formatted_date(self.kwargs['iteration'])
         else:
             context['display_name'] = str(self.object.time_unit_name) + ' ' + str(self.kwargs['iteration'])
+        date_formats = DateFormat.objects.filter(time_unit_id=self.object.id)
+        formatted_dates = [d.get_formatted_date(self.kwargs['iteration']) for d in date_formats]
+        context['date_representations'] = [(df, fd) for df, fd in zip(date_formats, formatted_dates)]
         return context
 
 
