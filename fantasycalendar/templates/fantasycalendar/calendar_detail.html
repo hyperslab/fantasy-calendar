@@ -29,7 +29,8 @@ Calendar Detail
     <ul>
     {% for display_config in calendar.displayconfig_set.all %}
         <li>{{ display_config.display_config_name  }}{% if user.pk == calendar.world.creator.pk %} <a
-                href="{% url 'fantasycalendar:display-config-update' calendar.world_id calendar.id display_config.id %}">(edit)</a>{% endif %}</li>
+                href="{% url 'fantasycalendar:display-config-update' calendar.world_id calendar.id display_config.id %}">(edit)</a>{% endif %} <a
+                href="{% url 'fantasycalendar:calendar-detail' calendar.world_id calendar.id %}?display_unit_type={{ display_config.display_unit.id }}&nest_checkbox={{ display_config.nest_level }}&iteration={% if display_config.default_date_bookmark %}{{ display_config.default_date_bookmark.bookmark_iteration }}{% elif display_config.display_unit.id == display_unit.id %}{{ iteration }}{% else %}1{% endif %}">(apply configuration)</a></li>
     {% endfor %}
     </ul>
 {% else %}
