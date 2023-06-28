@@ -129,6 +129,15 @@ class CalendarDetailView(UserPassesTestMixin, generic.DetailView):
         return context
 
 
+class CalendarCalendarView(UserPassesTestMixin, generic.DetailView):
+    model = Calendar
+    template_name = 'fantasycalendar/calendar_calendar.html'
+
+    def test_func(self):
+        world = get_object_or_404(World, pk=self.kwargs['world_key'])
+        return world.public or self.request.user == world.creator
+
+
 class TimeUnitDetailView(UserPassesTestMixin, generic.DetailView):
     model = TimeUnit
     template_name = 'fantasycalendar/time_unit_detail.html'
