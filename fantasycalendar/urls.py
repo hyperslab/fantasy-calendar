@@ -1,8 +1,19 @@
 from django.shortcuts import redirect
-from django.urls import path, reverse
+from django.urls import path, reverse, include
 from . import views
 from django.contrib.auth import views as auth_views
+from rest_framework import routers
+from . import api_views
 
+
+router = routers.DefaultRouter()
+router.register('worlds', api_views.WorldViewSet, 'world')
+router.register('calendars', api_views.CalendarViewSet, 'calendar')
+router.register('timeunits', api_views.TimeUnitViewSet, 'timeunit')
+router.register('events', api_views.EventViewSet, 'event')
+router.register('dateformats', api_views.DateFormatViewSet, 'dateformat')
+router.register('displayconfigs', api_views.DisplayConfigViewSet, 'displayconfig')
+router.register('datebookmarks', api_views.DateBookmarkViewSet, 'datebookmark')
 
 app_name = 'fantasycalendar'
 urlpatterns = [
@@ -12,6 +23,7 @@ urlpatterns = [
     path("accounts/logout/", auth_views.LogoutView.as_view(template_name=app_name + "/login.html",
                                                            next_page='fantasycalendar:world-index'), name="logout"),
     path("accounts/new/", views.UserCreateView.as_view(), name="user-create"),
+    path("api/", include(router.urls)),
     path("worlds/", views.WorldIndexView.as_view(), name="world-index"),
     path("worlds/<int:pk>/", views.WorldDetailView.as_view(), name="world-detail"),
     path("worlds/new/", views.WorldCreateView.as_view(), name="world-create"),
@@ -39,8 +51,8 @@ urlpatterns = [
          views.DateFormatDetailView.as_view(), name="date-format-detail"),
     path("worlds/<int:world_key>/calendars/<int:calendar_key>/time-units/<int:timeunit_key>/date-formats/new/",
          views.DateFormatCreateView.as_view(), name="date-format-create"),
-    path("worlds/<int:world_key>/calendars/<int:calendar_key>/time-units/<int:timeunit_key>/date-formats/<int:pk>/edit/",
-         views.DateFormatUpdateView.as_view(), name="date-format-update"),
+    path("worlds/<int:world_key>/calendars/<int:calendar_key>/time-units/<int:timeunit_key>/date-formats/<int:pk>/"
+         "edit/", views.DateFormatUpdateView.as_view(), name="date-format-update"),
     path("worlds/<int:world_key>/calendars/<int:calendar_key>/display-configs/new/",
          views.DisplayConfigCreateView.as_view(), name="display-config-create"),
     path("worlds/<int:world_key>/calendars/<int:calendar_key>/display-configs/<int:pk>/edit/",
