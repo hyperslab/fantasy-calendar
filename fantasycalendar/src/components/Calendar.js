@@ -1,17 +1,10 @@
 import React from 'react';
 import axios from 'axios';
-
-function DateSquare() {
-    return (
-        <div class="grid-item">
-            date
-        </div>
-    )
-}
+import DateSquare from './DateSquare.js';
 
 function DateSquares() {
     return (
-        <div class="grid-container">
+        <div class="grid-container-large">
             <DateSquare />
             <DateSquare />
             <DateSquare />
