@@ -1,5 +1,8 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.status import HTTP_400_BAD_REQUEST
 from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig, DateBookmark
 from .serializers import WorldSerializer, CalendarSerializer, TimeUnitSerializer, EventSerializer, \
     DateFormatSerializer, DisplayConfigSerializer, DateBookmarkSerializer
@@ -39,6 +42,25 @@ class TimeUnitViewSet(viewsets.ReadOnlyModelViewSet):
             calendar_id = int(self.request.query_params.get('calendar_id'))
             queryset = queryset.filter(calendar_id=calendar_id)
         return queryset
+
+
+class TimeUnitBaseInstances(APIView):
+    def get(self, request):
+        if 'time_unit_id' not in request.query_params or 'iteration' not in request.query_params:
+            return Response({'message': 'ERROR: time_unit_id and iteration required'}, status=HTTP_400_BAD_REQUEST)
+        time_unit_id = int(request.query_params.get('time_unit_id'))
+        iteration = int(request.query_params.get('iteration'))
+        time_unit = get_object_or_404(TimeUnit, pk=time_unit_id)
+        instances = time_unit.get_base_unit_instances(iteration=iteration)
+        first_base_iteration = time_unit.get_first_base_unit_instance_iteration_at_iteration(iteration=iteration)
+        data = []
+        for index, instance in enumerate(instances):
+            data.append({
+                "name": instance[0],
+                "time_unit_id": time_unit.base_unit.pk if time_unit.base_unit is not None else None,
+                "iteration": first_base_iteration + index,
+            })
+        return Response(data)
 
 
 class EventViewSet(viewsets.ReadOnlyModelViewSet):
