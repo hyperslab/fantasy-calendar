@@ -1,46 +1,34 @@
 import React from 'react';
 import axios from 'axios';
+import EventRow from './EventRow.js';
 
-function EventRow({ event }) {
-    return (
-        <>
-            <br/>{ event.event_name }
-        </>
-    );
-}
+export default function DateSquare({ timeUnitInstance }) {
+    const [displayName, setDisplayName] = React.useState('');
+    const [events, setEvents] = React.useState([]);
 
-export default class DateSquare extends React.Component {
-    state = {
-        displayName: '',
-        events: []
-    }
-
-    componentDidMount() {
-        const timeUnitId = this.props.timeUnitInstance.time_unit_id;
-        const iteration = this.props.timeUnitInstance.iteration;
+    React.useEffect(() => {
+        const timeUnitId = timeUnitInstance.time_unit_id;
+        const iteration = timeUnitInstance.iteration;
         axios.get('/fantasy-calendar/api/events/?time_unit_id= ' + timeUnitId + '&iteration=' + iteration)
             .then(res => {
-                const events = res.data;
-                this.setState({ events });
+                setEvents(res.data);
             });
-        const displayName = this.props.timeUnitInstance.name;
-        this.setState({ displayName });
-    }
+        setDisplayName(timeUnitInstance.name);
+    }, []);
 
-    render() {
-        const rows = [];
+    const rows = [];
 
-        this.state.events.forEach((event) => {
-            rows.push(
-                <EventRow event={event} />
-            );
-        });
-
-        return (
-            <div className="grid-item">
-                <h5>{this.state.displayName}</h5>
-                {rows}
-            </div>
+    events.forEach((event) => {
+        rows.push(
+            <EventRow event={event} />
         );
-    }
+    });
+
+    return (
+        <div className="grid-item">
+            <h5>{displayName}</h5>
+            {rows}
+        </div>
+    );
+
 }
