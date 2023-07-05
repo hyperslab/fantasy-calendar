@@ -6,7 +6,7 @@ function EventRow({ event }) {
         <>
             <br/>{ event.event_name }
         </>
-    )
+    );
 }
 
 export default class DateSquare extends React.Component {
@@ -16,12 +16,14 @@ export default class DateSquare extends React.Component {
     }
 
     componentDidMount() {
-        axios.get('/fantasy-calendar/api/events/')
+        const timeUnitId = this.props.timeUnitInstance.time_unit_id;
+        const iteration = this.props.timeUnitInstance.iteration;
+        axios.get('/fantasy-calendar/api/events/?time_unit_id= ' + timeUnitId + '&iteration=' + iteration)
             .then(res => {
                 const events = res.data;
                 this.setState({ events });
-            })
-        const displayName = 'TestName';
+            });
+        const displayName = this.props.timeUnitInstance.name;
         this.setState({ displayName });
     }
 
@@ -35,7 +37,7 @@ export default class DateSquare extends React.Component {
         });
 
         return (
-            <div class="grid-item">
+            <div className="grid-item">
                 <h5>{this.state.displayName}</h5>
                 {rows}
             </div>

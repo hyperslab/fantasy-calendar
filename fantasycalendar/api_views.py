@@ -57,7 +57,7 @@ class TimeUnitBaseInstances(APIView):
         for index, instance in enumerate(instances):
             data.append({
                 "name": instance[0],
-                "time_unit_id": time_unit.base_unit.pk if time_unit.base_unit is not None else None,
+                "time_unit_id": time_unit.base_unit.pk if time_unit.base_unit is not None else time_unit.pk,
                 "iteration": first_base_iteration + index,
             })
         return Response(data)
