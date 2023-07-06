@@ -32,6 +32,20 @@ jobs:
 
       - name: Run Django tests
         run: python manage.py test
+
+      - name: Set up Node version
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build JavaScript
+        run: yarn run build
       
       - name: Upload artifact for deployment jobs
         uses: actions/upload-artifact@v2
