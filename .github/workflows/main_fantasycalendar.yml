@@ -37,11 +37,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18.x'
-        working-directory: fantasycalendar
 
       - name: Install Yarn
         run: npm install -g yarn
-        working-directory: fantasycalendar
 
       - name: Install dependencies
         run: yarn install
