@@ -141,6 +141,13 @@ CORS_ORIGIN_WHITELIST = [
 ]
 
 
+# Set localhost as internal IP
+
+INTERNAL_IPS = [
+    '127.0.0.1'
+]
+
+
 # Copy environment settings which should contain the real SECRET_KEY
 # Can also override any other settings
 

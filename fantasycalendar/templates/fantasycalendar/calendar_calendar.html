@@ -7,5 +7,6 @@
 {% block page %}
 <div id="root"></div>
 {% load static %}
+<h4><a href="{% url 'fantasycalendar:calendar-detail' calendar.world_id calendar.id %}">Back to Standard View</a></h4>
 <script src="{% static 'main.js' %}"></script>
 {% endblock %}
