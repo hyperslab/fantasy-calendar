@@ -20,7 +20,7 @@ export default function DateSquare({ timeUnitInstance }) {
 
     events.forEach((event) => {
         rows.push(
-            <EventRow event={event} />
+            <EventRow key={event.id} event={event} />
         );
     });
 
