@@ -67,7 +67,7 @@ export default class Calendar extends React.Component {
     render() {
         if (!this.state.calendar || !this.state.displayUnit || !this.state.displayIteration) return null;
         return (
-            <div>
+            <div className="calendar">
                 <h2>{this.state.calendar.calendar_name}</h2>
                 <h4>{this.state.displayUnit.time_unit_name} {this.state.displayIteration}</h4>
                 <span>

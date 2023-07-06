@@ -75,6 +75,11 @@ h2 a, h3 a, h4 a {
     padding: 30px;
 }
 
+.calendar {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
 .grid-container {
     display: grid;
     background-color: gray;
