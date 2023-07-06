@@ -10,7 +10,7 @@ export default function DateSquares({ timeUnitId, iteration }) {
             .then(res => {
                 setBaseUnits(res.data);
             });
-    }, []);
+    }, [iteration]);
 
     if (!baseUnits) return null;
 
