@@ -78,7 +78,7 @@ export default class Calendar extends React.Component {
                     <PageBackButton timeUnitName={this.state.displayUnit.time_unit_name} onClick={this.handlePageBackClick}/>
                     <PageForwardButton timeUnitName={this.state.displayUnit.time_unit_name} onClick={this.handlePageForwardClick} />
                 </span>
-                <DateSquares timeUnitId={this.state.displayUnit.id} iteration={this.state.displayIteration} baseUnitInstanceClickHandler={this.handleBaseUnitInstanceClick} />
+                <DateSquares timeUnit={this.state.displayUnit} iteration={this.state.displayIteration} baseUnitInstanceClickHandler={this.handleBaseUnitInstanceClick} />
             </div>
         );
     }

@@ -51,14 +51,18 @@ class TimeUnitBaseInstances(APIView):
         time_unit_id = int(request.query_params.get('time_unit_id'))
         iteration = int(request.query_params.get('iteration'))
         time_unit = get_object_or_404(TimeUnit, pk=time_unit_id)
+        base_unit = time_unit.base_unit if time_unit.base_unit is not None else time_unit
         instances = time_unit.get_base_unit_instances(iteration=iteration)
         first_base_iteration = time_unit.get_first_base_unit_instance_iteration_at_iteration(iteration=iteration)
         data = []
         for index, instance in enumerate(instances):
+            iteration = first_base_iteration + index
+            events = base_unit.get_events_at_iteration(iteration)
             data.append({
                 "name": instance[0],
-                "time_unit_id": time_unit.base_unit.pk if time_unit.base_unit is not None else time_unit.pk,
-                "iteration": first_base_iteration + index,
+                "time_unit_id": base_unit.pk,
+                "iteration": iteration,
+                "events": EventSerializer(events, many=True).data,
             })
         return Response(data)
 
