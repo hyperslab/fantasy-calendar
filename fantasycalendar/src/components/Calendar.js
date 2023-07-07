@@ -64,6 +64,10 @@ export default class Calendar extends React.Component {
         this.setState({ displayIteration: this.state.displayIteration + 1 });
     }
 
+    handleBaseUnitInstanceClick = (baseUnit, baseIteration) => {
+        this.setState({ displayUnit: baseUnit, displayIteration: baseIteration });
+    }
+
     render() {
         if (!this.state.calendar || !this.state.displayUnit || !this.state.displayIteration) return null;
         return (
@@ -74,7 +78,7 @@ export default class Calendar extends React.Component {
                     <PageBackButton timeUnitName={this.state.displayUnit.time_unit_name} onClick={this.handlePageBackClick}/>
                     <PageForwardButton timeUnitName={this.state.displayUnit.time_unit_name} onClick={this.handlePageForwardClick} />
                 </span>
-                <DateSquares timeUnitId={this.state.displayUnit.id} iteration={this.state.displayIteration} />
+                <DateSquares timeUnitId={this.state.displayUnit.id} iteration={this.state.displayIteration} baseUnitInstanceClickHandler={this.handleBaseUnitInstanceClick} />
             </div>
         );
     }
