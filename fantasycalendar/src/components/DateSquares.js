@@ -11,7 +11,7 @@ export default function DateSquares({ timeUnit, iteration, baseUnitInstanceClick
             .then(res => {
                 setBaseUnitInstances(res.data);
                 if (res.data && res.data.length > 0)
-                    axios.get('/fantasy-calendar/api/timeunits/' + res.data[0].time_unit_id)
+                    axios.get('/fantasy-calendar/api/timeunits/' + res.data[0].time_unit_id + '/')
                         .then(res => {
                             setBaseUnit(res.data);
                         });

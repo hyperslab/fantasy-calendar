@@ -15,24 +15,24 @@ export default class Calendar extends React.Component {
 
     componentDidMount() {
         var calendar_id = window.location.pathname.split("/")[5];  // this is bad and may break if URL changes
-        axios.get('/fantasy-calendar/api/calendars/' + calendar_id)
+        axios.get('/fantasy-calendar/api/calendars/' + calendar_id + '/')
             .then(res => {
                 const calendar = res.data;
                 this.setState({ calendar });
                 if (calendar.default_display_config)
-                    axios.get('/fantasy-calendar/api/displayconfigs/' + calendar.default_display_config)
+                    axios.get('/fantasy-calendar/api/displayconfigs/' + calendar.default_display_config + '/')
                         .then(res2 => {
                             const displayConfig = res2.data;
                             const displayUnitId = displayConfig.display_unit;
                             this.setState({ displayConfig });
                             if (displayUnitId)
-                                axios.get('/fantasy-calendar/api/timeunits/' + displayUnitId)
+                                axios.get('/fantasy-calendar/api/timeunits/' + displayUnitId + '/')
                                     .then(res5 => {
                                         const displayUnit = res5.data;
                                         this.setState({ displayUnit });
                                     });
                             if (displayConfig.default_date_bookmark)
-                                axios.get('/fantasy-calendar/api/datebookmarks/' + displayConfig.default_date_bookmark)
+                                axios.get('/fantasy-calendar/api/datebookmarks/' + displayConfig.default_date_bookmark + '/')
                                     .then(res3 => {
                                         const dateBookmark = res3.data;
                                         const displayIteration = dateBookmark.bookmark_iteration;
