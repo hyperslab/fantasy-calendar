@@ -4,6 +4,7 @@ import DateSquares from './DateSquares.js';
 import PageForwardButton from './PageForwardButton.js';
 import PageBackButton from './PageBackButton.js';
 import DisplayUnitSelect from './DisplayUnitSelect.js';
+import DisplayUnitNameHeader from './DisplayUnitNameHeader.js';
 
 export default class Calendar extends React.Component {
     state = {
@@ -30,32 +31,31 @@ export default class Calendar extends React.Component {
                     axios.get('/fantasy-calendar/api/displayconfigs/' + calendar.default_display_config + '/')
                         .then(res2 => {
                             const displayConfig = res2.data;
-                            const displayUnitId = displayConfig.display_unit;
                             this.setState({ displayConfig });
-                            if (displayUnitId)
-                                axios.get('/fantasy-calendar/api/timeunits/' + displayUnitId + '/')
-                                    .then(res5 => {
-                                        const displayUnit = res5.data;
-                                        this.setState({ displayUnit });
-                                    });
-                            if (displayConfig.default_date_bookmark)
-                                axios.get('/fantasy-calendar/api/datebookmarks/' + displayConfig.default_date_bookmark + '/')
-                                    .then(res3 => {
-                                        const dateBookmark = res3.data;
-                                        const displayIteration = dateBookmark.bookmark_iteration;
-                                        this.setState({ dateBookmark });
+                            const displayUnitId = displayConfig.display_unit;
+                            axios.get('/fantasy-calendar/api/timeunits/' + displayUnitId + '/')
+                                .then(res3 => {
+                                    const displayUnit = res3.data;
+                                    this.setState({ displayUnit });
+                                    if (displayConfig.default_date_bookmark)
+                                        axios.get('/fantasy-calendar/api/datebookmarks/' + displayConfig.default_date_bookmark + '/')
+                                            .then(res4 => {
+                                                const dateBookmark = res4.data;
+                                                const displayIteration = dateBookmark.bookmark_iteration;
+                                                this.setState({ dateBookmark });
+                                                this.setState({ displayIteration });
+                                            });
+                                    else  // from if (displayConfig.default_date_bookmark)
+                                    {
+                                        const displayIteration = 1;
                                         this.setState({ displayIteration });
-                                    });
-                            else  // from if (displayConfig.default_date_bookmark)
-                            {
-                                const displayIteration = 1;
-                                this.setState({ displayIteration });
-                            }
+                                    }
+                                });
                         });
                 else  // from if (calendar.default_display_config)
                     axios.get('/fantasy-calendar/api/timeunits/?calendar_id=' + calendar_id)
-                        .then(res4 => {
-                            const displayUnit = res4.data[0];
+                        .then(res5 => {
+                            const displayUnit = res5.data[0];
                             const displayIteration = 1;
                             this.setState({ displayUnit });
                             this.setState({ displayIteration });
@@ -84,7 +84,7 @@ export default class Calendar extends React.Component {
         return (
             <div className="calendar">
                 <h2>{this.state.calendar.calendar_name}</h2>
-                <h4>{this.state.displayUnit.time_unit_name} {this.state.displayIteration}</h4>
+                <DisplayUnitNameHeader timeUnit={this.state.displayUnit} iteration={this.state.displayIteration} />
                 <span className="calendar-top-controls">
                     <PageBackButton timeUnitName={this.state.displayUnit.time_unit_name} onClick={this.handlePageBackClick} />
                     <DisplayUnitSelect timeUnits={this.state.timeUnits} currentUnit={this.state.displayUnit} onChange={this.handleDisplayUnitSelectChange} />

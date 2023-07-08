@@ -67,6 +67,21 @@ class TimeUnitBaseInstances(APIView):
         return Response(data)
 
 
+class TimeUnitInstanceDisplayName(APIView):
+    def get(self, request):
+        if 'time_unit_id' not in request.query_params or 'iteration' not in request.query_params:
+            return Response({'message': 'ERROR: time_unit_id and iteration required'}, status=HTTP_400_BAD_REQUEST)
+        time_unit_id = int(request.query_params.get('time_unit_id'))
+        iteration = int(request.query_params.get('iteration'))
+        time_unit = get_object_or_404(TimeUnit, pk=time_unit_id)
+        date_format = time_unit.default_date_format
+        if 'date_format_id' in request.query_params:
+            date_format_id = int(request.query_params.get('date_format_id'))
+            date_format = get_object_or_404(DateFormat, pk=date_format_id)
+        display_name = time_unit.get_instance_display_name(iteration=iteration, date_format=date_format)
+        return Response({'display_name': display_name})
+
+
 class EventViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer

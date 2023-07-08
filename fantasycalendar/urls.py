@@ -25,6 +25,7 @@ urlpatterns = [
     path("accounts/new/", views.UserCreateView.as_view(), name="user-create"),
     path("api/", include(router.urls)),
     path("api/timeunitbaseinstances/", api_views.TimeUnitBaseInstances.as_view()),
+    path("api/timeunitinstancedisplayname/", api_views.TimeUnitInstanceDisplayName.as_view()),
     path("worlds/", views.WorldIndexView.as_view(), name="world-index"),
     path("worlds/<int:pk>/", views.WorldDetailView.as_view(), name="world-detail"),
     path("worlds/new/", views.WorldCreateView.as_view(), name="world-create"),
