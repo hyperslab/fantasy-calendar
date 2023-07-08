@@ -80,6 +80,12 @@ h2 a, h3 a, h4 a {
     padding-right: 10px;
 }
 
+.calendar-top-controls {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 4px;
+}
+
 .grid-container {
     display: grid;
     background-color: gray;

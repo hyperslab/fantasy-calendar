@@ -3,10 +3,12 @@ import axios from 'axios';
 import DateSquares from './DateSquares.js';
 import PageForwardButton from './PageForwardButton.js';
 import PageBackButton from './PageBackButton.js';
+import DisplayUnitSelect from './DisplayUnitSelect.js';
 
 export default class Calendar extends React.Component {
     state = {
         calendar: '',
+        timeUnits: '',
         displayUnit: '',
         displayIteration: '',
         displayConfig: '',
@@ -19,6 +21,11 @@ export default class Calendar extends React.Component {
             .then(res => {
                 const calendar = res.data;
                 this.setState({ calendar });
+                axios.get('/fantasy-calendar/api/timeunits/?calendar_id=' + calendar_id)
+                    .then(res => {
+                        const timeUnits = res.data;
+                        this.setState({ timeUnits });
+                    });
                 if (calendar.default_display_config)
                     axios.get('/fantasy-calendar/api/displayconfigs/' + calendar.default_display_config + '/')
                         .then(res2 => {
@@ -68,14 +75,19 @@ export default class Calendar extends React.Component {
         this.setState({ displayUnit: baseUnit, displayIteration: baseIteration });
     }
 
+    handleDisplayUnitSelectChange = (newUnitId) => {
+        this.setState({ displayUnit: this.state.timeUnits.find(x => x.id == newUnitId) });
+    }
+
     render() {
         if (!this.state.calendar || !this.state.displayUnit || !this.state.displayIteration) return null;
         return (
             <div className="calendar">
                 <h2>{this.state.calendar.calendar_name}</h2>
                 <h4>{this.state.displayUnit.time_unit_name} {this.state.displayIteration}</h4>
-                <span>
-                    <PageBackButton timeUnitName={this.state.displayUnit.time_unit_name} onClick={this.handlePageBackClick}/>
+                <span className="calendar-top-controls">
+                    <PageBackButton timeUnitName={this.state.displayUnit.time_unit_name} onClick={this.handlePageBackClick} />
+                    <DisplayUnitSelect timeUnits={this.state.timeUnits} currentUnit={this.state.displayUnit} onChange={this.handleDisplayUnitSelectChange} />
                     <PageForwardButton timeUnitName={this.state.displayUnit.time_unit_name} onClick={this.handlePageForwardClick} />
                 </span>
                 <DateSquares timeUnit={this.state.displayUnit} iteration={this.state.displayIteration} baseUnitInstanceClickHandler={this.handleBaseUnitInstanceClick} />
