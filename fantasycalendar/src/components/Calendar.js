@@ -5,6 +5,7 @@ import PageForwardButton from './PageForwardButton.js';
 import PageBackButton from './PageBackButton.js';
 import DisplayUnitSelect from './DisplayUnitSelect.js';
 import DisplayUnitNameHeader from './DisplayUnitNameHeader.js';
+import {getCalendar, getTimeUnit, getTimeUnitsByCalendarId, getDisplayConfig, getDateBookmark} from '../apiAccess.js';
 
 export default class Calendar extends React.Component {
     state = {
@@ -18,49 +19,43 @@ export default class Calendar extends React.Component {
 
     componentDidMount() {
         var calendar_id = window.location.pathname.split("/")[5];  // this is bad and may break if URL changes
-        axios.get('/fantasy-calendar/api/calendars/' + calendar_id + '/')
-            .then(res => {
-                const calendar = res.data;
-                this.setState({ calendar });
-                axios.get('/fantasy-calendar/api/timeunits/?calendar_id=' + calendar_id)
-                    .then(res => {
-                        const timeUnits = res.data;
-                        this.setState({ timeUnits });
-                    });
-                if (calendar.default_display_config)
-                    axios.get('/fantasy-calendar/api/displayconfigs/' + calendar.default_display_config + '/')
-                        .then(res2 => {
-                            const displayConfig = res2.data;
-                            this.setState({ displayConfig });
-                            const displayUnitId = displayConfig.display_unit;
-                            axios.get('/fantasy-calendar/api/timeunits/' + displayUnitId + '/')
-                                .then(res3 => {
-                                    const displayUnit = res3.data;
-                                    this.setState({ displayUnit });
-                                    if (displayConfig.default_date_bookmark)
-                                        axios.get('/fantasy-calendar/api/datebookmarks/' + displayConfig.default_date_bookmark + '/')
-                                            .then(res4 => {
-                                                const dateBookmark = res4.data;
-                                                const displayIteration = dateBookmark.bookmark_iteration;
-                                                this.setState({ dateBookmark });
-                                                this.setState({ displayIteration });
-                                            });
-                                    else  // from if (displayConfig.default_date_bookmark)
-                                    {
-                                        const displayIteration = 1;
-                                        this.setState({ displayIteration });
-                                    }
-                                });
-                        });
-                else  // from if (calendar.default_display_config)
-                    axios.get('/fantasy-calendar/api/timeunits/?calendar_id=' + calendar_id)
-                        .then(res5 => {
-                            const displayUnit = res5.data[0];
-                            const displayIteration = 1;
-                            this.setState({ displayUnit });
-                            this.setState({ displayIteration });
-                        });
+        getCalendar(calendar_id, res => {
+            const calendar = res.data;
+            this.setState({ calendar });
+            getTimeUnitsByCalendarId(calendar_id, res6 => {
+                const timeUnits = res6.data;
+                this.setState({ timeUnits });
             });
+            if (calendar.default_display_config)
+                getDisplayConfig(calendar.default_display_config, res2 => {
+                    const displayConfig = res2.data;
+                    this.setState({ displayConfig });
+                    const displayUnitId = displayConfig.display_unit;
+                    getTimeUnit(displayUnitId, res3 => {
+                        const displayUnit = res3.data;
+                        this.setState({ displayUnit });
+                        if (displayConfig.default_date_bookmark)
+                            getDateBookmark(displayConfig.default_date_bookmark, res4 => {
+                                const dateBookmark = res4.data;
+                                const displayIteration = dateBookmark.bookmark_iteration;
+                                this.setState({ dateBookmark });
+                                this.setState({ displayIteration });
+                            });
+                        else  // from if (displayConfig.default_date_bookmark)
+                        {
+                            const displayIteration = 1;
+                            this.setState({ displayIteration });
+                        }
+                    });
+                });
+            else  // from if (calendar.default_display_config)
+                getTimeUnitsByCalendarId(calendar_id, res5 => {
+                    const displayUnit = res5.data[0];
+                    const displayIteration = 1;
+                    this.setState({ displayUnit });
+                    this.setState({ displayIteration });
+                });
+        });
     }
 
     handlePageBackClick = () => {

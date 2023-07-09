@@ -1,5 +1,4 @@
 import React from 'react';
-import axios from 'axios';
 import EventRow from './EventRow.js';
 
 export default function DateSquare({ timeUnit, timeUnitInstance, baseUnitInstanceClickHandler }) {
