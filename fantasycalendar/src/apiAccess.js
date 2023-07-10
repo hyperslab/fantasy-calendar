@@ -1,15 +1,7 @@
 import axios from 'axios';
 
 function getAuthenticated(url, then) {
-    axios.get(
-        url,
-        {
-            auth: {
-                username: '',  // TODO
-                password: '',
-            },
-        })
-        .then(res => then(res));
+    axios.get(url).then(res => then(res));  // turns out session cookies are sent automatically so no extra auth needed
 }
 
 export function getCalendar(calendarId, then) {
