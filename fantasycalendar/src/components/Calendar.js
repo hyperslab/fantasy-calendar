@@ -5,6 +5,7 @@ import PageForwardButton from './PageForwardButton.js';
 import PageBackButton from './PageBackButton.js';
 import DisplayUnitSelect from './DisplayUnitSelect.js';
 import DisplayUnitNameHeader from './DisplayUnitNameHeader.js';
+import DisplayIterationSelect from './DisplayIterationSelect.js';
 import {getCalendar, getTimeUnit, getTimeUnitsByCalendarId, getDisplayConfig, getDateBookmark} from '../apiAccess.js';
 
 export default class Calendar extends React.Component {
@@ -74,6 +75,14 @@ export default class Calendar extends React.Component {
         this.setState({ displayUnit: this.state.timeUnits.find(x => x.id == newUnitId) });
     }
 
+    handleDisplayIterationChange = (newIteration) => {
+        if (!newIteration || newIteration < 1)
+            newIteration = 1;
+        else if (newIteration > Number.MAX_SAFE_INTEGER)
+            newIteration = Number.MAX_SAFE_INTEGER;
+        this.setState({ displayIteration: newIteration });
+    }
+
     render() {
         if (!this.state.calendar || !this.state.displayUnit || !this.state.displayIteration) return null;
         return (
@@ -82,7 +91,11 @@ export default class Calendar extends React.Component {
                 <DisplayUnitNameHeader timeUnit={this.state.displayUnit} iteration={this.state.displayIteration} />
                 <span className="calendar-top-controls">
                     <PageBackButton timeUnitName={this.state.displayUnit.time_unit_name} onClick={this.handlePageBackClick} />
-                    <DisplayUnitSelect timeUnits={this.state.timeUnits} currentUnit={this.state.displayUnit} onChange={this.handleDisplayUnitSelectChange} />
+                    <span>
+                        <DisplayUnitSelect timeUnits={this.state.timeUnits} currentUnit={this.state.displayUnit} onChange={this.handleDisplayUnitSelectChange} />
+                        &nbsp;&nbsp;
+                        <DisplayIterationSelect currentIteration={this.state.displayIteration} onChange={this.handleDisplayIterationChange} />
+                    </span>
                     <PageForwardButton timeUnitName={this.state.displayUnit.time_unit_name} onClick={this.handlePageForwardClick} />
                 </span>
                 <DateSquares timeUnit={this.state.displayUnit} iteration={this.state.displayIteration} baseUnitInstanceClickHandler={this.handleBaseUnitInstanceClick} />
