@@ -110,6 +110,10 @@ h2 a, h3 a, h4 a {
     border: 1px solid black;
 }
 
+.clickable-text {
+    cursor: pointer;
+}
+
 .tooltip {
     position: relative;
     display: inline-block;
