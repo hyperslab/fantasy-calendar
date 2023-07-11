@@ -24,6 +24,11 @@ export function getTimeUnitBaseInstances(timeUnitId, iteration, then) {
     getAuthenticated(url, then);
 }
 
+export function getTimeUnitEquivalentIteration(timeUnitId, iteration, newTimeUnitId, then) {
+    const url = '/fantasy-calendar/api/timeunitequivalentiteration/?time_unit_id=' + timeUnitId + '&iteration=' + iteration + '&new_time_unit_id=' + newTimeUnitId;
+    getAuthenticated(url, then);
+}
+
 export function getTimeUnitInstanceDisplayName(timeUnitId, iteration, then) {
     const url = '/fantasy-calendar/api/timeunitinstancedisplayname/?time_unit_id=' + timeUnitId + '&iteration=' + iteration;
     getAuthenticated(url, then);

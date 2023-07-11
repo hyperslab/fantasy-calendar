@@ -6,7 +6,7 @@ import PageBackButton from './PageBackButton.js';
 import DisplayUnitSelect from './DisplayUnitSelect.js';
 import DisplayUnitNameHeader from './DisplayUnitNameHeader.js';
 import DisplayIterationSelect from './DisplayIterationSelect.js';
-import {getCalendar, getTimeUnit, getTimeUnitsByCalendarId, getDisplayConfig, getDateBookmark} from '../apiAccess.js';
+import {getCalendar, getTimeUnit, getTimeUnitsByCalendarId, getTimeUnitEquivalentIteration, getDisplayConfig, getDateBookmark} from '../apiAccess.js';
 
 export default class Calendar extends React.Component {
     state = {
@@ -72,7 +72,12 @@ export default class Calendar extends React.Component {
     }
 
     handleDisplayUnitSelectChange = (newUnitId) => {
-        this.setState({ displayUnit: this.state.timeUnits.find(x => x.id == newUnitId) });
+        getTimeUnitEquivalentIteration(this.state.displayUnit.id, this.state.displayIteration, newUnitId, res => {
+            this.setState({
+                displayUnit: this.state.timeUnits.find(x => x.id == newUnitId),
+                displayIteration: res.data.iteration,
+            });
+        });
     }
 
     handleDisplayIterationChange = (newIteration) => {

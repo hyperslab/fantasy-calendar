@@ -110,6 +110,29 @@ class TimeUnitInstanceDisplayName(APIView):
         return Response({'display_name': display_name})
 
 
+class TimeUnitEquivalentIteration(APIView):
+    def get(self, request):
+        if 'time_unit_id' not in request.query_params or 'iteration' not in request.query_params or \
+                'new_time_unit_id' not in request.query_params:
+            return Response({'message': 'ERROR: time_unit_id and iteration and new_time_unit_id required'}, status=HTTP_400_BAD_REQUEST)
+        time_unit_id = int(request.query_params.get('time_unit_id'))
+        iteration = int(request.query_params.get('iteration'))
+        new_time_unit_id = int(request.query_params.get('new_time_unit_id'))
+        time_unit = get_object_or_404(TimeUnit, pk=time_unit_id)
+        if time_unit.calendar.world.creator != request.user and not time_unit.calendar.world.public:
+            return Response(
+                {'message': 'ERROR: this resource is not public and you are not authenticated as its creator'},
+                status=HTTP_403_FORBIDDEN)
+        new_time_unit = get_object_or_404(TimeUnit, pk=new_time_unit_id)
+        if time_unit.calendar != new_time_unit.calendar:
+            return Response(
+                {'message': 'ERROR: time_unit_id and new_time_unit_id refer to time units on different calendars'},
+                status=HTTP_400_BAD_REQUEST)
+        base_iteration = time_unit.get_first_bottom_level_iteration_at_iteration(iteration=iteration)
+        new_iteration = new_time_unit.get_iteration_at_bottom_level_iteration(bottom_level_iteration=base_iteration)
+        return Response({'iteration': new_iteration})
+
+
 class EventViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
