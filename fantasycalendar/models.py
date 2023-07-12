@@ -63,7 +63,15 @@ class TimeUnit(models.Model):
                                                                        'called "January February (...) December"'))
     default_date_format = models.ForeignKey('DateFormat', on_delete=models.CASCADE, null=True, blank=True,
                                             help_text=html_tooltip('The format for instances of this time unit to be '
-                                                                   'displayed as most prominently'))
+                                                                   'displayed as most prominently, such as on the '
+                                                                   'title of a calendar page'),
+                                            related_name='timeunit_default_set')
+    secondary_date_format = models.ForeignKey('DateFormat', on_delete=models.CASCADE, null=True, blank=True,
+                                              help_text=html_tooltip('The format for instances of this time unit to be '
+                                                                     'displayed as in less prominent locations, often '
+                                                                     'in groups underneath a parent unit, such as on '
+                                                                     'individual boxes in a calendar page'),
+                                              related_name='timeunit_secondary_set')
 
     def __str__(self):
         return self.time_unit_name
@@ -472,7 +480,8 @@ class TimeUnit(models.Model):
             new_parents = one_level_higher
         return parents
 
-    def get_instance_display_name(self, iteration: int, date_format: 'DateFormat' = None) -> str:
+    def get_instance_display_name(self, iteration: int, date_format: 'DateFormat' = None,
+                                  prefer_secondary: bool = False, primary_secondary_backup: bool = False) -> str:
         """
         Return a human-readable name for the instance of this time unit
         that exists at a particular iteration.
@@ -481,9 +490,25 @@ class TimeUnit(models.Model):
         format for this time unit if none is given, then something like
         (time_unit_name + " " + iteration) if there is no default date
         format for this time unit.
+
+        If prefer_secondary is True, use the secondary date format for
+        this time unit place of its default date format in the order of
+        preference above.
+
+        If primary_secondary_backup is True, attempt to use the
+        secondary date format for this time unit if it has no default
+        date format before trying something like (time_unit_name +
+        " " + iteration), or vice versa if prefer_secondary is True.
         """
         if date_format is None:
-            date_format = self.default_date_format
+            if not prefer_secondary:
+                date_format = self.default_date_format
+                if date_format is None and primary_secondary_backup:
+                    date_format = self.secondary_date_format
+            else:
+                date_format = self.secondary_date_format
+                if date_format is None and primary_secondary_backup:
+                    date_format = self.default_date_format
         if date_format:
             if date_format.time_unit != self:
                 raise ValueError

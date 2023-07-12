@@ -396,7 +396,8 @@ class CalendarUpdateView(UserPassesTestMixin, generic.UpdateView):
 class TimeUnitUpdateView(UserPassesTestMixin, generic.UpdateView):
     model = TimeUnit
     template_name = 'fantasycalendar/time_unit_update_form.html'
-    fields = ['time_unit_name', 'base_unit', 'length_cycle', 'base_unit_instance_names', 'default_date_format']
+    fields = ['time_unit_name', 'base_unit', 'length_cycle', 'base_unit_instance_names', 'default_date_format',
+              'secondary_date_format']
 
     def test_func(self):
         world = get_object_or_404(TimeUnit, pk=self.kwargs['pk']).calendar.world
@@ -412,6 +413,7 @@ class TimeUnitUpdateView(UserPassesTestMixin, generic.UpdateView):
         form.fields['base_unit_instance_names'].label = \
             'Enter names of individual base units separated by spaces, if desired'
         form.fields['default_date_format'].queryset = DateFormat.objects.filter(time_unit_id=self.kwargs['pk'])
+        form.fields['secondary_date_format'].queryset = DateFormat.objects.filter(time_unit_id=self.kwargs['pk'])
         return form
 
     def get_success_url(self):
