@@ -20,14 +20,14 @@
                 <h5>{{ user.username }}</h5>
             </span>
             <span>
-                <h5><a href="{% url 'fantasycalendar:logout' %}">Log Out</a></h5>
+                <h5><a href="{% url 'accounts:logout' %}">Log Out</a></h5>
             </span>
             {% else %}
             <span>
-                <h5><a href="{% url 'fantasycalendar:user-create' %}">Sign Up</a></h5>
+                <h5><a href="{% url 'accounts:user-create' %}">Sign Up</a></h5>
             </span>
             <span>
-                <h5><a href="{% url 'fantasycalendar:login' %}">Log In</a></h5>
+                <h5><a href="{% url 'accounts:login' %}">Log In</a></h5>
             </span>
             {% endif %}
         </div>

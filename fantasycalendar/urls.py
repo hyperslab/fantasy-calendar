@@ -1,7 +1,6 @@
 from django.shortcuts import redirect
 from django.urls import path, reverse, include
 from . import views
-from django.contrib.auth import views as auth_views
 from rest_framework import routers
 from . import api_views
 
@@ -18,11 +17,6 @@ router.register('datebookmarks', api_views.DateBookmarkViewSet, 'datebookmark')
 app_name = 'fantasycalendar'
 urlpatterns = [
     path("", lambda req: redirect(reverse('fantasycalendar:world-index'))),
-    path("accounts/login/", auth_views.LoginView.as_view(template_name=app_name + "/login.html",
-                                                         next_page='fantasycalendar:world-index'), name="login"),
-    path("accounts/logout/", auth_views.LogoutView.as_view(template_name=app_name + "/login.html",
-                                                           next_page='fantasycalendar:world-index'), name="logout"),
-    path("accounts/new/", views.UserCreateView.as_view(), name="user-create"),
     path("api/", include(router.urls)),
     path("api/timeunitbaseinstances/", api_views.TimeUnitBaseInstances.as_view()),
     path("api/timeunitinstancedisplayname/", api_views.TimeUnitInstanceDisplayName.as_view()),

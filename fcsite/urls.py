@@ -20,6 +20,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('accounts/', include("accounts.urls")),
     path("fantasy-calendar/", include("fantasycalendar.urls")),
     path("", lambda req: redirect('/fantasy-calendar/')),
 ]
