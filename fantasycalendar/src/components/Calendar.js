@@ -7,6 +7,7 @@ import DisplayUnitSelect from './DisplayUnitSelect.js';
 import DisplayUnitNameHeader from './DisplayUnitNameHeader.js';
 import DisplayIterationSelect from './DisplayIterationSelect.js';
 import BookmarkSelect from './BookmarkSelect.js';
+import BookmarkCreateModalButton from './BookmarkCreateModalButton.js';
 import * as api from '../apiAccess.js';
 
 export default class Calendar extends React.Component {
@@ -17,10 +18,14 @@ export default class Calendar extends React.Component {
         displayIteration: '',
         dateBookmarks: '',
         selectedBookmarkId: '',  // set this back to empty string whenever it changes
+        userStatus: 'unauthenticated',  // 'unauthenticated', 'authenticated', or 'creator'
     }
 
     componentDidMount() {
         var calendar_id = window.location.pathname.split("/")[5];  // this is bad and may break if URL changes
+        api.getUserStatusByCalendarId(calendar_id, res => {
+            this.setState({ userStatus: res.data.user_status });
+        });
         api.getCalendar(calendar_id, res => {
             const calendar = res.data;
             this.setState({ calendar });
@@ -100,8 +105,17 @@ export default class Calendar extends React.Component {
         });
     }
 
+    handleBookmarkCreateModalFormPostResponse = (res) => {
+        this.setState({ dateBookmarks: [...this.state.dateBookmarks, res.data] });
+    }
+
     render() {
         if (!this.state.calendar || !this.state.displayUnit || !this.state.displayIteration) return null;
+
+        let bookmarkButton = <></>;  // only show bookmark button for creators
+        if (this.state.userStatus == 'creator')
+            bookmarkButton = <>&nbsp;&nbsp;<BookmarkCreateModalButton calendarId={this.state.displayUnit.calendar} timeUnit={this.state.displayUnit} iteration={this.state.displayIteration} handlePostResponse={this.handleBookmarkCreateModalFormPostResponse} /></>
+
         return (
             <div className="calendar">
                 <h2>{this.state.calendar.calendar_name}</h2>
@@ -113,7 +127,10 @@ export default class Calendar extends React.Component {
                         &nbsp;&nbsp;
                         <DisplayIterationSelect currentIteration={this.state.displayIteration} onChange={this.handleDisplayIterationChange} />
                     </span>
-                    <BookmarkSelect bookmarks={this.state.dateBookmarks} selectedBookmarkId={this.state.selectedBookmarkId} onChange={this.handleBookmarkSelectChange} />
+                    <span>
+                        <BookmarkSelect bookmarks={this.state.dateBookmarks} selectedBookmarkId={this.state.selectedBookmarkId} onChange={this.handleBookmarkSelectChange} />
+                        {bookmarkButton}
+                    </span>
                     <PageForwardButton timeUnitName={this.state.displayUnit.time_unit_name} onClick={this.handlePageForwardClick} />
                 </span>
                 <DateSquares timeUnit={this.state.displayUnit} iteration={this.state.displayIteration} baseUnitInstanceClickHandler={this.handleBaseUnitInstanceClick} />

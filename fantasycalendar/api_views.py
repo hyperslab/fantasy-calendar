@@ -6,7 +6,25 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN
 from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig, DateBookmark
 from .serializers import WorldSerializer, CalendarSerializer, TimeUnitSerializer, EventSerializer, \
     DateFormatSerializer, DisplayConfigSerializer, DateBookmarkSerializer
-from .permissions import IsCreatorOrPublic, IsWorldCreatorOrPublic, IsCalendarWorldCreatorOrPublic
+from .permissions import IsCreatorOrPublic, IsWorldCreatorOrPublic, IsCalendarWorldCreatorOrPublic, \
+    IsCalendarWorldCreator
+
+
+class UserStatus(APIView):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return Response({'user_status': 'unauthenticated'})
+        if 'world_id' not in request.query_params and 'calendar_id' not in request.query_params:
+            return Response({'user_status': 'authenticated',
+                             'message': 'send world_id or calendar_id to test for creator status'})
+        if 'world_id' in request.query_params:
+            world_id = int(request.query_params.get('world_id'))
+            world = get_object_or_404(World, pk=world_id)
+            return Response({'user_status': 'creator' if world.creator == request.user else 'authenticated'})
+        if 'calendar_id' in request.query_params:
+            calendar_id = int(request.query_params.get('calendar_id'))
+            calendar = get_object_or_404(Calendar, pk=calendar_id)
+            return Response({'user_status': 'creator' if calendar.world.creator == request.user else 'authenticated'})
 
 
 class WorldViewSet(viewsets.ReadOnlyModelViewSet):
@@ -211,10 +229,16 @@ class DisplayConfigViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
 
-class DateBookmarkViewSet(viewsets.ReadOnlyModelViewSet):
+class DateBookmarkViewSet(viewsets.ModelViewSet):
     queryset = DateBookmark.objects.all()
     serializer_class = DateBookmarkSerializer
-    permission_classes = [IsCalendarWorldCreatorOrPublic]
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [IsCalendarWorldCreatorOrPublic]
+        else:
+            permission_classes = [IsCalendarWorldCreator]  # only creators can change data
+        return [permission() for permission in permission_classes]
 
     def get_queryset(self):
         queryset = super(DateBookmarkViewSet, self).get_queryset()
