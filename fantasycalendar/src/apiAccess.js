@@ -43,3 +43,8 @@ export function getDateBookmark(dateBookmarkId, then) {
     const url = '/fantasy-calendar/api/datebookmarks/' + dateBookmarkId + '/';
     getAuthenticated(url, then);
 }
+
+export function getDateBookmarksByCalendarId(calendarId, then) {
+    const url = '/fantasy-calendar/api/datebookmarks/?calendar_id=' + calendarId;
+    getAuthenticated(url, then);
+}

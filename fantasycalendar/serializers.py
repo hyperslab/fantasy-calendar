@@ -40,6 +40,11 @@ class DisplayConfigSerializer(serializers.ModelSerializer):
 
 
 class DateBookmarkSerializer(serializers.ModelSerializer):
+    display_name = serializers.SerializerMethodField('get_display_name')
+
+    def get_display_name(self, date_bookmark):
+        return date_bookmark.get_display_name()
+
     class Meta:
         model = DateBookmark
-        fields = ('id', 'calendar', 'date_bookmark_name', 'bookmark_unit', 'bookmark_iteration')
+        fields = ('id', 'calendar', 'date_bookmark_name', 'bookmark_unit', 'bookmark_iteration', 'display_name')

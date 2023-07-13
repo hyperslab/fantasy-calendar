@@ -6,7 +6,8 @@ import PageBackButton from './PageBackButton.js';
 import DisplayUnitSelect from './DisplayUnitSelect.js';
 import DisplayUnitNameHeader from './DisplayUnitNameHeader.js';
 import DisplayIterationSelect from './DisplayIterationSelect.js';
-import {getCalendar, getTimeUnit, getTimeUnitsByCalendarId, getTimeUnitEquivalentIteration, getDisplayConfig, getDateBookmark} from '../apiAccess.js';
+import BookmarkSelect from './BookmarkSelect.js';
+import * as api from '../apiAccess.js';
 
 export default class Calendar extends React.Component {
     state = {
@@ -14,32 +15,34 @@ export default class Calendar extends React.Component {
         timeUnits: '',
         displayUnit: '',
         displayIteration: '',
-        displayConfig: '',
-        dateBookmark: ''
+        dateBookmarks: '',
+        selectedBookmarkId: '',  // set this back to empty string whenever it changes
     }
 
     componentDidMount() {
         var calendar_id = window.location.pathname.split("/")[5];  // this is bad and may break if URL changes
-        getCalendar(calendar_id, res => {
+        api.getCalendar(calendar_id, res => {
             const calendar = res.data;
             this.setState({ calendar });
-            getTimeUnitsByCalendarId(calendar_id, res6 => {
+            api.getTimeUnitsByCalendarId(calendar_id, res6 => {
                 const timeUnits = res6.data;
                 this.setState({ timeUnits });
             });
+            api.getDateBookmarksByCalendarId(calendar_id, res7 => {
+                const dateBookmarks = res7.data;
+                this.setState({ dateBookmarks });
+            });
             if (calendar.default_display_config)
-                getDisplayConfig(calendar.default_display_config, res2 => {
+                api.getDisplayConfig(calendar.default_display_config, res2 => {
                     const displayConfig = res2.data;
-                    this.setState({ displayConfig });
                     const displayUnitId = displayConfig.display_unit;
-                    getTimeUnit(displayUnitId, res3 => {
+                    api.getTimeUnit(displayUnitId, res3 => {
                         const displayUnit = res3.data;
                         this.setState({ displayUnit });
                         if (displayConfig.default_date_bookmark)
-                            getDateBookmark(displayConfig.default_date_bookmark, res4 => {
+                            api.getDateBookmark(displayConfig.default_date_bookmark, res4 => {
                                 const dateBookmark = res4.data;
                                 const displayIteration = dateBookmark.bookmark_iteration;
-                                this.setState({ dateBookmark });
                                 this.setState({ displayIteration });
                             });
                         else  // from if (displayConfig.default_date_bookmark)
@@ -50,7 +53,7 @@ export default class Calendar extends React.Component {
                     });
                 });
             else  // from if (calendar.default_display_config)
-                getTimeUnitsByCalendarId(calendar_id, res5 => {
+                api.getTimeUnitsByCalendarId(calendar_id, res5 => {
                     const displayUnit = res5.data[0];
                     const displayIteration = 1;
                     this.setState({ displayUnit });
@@ -72,7 +75,7 @@ export default class Calendar extends React.Component {
     }
 
     handleDisplayUnitSelectChange = (newUnitId) => {
-        getTimeUnitEquivalentIteration(this.state.displayUnit.id, this.state.displayIteration, newUnitId, res => {
+        api.getTimeUnitEquivalentIteration(this.state.displayUnit.id, this.state.displayIteration, newUnitId, res => {
             this.setState({
                 displayUnit: this.state.timeUnits.find(x => x.id == newUnitId),
                 displayIteration: res.data.iteration,
@@ -88,6 +91,15 @@ export default class Calendar extends React.Component {
         this.setState({ displayIteration: newIteration });
     }
 
+    handleBookmarkSelectChange = (newBookmarkId) => {
+        const newBookmark = this.state.dateBookmarks.find(x => x.id == newBookmarkId);
+        this.setState({
+            displayUnit: this.state.timeUnits.find(x => x.id == newBookmark.bookmark_unit),
+            displayIteration: newBookmark.bookmark_iteration,
+            selectedBookmarkId: '',
+        });
+    }
+
     render() {
         if (!this.state.calendar || !this.state.displayUnit || !this.state.displayIteration) return null;
         return (
@@ -101,6 +113,7 @@ export default class Calendar extends React.Component {
                         &nbsp;&nbsp;
                         <DisplayIterationSelect currentIteration={this.state.displayIteration} onChange={this.handleDisplayIterationChange} />
                     </span>
+                    <BookmarkSelect bookmarks={this.state.dateBookmarks} selectedBookmarkId={this.state.selectedBookmarkId} onChange={this.handleBookmarkSelectChange} />
                     <PageForwardButton timeUnitName={this.state.displayUnit.time_unit_name} onClick={this.handlePageForwardClick} />
                 </span>
                 <DateSquares timeUnit={this.state.displayUnit} iteration={this.state.displayIteration} baseUnitInstanceClickHandler={this.handleBaseUnitInstanceClick} />
