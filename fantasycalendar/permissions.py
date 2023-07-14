@@ -11,6 +11,8 @@ class IsCreatorOrPublic(permissions.BasePermission):
 class IsWorldCreatorOrPublic(permissions.BasePermission):
     def has_permission(self, request, view):
         if view.action == 'create':
+            if 'world' not in request.data:
+                return False
             world = get_object_or_404(World, pk=request.data['world'])
             return world.creator == request.user or world.public
         else:
@@ -23,6 +25,8 @@ class IsWorldCreatorOrPublic(permissions.BasePermission):
 class IsCalendarWorldCreatorOrPublic(permissions.BasePermission):
     def has_permission(self, request, view):
         if view.action == 'create':
+            if 'calendar' not in request.data:
+                return False
             calendar = get_object_or_404(Calendar, pk=request.data['calendar'])
             return calendar.world.creator == request.user or calendar.world.public
         else:
@@ -40,6 +44,8 @@ class IsCreator(permissions.BasePermission):
 class IsWorldCreator(permissions.BasePermission):
     def has_permission(self, request, view):
         if view.action == 'create':
+            if 'world' not in request.data:
+                return False
             world = get_object_or_404(World, pk=request.data['world'])
             return world.creator == request.user
         else:
@@ -52,6 +58,8 @@ class IsWorldCreator(permissions.BasePermission):
 class IsCalendarWorldCreator(permissions.BasePermission):
     def has_permission(self, request, view):
         if view.action == 'create':
+            if 'calendar' not in request.data:
+                return False
             calendar = get_object_or_404(Calendar, pk=request.data['calendar'])
             return calendar.world.creator == request.user
         else:

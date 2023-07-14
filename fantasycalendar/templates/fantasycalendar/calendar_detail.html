@@ -39,14 +39,16 @@ Calendar Detail
 {% else %}
     <p>No display configurations have been created for this calendar.</p>
 {% endif %}
-<h3>Date Bookmarks{% if user.pk == calendar.world.creator.pk %} <a
+<h3>Shared Date Bookmarks{% if user.pk == calendar.world.creator.pk %} <a
         href="{% url 'fantasycalendar:date-bookmark-create' calendar.world_id calendar.id %}">(+new)</a>{% endif %}</h3>
 {% if calendar.datebookmark_set %}
     <ul>
     {% for date_bookmark in calendar.datebookmark_set.all %}
+        {% if not date_bookmark.is_personal %}
         <li>{{ date_bookmark.get_display_name  }}{% if user.pk == calendar.world.creator.pk %} <a
                 href="{% url 'fantasycalendar:date-bookmark-update' calendar.world_id calendar.id date_bookmark.id %}">(edit)</a>{% endif %} <a
                 href="{% url 'fantasycalendar:calendar-detail' calendar.world_id calendar.id %}?display_unit_type={{ date_bookmark.bookmark_unit.id }}&nest_checkbox={{ nest_level }}&iteration={{ date_bookmark.bookmark_iteration }}">(go to bookmark)</a></li>
+        {% endif %}
     {% endfor %}
     </ul>
 {% else %}

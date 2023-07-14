@@ -98,3 +98,14 @@ export function postDateBookmark(calendarId, dateBookmarkName, bookmarkUnitId, b
     };
     postAuthenticated(url, params, then);
 }
+
+export function postPersonalDateBookmark(calendarId, dateBookmarkName, bookmarkUnitId, bookmarkIteration, then) {
+    const url = '/fantasy-calendar/api/datebookmarkcreatepersonal/';
+    const params = {
+        calendar: calendarId,
+        date_bookmark_name: dateBookmarkName,
+        bookmark_unit: bookmarkUnitId,
+        bookmark_iteration: bookmarkIteration,
+    };
+    postAuthenticated(url, params, then);
+}

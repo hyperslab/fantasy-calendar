@@ -18,7 +18,7 @@ class TimeUnitSerializer(serializers.ModelSerializer):
     class Meta:
         model = TimeUnit
         fields = ('id', 'calendar', 'time_unit_name', 'base_unit', 'length_cycle', 'base_unit_instance_names',
-                  'default_date_format')
+                  'default_date_format', 'secondary_date_format')
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -47,4 +47,17 @@ class DateBookmarkSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DateBookmark
-        fields = ('id', 'calendar', 'date_bookmark_name', 'bookmark_unit', 'bookmark_iteration', 'display_name')
+        fields = ('id', 'calendar', 'date_bookmark_name', 'bookmark_unit', 'bookmark_iteration', 'display_name',
+                  'personal_bookmark_creator')
+
+
+class DateBookmarkPersonalSerializer(serializers.ModelSerializer):
+    display_name = serializers.SerializerMethodField('get_display_name')
+
+    def get_display_name(self, date_bookmark):
+        return date_bookmark.get_display_name()
+
+    class Meta:
+        model = DateBookmark
+        fields = ('id', 'calendar', 'date_bookmark_name', 'bookmark_unit', 'bookmark_iteration', 'display_name',
+                  'personal_bookmark_creator')

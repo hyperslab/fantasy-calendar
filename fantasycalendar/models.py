@@ -621,6 +621,11 @@ class DateBookmark(models.Model):
                                       help_text=html_tooltip('The type of time unit that this bookmark is for'))
     bookmark_iteration = models.IntegerField(help_text=html_tooltip('The instance of the specified time unit type for '
                                                                     'this bookmark to link to'))
+    personal_bookmark_creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True,
+                                                  blank=True, help_text=html_tooltip('The creator of this bookmark if '
+                                                                                     'this is a personal bookmark; '
+                                                                                     'not populated if this is a '
+                                                                                     'shared bookmark'))
 
     def __str__(self):
         return self.get_display_name()
@@ -638,3 +643,11 @@ class DateBookmark(models.Model):
             return self.bookmark_unit.default_date_format.get_formatted_date(iteration=self.bookmark_iteration)
         else:
             return str(self.bookmark_unit.time_unit_name) + ' ' + str(self.bookmark_iteration)
+
+    def is_personal(self):
+        """
+        Return True if this is a personal bookmark only intended for
+        use by the user that created it or False if this is a shared
+        bookmark made by the world creator intended for anyone to use.
+        """
+        return True if self.personal_bookmark_creator else False

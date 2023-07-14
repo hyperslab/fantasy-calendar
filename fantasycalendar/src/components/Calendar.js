@@ -112,10 +112,6 @@ export default class Calendar extends React.Component {
     render() {
         if (!this.state.calendar || !this.state.displayUnit || !this.state.displayIteration) return null;
 
-        let bookmarkButton = <></>;  // only show bookmark button for creators
-        if (this.state.userStatus == 'creator')
-            bookmarkButton = <>&nbsp;&nbsp;<BookmarkCreateModalButton calendarId={this.state.displayUnit.calendar} timeUnit={this.state.displayUnit} iteration={this.state.displayIteration} handlePostResponse={this.handleBookmarkCreateModalFormPostResponse} /></>
-
         return (
             <div className="calendar">
                 <h2>{this.state.calendar.calendar_name}</h2>
@@ -129,7 +125,8 @@ export default class Calendar extends React.Component {
                     </span>
                     <span>
                         <BookmarkSelect bookmarks={this.state.dateBookmarks} selectedBookmarkId={this.state.selectedBookmarkId} onChange={this.handleBookmarkSelectChange} />
-                        {bookmarkButton}
+                        &nbsp;&nbsp;
+                        <BookmarkCreateModalButton calendarId={this.state.displayUnit.calendar} timeUnit={this.state.displayUnit} iteration={this.state.displayIteration} userStatus={this.state.userStatus} handlePostResponse={this.handleBookmarkCreateModalFormPostResponse} />
                     </span>
                     <PageForwardButton timeUnitName={this.state.displayUnit.time_unit_name} onClick={this.handlePageForwardClick} />
                 </span>

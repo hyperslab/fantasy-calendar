@@ -1,8 +1,10 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN, HTTP_201_CREATED
 from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig, DateBookmark
 from .serializers import WorldSerializer, CalendarSerializer, TimeUnitSerializer, EventSerializer, \
     DateFormatSerializer, DisplayConfigSerializer, DateBookmarkSerializer
@@ -245,9 +247,11 @@ class DateBookmarkViewSet(viewsets.ModelViewSet):
         if self.action == 'list':
             if self.request.user.is_authenticated:
                 queryset = queryset.filter(calendar__world__creator_id=self.request.user.id) | \
-                           queryset.filter(calendar__world__public=True)
+                    queryset.filter(calendar__world__public=True)
+                queryset = queryset.filter(personal_bookmark_creator=None) | \
+                    queryset.filter(personal_bookmark_creator=self.request.user)
             else:
-                queryset = queryset.filter(calendar__world__public=True)
+                queryset = queryset.filter(calendar__world__public=True).filter(personal_bookmark_creator=None)
             if 'bookmark_unit_id' in self.request.query_params:
                 bookmark_unit_id = int(self.request.query_params.get('bookmark_unit_id'))
                 queryset = queryset.filter(bookmark_unit_id=bookmark_unit_id)
@@ -255,3 +259,37 @@ class DateBookmarkViewSet(viewsets.ModelViewSet):
                 calendar_id = int(self.request.query_params.get('calendar_id'))
                 queryset = queryset.filter(calendar_id=calendar_id)
         return queryset
+
+
+class DateBookmarkCreatePersonal(APIView):
+    def post(self, request):
+        # initial validation
+        if not request.user:
+            return Response({'message': 'ERROR: user is not authenticated'}, status=HTTP_403_FORBIDDEN)
+        required_params = [
+            'calendar',
+            'date_bookmark_name',
+            'bookmark_unit',
+            'bookmark_iteration',
+        ]
+        missing_fields = [param for param in required_params if param not in request.data]
+        if len(missing_fields) > 0:
+            return Response({'message': 'ERROR: missing required fields ' + ' and '.join(missing_fields)},
+                            status=HTTP_400_BAD_REQUEST)
+
+        # creation
+        calendar = get_object_or_404(Calendar, pk=int(request.data['calendar']))
+        if not calendar.world.public and calendar.world.creator != request.user:
+            return Response(
+                {'message': "ERROR: this resource's world is not public and you are not authenticated as its creator"},
+                status=HTTP_403_FORBIDDEN)
+        date_bookmark_name = request.data['date_bookmark_name']
+        bookmark_unit = get_object_or_404(TimeUnit, pk=int(request.data['bookmark_unit']))
+        bookmark_iteration = int(request.data['bookmark_iteration'])
+        bookmark = DateBookmark.objects.create(calendar=calendar, date_bookmark_name=date_bookmark_name,
+                                               bookmark_unit=bookmark_unit, bookmark_iteration=bookmark_iteration,
+                                               personal_bookmark_creator=request.user)
+
+        # response
+        serializer = DateBookmarkSerializer(bookmark)
+        return Response(serializer.data, status=HTTP_201_CREATED)
