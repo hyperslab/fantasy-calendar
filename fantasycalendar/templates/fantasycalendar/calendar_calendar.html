@@ -5,7 +5,13 @@
 {% endblock %}
 
 {% block page %}
-<h4><a href="{% url 'fantasycalendar:calendar-detail' calendar.world_id calendar.id %}">Back to Standard View</a></h4>
+<h4 style="padding-left: 10px;">
+    <a href="{% url 'fantasycalendar:world-detail' calendar.world_id %}">Back to World</a>
+    {% if user == calendar.world.creator %}
+    &nbsp;-&nbsp;
+    <a href="{% url 'fantasycalendar:calendar-detail' calendar.world_id calendar.id %}">Back to Detail View</a>
+    {% endif %}
+</h4>
 <div id="root"></div>
 {% load static %}
 <script src="{% static 'fantasycalendar/main.js' %}"></script>

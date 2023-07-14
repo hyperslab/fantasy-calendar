@@ -7,9 +7,7 @@ Calendar Detail
 {% block content %}
 <h2><a href="{% url 'fantasycalendar:world-detail' calendar.world_id %}">{{ calendar.world.world_name }}</a> - {{ calendar.calendar_name }}{% if user.pk == calendar.world.creator.pk %}
     <a href="{% url 'fantasycalendar:calendar-update' calendar.world_id calendar.id %}">(edit)</a>{% endif %}</h2>
-{% if debug %}
-<h4><a href="{% url 'fantasycalendar:calendar-calendar' calendar.world_id calendar.id %}">To Experimental View</a></h4>
-{% endif %}
+<h4><a href="{% url 'fantasycalendar:calendar-calendar' calendar.world_id calendar.id %}">View Main Calendar Page</a></h4>
 <h3>Time Units{% if user.pk == calendar.world.creator.pk %} <a href="{% url 'fantasycalendar:time-unit-create' calendar.world_id calendar.id %}">(+new)</a>{% endif %}</h3>
 {% if calendar.timeunit_set %}
     <ul>

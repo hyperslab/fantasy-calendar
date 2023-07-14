@@ -10,7 +10,11 @@ World Detail
 {% if world.calendar_set %}
     <ul>
     {% for calendar in world.calendar_set.all %}
+        {% if user == world.creator %}
         <li><a href="{% url 'fantasycalendar:calendar-detail' world.id calendar.id %}">{{ calendar.calendar_name }}</a></li>
+        {% else %}
+        <li><a href="{% url 'fantasycalendar:calendar-calendar' world.id calendar.id %}">{{ calendar.calendar_name }}</a></li>
+        {% endif %}
     {% endfor %}
     </ul>
 {% else %}
