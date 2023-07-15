@@ -68,7 +68,8 @@ export default class Calendar extends React.Component {
     }
 
     handlePageBackClick = () => {
-        this.setState({ displayIteration: this.state.displayIteration - 1 });
+        if (this.state.displayIteration > 1)  // don't go below 1
+            this.setState({ displayIteration: this.state.displayIteration - 1 });
     }
 
     handlePageForwardClick = () => {
