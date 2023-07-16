@@ -5,26 +5,34 @@ World Index
 {% endblock %}
 
 {% block content %}
+<h3>My Worlds{% if user.is_authenticated %} <a href="{% url 'fantasycalendar:world-create' %}">(+new)</a>{% endif %}</h3>
 {% if user.is_authenticated %}
-<h3>My Worlds <a href="{% url 'fantasycalendar:world-create' %}">(+new)</a></h3>
-{% if user_world_list %}
-    <ul>
-    {% for world in user_world_list %}
-        <li><a href="{% url 'fantasycalendar:world-detail' world.id %}">{{ world.world_name }}</a></li>
-    {% endfor %}
-    </ul>
+    {% if user_world_list %}
+        <ul>
+        {% for world in user_world_list %}
+            <li><a href="{% url 'fantasycalendar:world-detail' world.id %}">{{ world.world_name }}</a></li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <ul>
+            <li>You have not created any worlds yet. <a href="{% url 'fantasycalendar:world-create' %}">Make your first!</a></li>
+        </ul>
+    {% endif %}
 {% else %}
-    <p>You have not created any worlds.</p>
+    <ul>
+        <li><a href="{% url 'accounts:login' %}">Log in</a> or <a href="{% url 'accounts:user-create' %}">make an account</a> to start creating!</li>
+    </ul>
 {% endif %}
-{% endif %}
-<h3>{% if user.is_authenticated %}Public {% endif %}Worlds</h3>
+<h3>Worlds from Other Creators</h3>
 {% if world_list %}
     <ul>
     {% for world in world_list %}
-        <li><a href="{% url 'fantasycalendar:world-detail' world.id %}">{{ world.world_name }}</a></li>
+        <li><a href="{% url 'fantasycalendar:world-detail' world.id %}">{{ world.world_name }}</a> by {{ world.creator.username }}</li>
     {% endfor %}
     </ul>
 {% else %}
-    <p>No public worlds {% if user.is_authenticated %}from other creators {% endif %}are available.</p>
+    <ul>
+        <li>No public worlds {% if user.is_authenticated %}from other creators {% endif %}are available.</li>
+    </ul>
 {% endif %}
 {% endblock %}
