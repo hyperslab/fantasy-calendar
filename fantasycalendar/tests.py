@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from django.test import TestCase
-from .models import TimeUnit, Calendar, World
+from .models import TimeUnit, Calendar, World, DateFormat
 
 
 class TimeUnitModelTests(TestCase):
@@ -685,3 +685,132 @@ class TimeUnitModelTests(TestCase):
         self.assertEqual(time_unit.get_iteration_at_bottom_level_iteration(121), 2)
         self.assertEqual(time_unit.get_iteration_at_bottom_level_iteration(481), 4)
         self.assertEqual(time_unit.get_iteration_at_bottom_level_iteration(482), 5)
+
+
+class DateFormatModelTests(TestCase):
+    def test_is_reversible_with_reversible_day_month_year_iterations(self):
+        """
+        is_reversible() returns True for a standard "month/day/year"
+        date format that uses all numbers.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        day = TimeUnit.objects.create(calendar=calendar)
+        month = TimeUnit.objects.create(calendar=calendar, base_unit=day)
+        year = TimeUnit.objects.create(calendar=calendar, base_unit=month)
+        day_code = '{' + str(month.id) + '-' + str(day.id) + '-i}'
+        month_code = '{' + str(year.id) + '-' + str(month.id) + '-i}'
+        year_code = '{' + str(year.id) + '-' + str(year.id) + '-i}'
+        date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Slashes',
+                                 format_string=month_code + '/' + day_code + '/' + year_code)
+        self.assertTrue(date_format.is_reversible())
+
+    def test_is_reversible_with_reversible_day_month_year_names(self):
+        """
+        is_reversible() returns True for a standard "month day, year"
+        date format that uses month names.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        day = TimeUnit.objects.create(calendar=calendar)
+        month = TimeUnit.objects.create(calendar=calendar, base_unit=day)
+        year = TimeUnit.objects.create(calendar=calendar, base_unit=month,
+                                       base_unit_instance_names='January February March April May June July August '
+                                                                'September October November December')
+        day_code = '{' + str(month.id) + '-' + str(day.id) + '-i}'
+        month_code = '{' + str(year.id) + '-' + str(month.id) + '-n}'
+        year_code = '{' + str(year.id) + '-' + str(year.id) + '-i}'
+        date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='Standard Day Format',
+                                 format_string=month_code + ' ' + day_code + ', ' + year_code)
+        self.assertTrue(date_format.is_reversible())
+
+    def test_is_reversible_with_not_reversible_day_month_year_iterations(self):
+        """
+        is_reversible() returns False for a "day/year" date format
+        where day is relative to month.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        day = TimeUnit.objects.create(calendar=calendar)
+        month = TimeUnit.objects.create(calendar=calendar, base_unit=day)
+        year = TimeUnit.objects.create(calendar=calendar, base_unit=month)
+        day_code = '{' + str(month.id) + '-' + str(day.id) + '-i}'
+        year_code = '{' + str(year.id) + '-' + str(year.id) + '-i}'
+        date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Slashes',
+                                 format_string='/' + day_code + '/' + year_code)
+        self.assertFalse(date_format.is_reversible())
+
+    def test_is_reversible_with_not_reversible_day_month_year_names(self):
+        """
+        is_reversible() returns False for a "month day, year" date
+        format that uses month names if there are multiple months in a
+        year that have the same name.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        day = TimeUnit.objects.create(calendar=calendar)
+        month = TimeUnit.objects.create(calendar=calendar, base_unit=day)
+        year = TimeUnit.objects.create(calendar=calendar, base_unit=month,
+                                       base_unit_instance_names='January February March April January June July August '
+                                                                'September January March September')
+        day_code = '{' + str(month.id) + '-' + str(day.id) + '-i}'
+        month_code = '{' + str(year.id) + '-' + str(month.id) + '-n}'
+        year_code = '{' + str(year.id) + '-' + str(year.id) + '-i}'
+        date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='Standard Day Format',
+                                 format_string=month_code + ' ' + day_code + ', ' + year_code)
+        self.assertFalse(date_format.is_reversible())
+
+    def test_is_reversible_with_reversible_day_month_year_century_branching(self):
+        """
+        is_reversible() returns True for a "day-month-year-century"
+        date format if year and month are both relative to century and
+        day is relative to month, regardless of the order of the codes
+        in the format string.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        day = TimeUnit.objects.create(calendar=calendar)
+        month = TimeUnit.objects.create(calendar=calendar, base_unit=day)
+        year = TimeUnit.objects.create(calendar=calendar, base_unit=month)
+        century = TimeUnit.objects.create(calendar=calendar, base_unit=year)
+        day_code = '{' + str(month.id) + '-' + str(day.id) + '-i}'
+        month_code = '{' + str(century.id) + '-' + str(month.id) + '-i}'
+        year_code = '{' + str(century.id) + '-' + str(year.id) + '-i}'
+        century_code = '{' + str(century.id) + '-' + str(century.id) + '-i}'
+        date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='Century Dashes',
+                                 format_string=day_code + '-' + month_code + '-' + year_code + '-' + century_code)
+        date_format2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='Century Dashes',
+                                  format_string=century_code + '-' + year_code + '-' + month_code + '-' + day_code)
+        date_format3 = DateFormat(calendar=calendar, time_unit=day, date_format_name='Century Dashes',
+                                  format_string=year_code + '-' + day_code + '-' + century_code + '-' + month_code)
+        self.assertTrue(date_format.is_reversible())
+        self.assertTrue(date_format2.is_reversible())
+        self.assertTrue(date_format3.is_reversible())
+
+    def test_is_reversible_with_not_reversible_day_week_month_year_century_branching(self):
+        """
+        is_reversible() returns False for a "day-month-year-century"
+        date format if year and month are both relative to century and
+        day is relative to week, regardless of the order of the codes in
+        the format string.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        day = TimeUnit.objects.create(calendar=calendar)
+        week = TimeUnit.objects.create(calendar=calendar, base_unit=day)
+        month = TimeUnit.objects.create(calendar=calendar, base_unit=day)
+        year = TimeUnit.objects.create(calendar=calendar, base_unit=month)
+        century = TimeUnit.objects.create(calendar=calendar, base_unit=year)
+        day_code = '{' + str(week.id) + '-' + str(day.id) + '-i}'
+        month_code = '{' + str(century.id) + '-' + str(month.id) + '-i}'
+        year_code = '{' + str(century.id) + '-' + str(year.id) + '-i}'
+        century_code = '{' + str(century.id) + '-' + str(century.id) + '-i}'
+        date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='Century Dashes',
+                                 format_string=day_code + '-' + month_code + '-' + year_code + '-' + century_code)
+        date_format2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='Century Dashes',
+                                  format_string=century_code + '-' + year_code + '-' + month_code + '-' + day_code)
+        date_format3 = DateFormat(calendar=calendar, time_unit=day, date_format_name='Century Dashes',
+                                  format_string=year_code + '-' + day_code + '-' + century_code + '-' + month_code)
+        self.assertFalse(date_format.is_reversible())
+        self.assertFalse(date_format2.is_reversible())
+        self.assertFalse(date_format3.is_reversible())
