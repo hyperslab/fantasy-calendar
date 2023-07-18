@@ -814,3 +814,103 @@ class DateFormatModelTests(TestCase):
         self.assertFalse(date_format.is_reversible())
         self.assertFalse(date_format2.is_reversible())
         self.assertFalse(date_format3.is_reversible())
+
+    def test_get_values_from_formatted_date_with_day_month_year_iterations(self):
+        """
+        get_values_from_formatted_date() returns the expected values
+        for a date format that uses all numbers.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        day = TimeUnit.objects.create(calendar=calendar)
+        month = TimeUnit.objects.create(calendar=calendar, base_unit=day, length_cycle='30')
+        year = TimeUnit.objects.create(calendar=calendar, base_unit=month, length_cycle='12')
+        day_code = '{' + str(month.id) + '-' + str(day.id) + '-i}'
+        month_code = '{' + str(year.id) + '-' + str(month.id) + '-i}'
+        year_code = '{' + str(year.id) + '-' + str(year.id) + '-i}'
+        date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Slashes',
+                                 format_string=month_code + '/' + day_code + '/' + year_code)
+        date = date_format.get_formatted_date(100)
+        date_format2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Extra Slashes',
+                                  format_string='/' + month_code + '/' + day_code + '/' + year_code + '/')
+        date2 = date_format2.get_formatted_date(100)
+        self.assertEqual(date, '4/10/1')
+        self.assertEqual(date_format.get_values_from_formatted_date(date), ['4', '10', '1'])
+        self.assertEqual(date2, '/4/10/1/')
+        self.assertEqual(date_format2.get_values_from_formatted_date(date2), ['4', '10', '1'])
+
+    def test_get_values_from_formatted_date_with_day_month_year_names(self):
+        """
+        get_values_from_formatted_date() returns the expected values
+        for a date format that contains a name.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        day = TimeUnit.objects.create(calendar=calendar)
+        month = TimeUnit.objects.create(calendar=calendar, base_unit=day, length_cycle='30')
+        year = TimeUnit.objects.create(calendar=calendar, base_unit=month, length_cycle='12',
+                                       base_unit_instance_names='January February March April January June July August '
+                                                                'September January March September')
+        day_code = '{' + str(month.id) + '-' + str(day.id) + '-i}'
+        month_code = '{' + str(year.id) + '-' + str(month.id) + '-n}'
+        year_code = '{' + str(year.id) + '-' + str(year.id) + '-i}'
+        date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Slashes',
+                                 format_string=month_code + '/' + day_code + '/' + year_code)
+        date = date_format.get_formatted_date(100)
+        date_format2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Extra Slashes',
+                                  format_string='/' + month_code + '/' + day_code + '/' + year_code + '/')
+        date2 = date_format2.get_formatted_date(100)
+        self.assertEqual(date, 'April/10/1')
+        self.assertEqual(date_format.get_values_from_formatted_date(date), ['April', '10', '1'])
+        self.assertEqual(date2, '/April/10/1/')
+        self.assertEqual(date_format2.get_values_from_formatted_date(date2), ['April', '10', '1'])
+
+    def test_get_iteration_with_day_month_year_iterations(self):
+        """
+        get_iteration() returns the expected value for a date format
+        that uses all numbers.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        day = TimeUnit.objects.create(calendar=calendar)
+        month = TimeUnit.objects.create(calendar=calendar, base_unit=day, length_cycle='30')
+        year = TimeUnit.objects.create(calendar=calendar, base_unit=month, length_cycle='12')
+        day_code = '{' + str(month.id) + '-' + str(day.id) + '-i}'
+        month_code = '{' + str(year.id) + '-' + str(month.id) + '-i}'
+        year_code = '{' + str(year.id) + '-' + str(year.id) + '-i}'
+        date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Slashes',
+                                 format_string=month_code + '/' + day_code + '/' + year_code)
+        date = date_format.get_formatted_date(100)
+        date_format2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Extra Slashes',
+                                  format_string='/' + month_code + '/' + day_code + '/' + year_code + '/')
+        date2 = date_format2.get_formatted_date(100)
+        self.assertEqual(date, '4/10/1')
+        self.assertEqual(date_format.get_iteration(date), 100)
+        self.assertEqual(date2, '/4/10/1/')
+        self.assertEqual(date_format2.get_iteration(date2), 100)
+
+    def test_get_iteration_with_day_month_year_names(self):
+        """
+        get_iteration() returns the expected value for a date format
+        that contains a name.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        day = TimeUnit.objects.create(calendar=calendar)
+        month = TimeUnit.objects.create(calendar=calendar, base_unit=day, length_cycle='30')
+        year = TimeUnit.objects.create(calendar=calendar, base_unit=month, length_cycle='12',
+                                       base_unit_instance_names='January February March April January June July August '
+                                                                'September January March September')
+        day_code = '{' + str(month.id) + '-' + str(day.id) + '-i}'
+        month_code = '{' + str(year.id) + '-' + str(month.id) + '-n}'
+        year_code = '{' + str(year.id) + '-' + str(year.id) + '-i}'
+        date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Slashes',
+                                 format_string=month_code + '/' + day_code + '/' + year_code)
+        date = date_format.get_formatted_date(100)
+        date_format2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Extra Slashes',
+                                  format_string='/' + month_code + '/' + day_code + '/' + year_code + '/')
+        date2 = date_format2.get_formatted_date(100)
+        self.assertEqual(date, 'April/10/1')
+        self.assertEqual(date_format.get_iteration(date), 100)
+        self.assertEqual(date2, '/April/10/1/')
+        self.assertEqual(date_format2.get_iteration(date2), 100)
