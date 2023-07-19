@@ -779,12 +779,12 @@ class DateFormatModelTests(TestCase):
         century_code = '{' + str(century.id) + '-' + str(century.id) + '-i}'
         date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='Century Dashes',
                                  format_string=day_code + '-' + month_code + '-' + year_code + '-' + century_code)
-        date_format2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='Century Dashes',
-                                  format_string=century_code + '-' + year_code + '-' + month_code + '-' + day_code)
+        date_format_2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='Century Dashes',
+                                   format_string=century_code + '-' + year_code + '-' + month_code + '-' + day_code)
         date_format3 = DateFormat(calendar=calendar, time_unit=day, date_format_name='Century Dashes',
                                   format_string=year_code + '-' + day_code + '-' + century_code + '-' + month_code)
         self.assertTrue(date_format.is_reversible())
-        self.assertTrue(date_format2.is_reversible())
+        self.assertTrue(date_format_2.is_reversible())
         self.assertTrue(date_format3.is_reversible())
 
     def test_is_reversible_with_not_reversible_day_week_month_year_century_branching(self):
@@ -807,12 +807,12 @@ class DateFormatModelTests(TestCase):
         century_code = '{' + str(century.id) + '-' + str(century.id) + '-i}'
         date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='Century Dashes',
                                  format_string=day_code + '-' + month_code + '-' + year_code + '-' + century_code)
-        date_format2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='Century Dashes',
-                                  format_string=century_code + '-' + year_code + '-' + month_code + '-' + day_code)
+        date_format_2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='Century Dashes',
+                                   format_string=century_code + '-' + year_code + '-' + month_code + '-' + day_code)
         date_format3 = DateFormat(calendar=calendar, time_unit=day, date_format_name='Century Dashes',
                                   format_string=year_code + '-' + day_code + '-' + century_code + '-' + month_code)
         self.assertFalse(date_format.is_reversible())
-        self.assertFalse(date_format2.is_reversible())
+        self.assertFalse(date_format_2.is_reversible())
         self.assertFalse(date_format3.is_reversible())
 
     def test_get_values_from_formatted_date_with_day_month_year_iterations(self):
@@ -831,13 +831,13 @@ class DateFormatModelTests(TestCase):
         date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Slashes',
                                  format_string=month_code + '/' + day_code + '/' + year_code)
         date = date_format.get_formatted_date(100)
-        date_format2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Extra Slashes',
-                                  format_string='/' + month_code + '/' + day_code + '/' + year_code + '/')
-        date2 = date_format2.get_formatted_date(100)
+        date_format_2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Extra Slashes',
+                                   format_string='/' + month_code + '/' + day_code + '/' + year_code + '/')
+        date_2 = date_format_2.get_formatted_date(100)
         self.assertEqual(date, '4/10/1')
         self.assertEqual(date_format.get_values_from_formatted_date(date), ['4', '10', '1'])
-        self.assertEqual(date2, '/4/10/1/')
-        self.assertEqual(date_format2.get_values_from_formatted_date(date2), ['4', '10', '1'])
+        self.assertEqual(date_2, '/4/10/1/')
+        self.assertEqual(date_format_2.get_values_from_formatted_date(date_2), ['4', '10', '1'])
 
     def test_get_values_from_formatted_date_with_day_month_year_names(self):
         """
@@ -857,13 +857,13 @@ class DateFormatModelTests(TestCase):
         date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Slashes',
                                  format_string=month_code + '/' + day_code + '/' + year_code)
         date = date_format.get_formatted_date(100)
-        date_format2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Extra Slashes',
-                                  format_string='/' + month_code + '/' + day_code + '/' + year_code + '/')
-        date2 = date_format2.get_formatted_date(100)
+        date_format_2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Extra Slashes',
+                                   format_string='/' + month_code + '/' + day_code + '/' + year_code + '/')
+        date_2 = date_format_2.get_formatted_date(100)
         self.assertEqual(date, 'April/10/1')
         self.assertEqual(date_format.get_values_from_formatted_date(date), ['April', '10', '1'])
-        self.assertEqual(date2, '/April/10/1/')
-        self.assertEqual(date_format2.get_values_from_formatted_date(date2), ['April', '10', '1'])
+        self.assertEqual(date_2, '/April/10/1/')
+        self.assertEqual(date_format_2.get_values_from_formatted_date(date_2), ['April', '10', '1'])
 
     def test_get_iteration_with_day_month_year_iterations(self):
         """
@@ -881,13 +881,13 @@ class DateFormatModelTests(TestCase):
         date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Slashes',
                                  format_string=month_code + '/' + day_code + '/' + year_code)
         date = date_format.get_formatted_date(100)
-        date_format2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Extra Slashes',
-                                  format_string='/' + month_code + '/' + day_code + '/' + year_code + '/')
-        date2 = date_format2.get_formatted_date(100)
+        date_format_2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Extra Slashes',
+                                   format_string='/' + month_code + '/' + day_code + '/' + year_code + '/')
+        date_2 = date_format_2.get_formatted_date(100)
         self.assertEqual(date, '4/10/1')
         self.assertEqual(date_format.get_iteration(date), 100)
-        self.assertEqual(date2, '/4/10/1/')
-        self.assertEqual(date_format2.get_iteration(date2), 100)
+        self.assertEqual(date_2, '/4/10/1/')
+        self.assertEqual(date_format_2.get_iteration(date_2), 100)
 
     def test_get_iteration_with_day_month_year_names(self):
         """
@@ -907,10 +907,154 @@ class DateFormatModelTests(TestCase):
         date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Slashes',
                                  format_string=month_code + '/' + day_code + '/' + year_code)
         date = date_format.get_formatted_date(100)
-        date_format2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Extra Slashes',
-                                  format_string='/' + month_code + '/' + day_code + '/' + year_code + '/')
-        date2 = date_format2.get_formatted_date(100)
+        date_format_2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Extra Slashes',
+                                   format_string='/' + month_code + '/' + day_code + '/' + year_code + '/')
+        date_2 = date_format_2.get_formatted_date(100)
         self.assertEqual(date, 'April/10/1')
         self.assertEqual(date_format.get_iteration(date), 100)
-        self.assertEqual(date2, '/April/10/1/')
-        self.assertEqual(date_format2.get_iteration(date2), 100)
+        self.assertEqual(date_2, '/April/10/1/')
+        self.assertEqual(date_format_2.get_iteration(date_2), 100)
+
+    def test_is_differentiable_with_differentiable_single_other(self):
+        """
+        is_differentiable() returns True when comparing a
+        "month/day/year" date format and a "day-month-year" date
+        format.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        day = TimeUnit.objects.create(calendar=calendar)
+        month = TimeUnit.objects.create(calendar=calendar, base_unit=day, length_cycle='30')
+        year = TimeUnit.objects.create(calendar=calendar, base_unit=month, length_cycle='12',
+                                       base_unit_instance_names='January February March April January June July August '
+                                                                'September January March September')
+        day_code = '{' + str(month.id) + '-' + str(day.id) + '-i}'
+        month_code = '{' + str(year.id) + '-' + str(month.id) + '-i}'
+        year_code = '{' + str(year.id) + '-' + str(year.id) + '-i}'
+        date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Slashes',
+                                 format_string=month_code + '/' + day_code + '/' + year_code)
+        date_format_2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='European Dashes',
+                                   format_string=day_code + '-' + month_code + '-' + year_code)
+        self.assertTrue(date_format.is_differentiable(date_format_2))
+        self.assertTrue(date_format_2.is_differentiable(date_format))
+
+    def test_is_differentiable_with_differentiable_two_differentiable_others(self):
+        """
+        is_differentiable() returns True when comparing a
+        "month/day/year" date format to a "day-month-year" date format
+        and a "day.month.year" date format.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        day = TimeUnit.objects.create(calendar=calendar)
+        month = TimeUnit.objects.create(calendar=calendar, base_unit=day, length_cycle='30')
+        year = TimeUnit.objects.create(calendar=calendar, base_unit=month, length_cycle='12',
+                                       base_unit_instance_names='January February March April January June July August '
+                                                                'September January March September')
+        day_code = '{' + str(month.id) + '-' + str(day.id) + '-i}'
+        month_code = '{' + str(year.id) + '-' + str(month.id) + '-i}'
+        year_code = '{' + str(year.id) + '-' + str(year.id) + '-i}'
+        date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Slashes',
+                                 format_string=month_code + '/' + day_code + '/' + year_code)
+        date_format_2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='European Dashes',
+                                   format_string=day_code + '-' + month_code + '-' + year_code)
+        date_format_3 = DateFormat(calendar=calendar, time_unit=day, date_format_name='European Dots',
+                                   format_string=day_code + '.' + month_code + '.' + year_code)
+        self.assertTrue(date_format.is_differentiable([date_format_2, date_format_3]))
+
+    def test_is_differentiable_with_differentiable_two_non_differentiable_others(self):
+        """
+        is_differentiable() returns True when comparing a
+        "month/day/year" date format to a "day-month-year" date format
+        and a "month-day-year" date format.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        day = TimeUnit.objects.create(calendar=calendar)
+        month = TimeUnit.objects.create(calendar=calendar, base_unit=day, length_cycle='30')
+        year = TimeUnit.objects.create(calendar=calendar, base_unit=month, length_cycle='12',
+                                       base_unit_instance_names='January February March April January June July August '
+                                                                'September January March September')
+        day_code = '{' + str(month.id) + '-' + str(day.id) + '-i}'
+        month_code = '{' + str(year.id) + '-' + str(month.id) + '-i}'
+        year_code = '{' + str(year.id) + '-' + str(year.id) + '-i}'
+        date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Slashes',
+                                 format_string=month_code + '/' + day_code + '/' + year_code)
+        date_format_2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='European Dashes',
+                                   format_string=day_code + '-' + month_code + '-' + year_code)
+        date_format_3 = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Dashes',
+                                   format_string=month_code + '-' + day_code + '-' + year_code)
+        self.assertTrue(date_format.is_differentiable([date_format_2, date_format_3]))
+
+    def test_is_differentiable_with_non_differentiable_single_other(self):
+        """
+        is_differentiable() returns False when comparing a
+        "month/day/year" date format and a "day/month/year" date
+        format.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        day = TimeUnit.objects.create(calendar=calendar)
+        month = TimeUnit.objects.create(calendar=calendar, base_unit=day, length_cycle='30')
+        year = TimeUnit.objects.create(calendar=calendar, base_unit=month, length_cycle='12',
+                                       base_unit_instance_names='January February March April January June July August '
+                                                                'September January March September')
+        day_code = '{' + str(month.id) + '-' + str(day.id) + '-i}'
+        month_code = '{' + str(year.id) + '-' + str(month.id) + '-i}'
+        year_code = '{' + str(year.id) + '-' + str(year.id) + '-i}'
+        date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Slashes',
+                                 format_string=month_code + '/' + day_code + '/' + year_code)
+        date_format_2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='European Slashes',
+                                   format_string=day_code + '/' + month_code + '/' + year_code)
+        self.assertFalse(date_format.is_differentiable(date_format_2))
+        self.assertFalse(date_format_2.is_differentiable(date_format))
+
+    def test_is_differentiable_with_two_others_one_non_differentiable(self):
+        """
+        is_differentiable() returns False when comparing a
+        "month/day/year" date format to a "day-month-year" date format
+        and a "day/month/year" date format.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        day = TimeUnit.objects.create(calendar=calendar)
+        month = TimeUnit.objects.create(calendar=calendar, base_unit=day, length_cycle='30')
+        year = TimeUnit.objects.create(calendar=calendar, base_unit=month, length_cycle='12',
+                                       base_unit_instance_names='January February March April January June July August '
+                                                                'September January March September')
+        day_code = '{' + str(month.id) + '-' + str(day.id) + '-i}'
+        month_code = '{' + str(year.id) + '-' + str(month.id) + '-i}'
+        year_code = '{' + str(year.id) + '-' + str(year.id) + '-i}'
+        date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Slashes',
+                                 format_string=month_code + '/' + day_code + '/' + year_code)
+        date_format_2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='European Dashes',
+                                   format_string=day_code + '-' + month_code + '-' + year_code)
+        date_format_3 = DateFormat(calendar=calendar, time_unit=day, date_format_name='European Slashes',
+                                   format_string=day_code + '/' + month_code + '/' + year_code)
+        self.assertFalse(date_format.is_differentiable([date_format_2, date_format_3]))
+        self.assertFalse(date_format.is_differentiable([date_format_3, date_format_2]))
+
+    def test_is_differentiable_with_non_differentiable_two_others(self):
+        """
+        is_differentiable() returns True when comparing a
+        "month/day/year" date format to a "day/month/year" date format
+        and a "year/month/day" date format.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        day = TimeUnit.objects.create(calendar=calendar)
+        month = TimeUnit.objects.create(calendar=calendar, base_unit=day, length_cycle='30')
+        year = TimeUnit.objects.create(calendar=calendar, base_unit=month, length_cycle='12',
+                                       base_unit_instance_names='January February March April January June July August '
+                                                                'September January March September')
+        day_code = '{' + str(month.id) + '-' + str(day.id) + '-i}'
+        month_code = '{' + str(year.id) + '-' + str(month.id) + '-i}'
+        year_code = '{' + str(year.id) + '-' + str(year.id) + '-i}'
+        date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Slashes',
+                                 format_string=month_code + '/' + day_code + '/' + year_code)
+        date_format_2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='European Slashes',
+                                   format_string=day_code + '/' + month_code + '/' + year_code)
+        date_format_3 = DateFormat(calendar=calendar, time_unit=day, date_format_name='Descending Slashes',
+                                   format_string=year_code + '-' + month_code + '-' + day_code)
+        self.assertFalse(date_format.is_differentiable([date_format_2, date_format_3]))
+        self.assertFalse(date_format.is_differentiable([date_format_3, date_format_2]))
