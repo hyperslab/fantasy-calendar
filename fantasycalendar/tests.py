@@ -1058,3 +1058,145 @@ class DateFormatModelTests(TestCase):
                                    format_string=year_code + '-' + month_code + '-' + day_code)
         self.assertFalse(date_format.is_differentiable([date_format_2, date_format_3]))
         self.assertFalse(date_format.is_differentiable([date_format_3, date_format_2]))
+
+    def test_formatted_date_is_possible_with_possible_date(self):
+        """
+        formatted_date_is_possible() returns True when given a
+        formatted date string that the date format could have
+        generated.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        day = TimeUnit.objects.create(calendar=calendar)
+        month = TimeUnit.objects.create(calendar=calendar, base_unit=day, length_cycle='30')
+        year = TimeUnit.objects.create(calendar=calendar, base_unit=month, length_cycle='12',
+                                       base_unit_instance_names='January February March April January June July August '
+                                                                'September January March September')
+        day_code = '{' + str(month.id) + '-' + str(day.id) + '-i}'
+        month_code = '{' + str(year.id) + '-' + str(month.id) + '-i}'
+        year_code = '{' + str(year.id) + '-' + str(year.id) + '-i}'
+        date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Slashes',
+                                 format_string=month_code + '/' + day_code + '/' + year_code)
+        date = date_format.get_formatted_date(100)
+        date_format_2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Extra Slashes',
+                                   format_string='/' + month_code + '/' + day_code + '/' + year_code + '/')
+        date_2 = date_format_2.get_formatted_date(100)
+        self.assertTrue(date_format.formatted_date_is_possible(date))
+        self.assertTrue(date_format.formatted_date_is_possible('12/20/1995'))
+        self.assertTrue(date_format.formatted_date_is_possible('1/1/1'))
+        self.assertTrue(date_format_2.formatted_date_is_possible(date_2))
+        self.assertTrue(date_format_2.formatted_date_is_possible('/12/20/1995/'))
+        self.assertTrue(date_format_2.formatted_date_is_possible('/1/1/1/'))
+
+    def test_formatted_date_is_possible_with_non_possible_date(self):
+        """
+        formatted_date_is_possible() returns False when given a
+        formatted date string that the date format could not have
+        generated.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        day = TimeUnit.objects.create(calendar=calendar)
+        month = TimeUnit.objects.create(calendar=calendar, base_unit=day, length_cycle='30')
+        year = TimeUnit.objects.create(calendar=calendar, base_unit=month, length_cycle='12',
+                                       base_unit_instance_names='January February March April January June July August '
+                                                                'September January March September')
+        day_code = '{' + str(month.id) + '-' + str(day.id) + '-i}'
+        month_code = '{' + str(year.id) + '-' + str(month.id) + '-i}'
+        year_code = '{' + str(year.id) + '-' + str(year.id) + '-i}'
+        date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Slashes',
+                                 format_string=month_code + '/' + day_code + '/' + year_code)
+        date_format_2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Extra Slashes',
+                                   format_string='/' + month_code + '/' + day_code + '/' + year_code + '/')
+        self.assertFalse(date_format.formatted_date_is_possible('12/1995'))
+        self.assertFalse(date_format.formatted_date_is_possible('1-1-1'))
+        self.assertFalse(date_format_2.formatted_date_is_possible('12/20/1995'))
+        self.assertFalse(date_format_2.formatted_date_is_possible('-1-1/1/'))
+
+    def test_find_likely_source_date_formats_with_one_possible_match(self):
+        """
+        find_likely_source_date_formats() returns a list containing one
+        correct date format when only one of the date formats it was
+        provided could have generated the formatted date string it was
+        provided.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        day = TimeUnit.objects.create(calendar=calendar)
+        month = TimeUnit.objects.create(calendar=calendar, base_unit=day, length_cycle='30')
+        year = TimeUnit.objects.create(calendar=calendar, base_unit=month, length_cycle='12',
+                                       base_unit_instance_names='January February March April January June July August '
+                                                                'September January March September')
+        day_code = '{' + str(month.id) + '-' + str(day.id) + '-i}'
+        month_code = '{' + str(year.id) + '-' + str(month.id) + '-i}'
+        year_code = '{' + str(year.id) + '-' + str(year.id) + '-i}'
+        date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Slashes',
+                                 format_string=month_code + '/' + day_code + '/' + year_code)
+        date_format_2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Dashes',
+                                   format_string=month_code + '-' + day_code + '-' + year_code)
+        date = '2/3/1800'
+        likely_formats = DateFormat.find_likely_source_date_formats(date, [date_format, date_format_2])
+        self.assertEqual(len(likely_formats), 1)
+        self.assertEqual(likely_formats[0], date_format)
+        date_2 = '2-3-1800'
+        likely_formats_2 = DateFormat.find_likely_source_date_formats(date_2, [date_format, date_format_2])
+        self.assertEqual(len(likely_formats_2), 1)
+        self.assertEqual(likely_formats_2[0], date_format_2)
+
+    def test_find_likely_source_date_formats_with_two_possible_matches(self):
+        """
+        find_likely_source_date_formats() returns a correctly ordered
+        list containing two date formats when both of the date formats
+        it was provided could have generated the formatted date string
+        it was provided.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        day = TimeUnit.objects.create(calendar=calendar)
+        month = TimeUnit.objects.create(calendar=calendar, base_unit=day, length_cycle='30')
+        year = TimeUnit.objects.create(calendar=calendar, base_unit=month, length_cycle='12',
+                                       base_unit_instance_names='January February March April January June July August '
+                                                                'September January March September')
+        day_code = '{' + str(month.id) + '-' + str(day.id) + '-i}'
+        month_code = '{' + str(year.id) + '-' + str(month.id) + '-i}'
+        year_code = '{' + str(year.id) + '-' + str(year.id) + '-i}'
+        date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Slashes',
+                                 format_string=month_code + '/' + day_code + '/' + year_code)
+        date_format_2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Extra Slashes',
+                                   format_string='/' + month_code + '/' + day_code + '/' + year_code + '/')
+        date = '/2/3/1800/'
+        likely_formats = DateFormat.find_likely_source_date_formats(date, [date_format, date_format_2])
+        self.assertEqual(len(likely_formats), 2)
+        self.assertEqual(likely_formats[0], date_format_2)  # the extra slashes is the most likely match
+        self.assertEqual(likely_formats[1], date_format)  # but a {} code could resolve to e.g. "/2" so this is possible
+        likely_formats_2 = DateFormat.find_likely_source_date_formats(date, [date_format_2, date_format])  # list swap
+        self.assertEqual(len(likely_formats_2), 2)
+        self.assertEqual(likely_formats_2[0], date_format_2)
+        self.assertEqual(likely_formats_2[1], date_format)
+
+    def test_find_likely_source_date_formats_with_no_possible_matches(self):
+        """
+        find_likely_source_date_formats() returns an empty list when
+        none of the date formats it was provided could have generated
+        the formatted date string it was provided.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        day = TimeUnit.objects.create(calendar=calendar)
+        month = TimeUnit.objects.create(calendar=calendar, base_unit=day, length_cycle='30')
+        year = TimeUnit.objects.create(calendar=calendar, base_unit=month, length_cycle='12',
+                                       base_unit_instance_names='January February March April January June July August '
+                                                                'September January March September')
+        day_code = '{' + str(month.id) + '-' + str(day.id) + '-i}'
+        month_code = '{' + str(year.id) + '-' + str(month.id) + '-i}'
+        year_code = '{' + str(year.id) + '-' + str(year.id) + '-i}'
+        date_format = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Slashes',
+                                 format_string=month_code + '/' + day_code + '/' + year_code)
+        date_format_2 = DateFormat(calendar=calendar, time_unit=day, date_format_name='American Dashes',
+                                   format_string=month_code + '-' + day_code + '-' + year_code)
+        date = '2.3.1800'
+        likely_formats = DateFormat.find_likely_source_date_formats(date, [date_format, date_format_2])
+        self.assertEqual(len(likely_formats), 0)
+        date_2 = '2-3/1800'
+        likely_formats_2 = DateFormat.find_likely_source_date_formats(date_2, [date_format, date_format_2])
+        self.assertEqual(len(likely_formats_2), 0)
