@@ -808,7 +808,7 @@ class DisplayConfig(models.Model):
     display_config_name = models.CharField(max_length=200,
                                            help_text=html_tooltip('The name of this display configuration'))
     display_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE,
-                                     help_text=html_tooltip('The type of time unit to display'))
+                                     help_text=html_tooltip('The type of time unit to display by default'))
     nest_level = models.IntegerField(default=0,
                                      help_text=html_tooltip('"0" for no nested display, "1" for nested display'))
     default_date_bookmark = models.ForeignKey('DateBookmark', on_delete=models.CASCADE, null=True, blank=True,
@@ -817,6 +817,69 @@ class DisplayConfig(models.Model):
 
     def __str__(self):
         return self.display_config_name
+
+
+class DisplayUnitConfig(models.Model):
+    display_config = models.ForeignKey(DisplayConfig, on_delete=models.CASCADE)
+    time_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE)
+
+    class SearchType(models.TextChoices):
+        ITERATION = 'iteration', 'Iteration'
+        DATE_FORMATS = 'formats', 'Date Formats'
+        NOT_SEARCHABLE = 'none', 'Not Searchable'
+    search_type = models.CharField(max_length=32, choices=SearchType.choices, default=SearchType.ITERATION,
+                                   help_text=html_tooltip('How to find a specific instance of this time unit on your '
+                                                          'calendar: by typing in an iteration number directly, by '
+                                                          'typing in a formatted date of a format you specify (or one '
+                                                          'of many formats you specify), or by no means at all'))
+    searchable_date_formats = models.ManyToManyField(DateFormat, blank=True,
+                                                     help_text=html_tooltip('If search type is "Date Formats", these '
+                                                                            'are the date formats to allow searching '
+                                                                            'by; you will only see a single search bar '
+                                                                            'on the calendar even if multiple formats '
+                                                                            'are searchable, but the formats must all '
+                                                                            'be distinct enough from each other for '
+                                                                            'the system to tell which format was typed '
+                                                                            'in'))
+
+    class DisplayNameType(models.TextChoices):
+        DEFAULT_FORMAT = 'default', 'Default Date Format'
+        SECONDARY_FORMAT = 'secondary', 'Secondary Date Format'
+        OTHER_FORMAT = 'other', 'Other Specified Date Format'
+        NO_FORMAT = 'basic', 'No Date Format'
+    header_display_name_type = models.CharField(max_length=32, choices=DisplayNameType.choices,
+                                                default=DisplayNameType.DEFAULT_FORMAT,
+                                                help_text=html_tooltip('How to determine the main header of your '
+                                                                       'calendar page for this time unit: by using the '
+                                                                       'time unit\'s default date format, by using its '
+                                                                       'secondary format, by specifying some other '
+                                                                       'format, or by using no format, generating '
+                                                                       'something like "(time unit name) (iteration)"'))
+    header_other_date_format = models.ForeignKey(DateFormat, on_delete=models.CASCADE, related_name='+',
+                                                 help_text=html_tooltip('The date format to use if "Other" is selected '
+                                                                        'for the header display name type'))
+    base_unit_display_name_type = models.CharField(max_length=32, choices=DisplayNameType.choices,
+                                                   default=DisplayNameType.SECONDARY_FORMAT,
+                                                   help_text=html_tooltip('How to determine the header of each cell in '
+                                                                          'your calendar page for this time unit: by '
+                                                                          'using the base time unit\'s default date '
+                                                                          'format, by using its secondary format, by '
+                                                                          'specifying some other format, or by using '
+                                                                          'no format, generating something like "(base '
+                                                                          'time unit name) (relative iteration)"'))
+    base_unit_other_date_format = models.ForeignKey(DateFormat, on_delete=models.CASCADE, related_name='+',
+                                                    help_text=html_tooltip('The date format to use if "Other" is '
+                                                                           'selected for the base unit display name '
+                                                                           'type'))
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['display_config', 'time_unit'], name='unique_display_config_time_unit'),
+        ]
+
+    def __str__(self):
+        return '"' + self.display_config.display_config_name + '" unit config for "' + self.time_unit.time_unit_name + \
+               '"'
 
 
 class DateBookmark(models.Model):
