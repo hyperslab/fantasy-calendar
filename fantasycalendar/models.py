@@ -818,6 +818,10 @@ class DisplayConfig(models.Model):
     def __str__(self):
         return self.display_config_name
 
+    def get_absolute_url(self):
+        return reverse('fantasycalendar:display-config-detail', kwargs={'pk': self.pk, 'calendar_key': self.calendar.pk,
+                                                                        'world_key': self.calendar.world.pk})
+
 
 class DisplayUnitConfig(models.Model):
     display_config = models.ForeignKey(DisplayConfig, on_delete=models.CASCADE)
@@ -855,7 +859,8 @@ class DisplayUnitConfig(models.Model):
                                                                        'secondary format, by specifying some other '
                                                                        'format, or by using no format, generating '
                                                                        'something like "(time unit name) (iteration)"'))
-    header_other_date_format = models.ForeignKey(DateFormat, on_delete=models.CASCADE, related_name='+',
+    header_other_date_format = models.ForeignKey(DateFormat, on_delete=models.CASCADE, related_name='+', blank=True,
+                                                 null=True,
                                                  help_text=html_tooltip('The date format to use if "Other" is selected '
                                                                         'for the header display name type'))
     base_unit_display_name_type = models.CharField(max_length=32, choices=DisplayNameType.choices,
@@ -867,7 +872,8 @@ class DisplayUnitConfig(models.Model):
                                                                           'specifying some other format, or by using '
                                                                           'no format, generating something like "(base '
                                                                           'time unit name) (relative iteration)"'))
-    base_unit_other_date_format = models.ForeignKey(DateFormat, on_delete=models.CASCADE, related_name='+',
+    base_unit_other_date_format = models.ForeignKey(DateFormat, on_delete=models.CASCADE, related_name='+', blank=True,
+                                                    null=True,
                                                     help_text=html_tooltip('The date format to use if "Other" is '
                                                                            'selected for the base unit display name '
                                                                            'type'))

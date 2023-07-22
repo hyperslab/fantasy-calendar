@@ -2,7 +2,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import generic
-from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig, DateBookmark
+from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig, DateBookmark, DisplayUnitConfig
 from .forms import DisplayConfigCreateForm, DisplayConfigUpdateForm
 
 
@@ -190,6 +190,15 @@ class DateFormatDetailView(UserPassesTestMixin, generic.DetailView):
         return world.public or self.request.user == world.creator
 
 
+class DisplayConfigDetailView(UserPassesTestMixin, generic.DetailView):
+    model = DisplayConfig
+    template_name = 'fantasycalendar/display_config_detail.html'
+
+    def test_func(self):
+        world = get_object_or_404(World, pk=self.kwargs['world_key'])
+        return world.public or self.request.user == world.creator
+
+
 class WorldCreateView(LoginRequiredMixin, generic.CreateView):
     model = World
     template_name = 'fantasycalendar/world_create_form.html'
@@ -318,11 +327,11 @@ class DisplayConfigCreateView(UserPassesTestMixin, generic.CreateView):
     def form_valid(self, form):
         calendar = get_object_or_404(Calendar, pk=self.kwargs['calendar_key'])
         form.instance.calendar = calendar
+        form.instance.save()
+        time_units = calendar.timeunit_set.all()
+        for time_unit in time_units:
+            DisplayUnitConfig.objects.create(display_config=form.instance, time_unit=time_unit)
         return super(DisplayConfigCreateView, self).form_valid(form)
-
-    def get_success_url(self):
-        return reverse('fantasycalendar:calendar-detail',
-                       kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
 
 
 class DateBookmarkCreateView(UserPassesTestMixin, generic.CreateView):
