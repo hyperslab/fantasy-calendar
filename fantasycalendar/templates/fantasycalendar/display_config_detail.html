@@ -27,11 +27,12 @@ Display Config Detail
     No default bookmark set; will use iteration 1 of {{ displayconfig.display_unit.time_unit_name }} upon opening the calendar.
 </li></ul>
 {% endif %}
-<h3>Viewable Time Unit Pages</h3>
+<h3>Viewable Time Unit Pages{% if user.pk == displayconfig.calendar.world.creator.pk and can_add_unit_configs %} <a href="{% url 'fantasycalendar:display-unit-config-create' displayconfig.calendar.world_id displayconfig.calendar.id displayconfig.id %}">(+new)</a>{% endif %}</h3>
 {% if displayconfig.displayunitconfig_set and displayconfig.displayunitconfig_set.all|length > 0 %}
 <ul>
     {% for unit_config in displayconfig.displayunitconfig_set.all %}
-    <li>{{ unit_config.time_unit.time_unit_name }}</li>
+    <li>{{ unit_config.time_unit.time_unit_name }}{% if user.pk == displayconfig.calendar.world.creator.pk %} <a
+            href="{% url 'fantasycalendar:display-unit-config-update' displayconfig.calendar.world_id displayconfig.calendar.id displayconfig.id unit_config.id %}">(edit)</a>{% endif %}</li>
     {% endfor %}
 </ul>
 {% else %}

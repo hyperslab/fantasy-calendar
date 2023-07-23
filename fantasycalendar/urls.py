@@ -58,6 +58,11 @@ urlpatterns = [
          views.DisplayConfigCreateView.as_view(), name="display-config-create"),
     path("worlds/<int:world_key>/calendars/<int:calendar_key>/display-configs/<int:pk>/edit/",
          views.DisplayConfigUpdateView.as_view(), name="display-config-update"),
+    path("worlds/<int:world_key>/calendars/<int:calendar_key>/display-configs/<int:display_config_key>/"
+         "display-unit-configs/new/", views.DisplayUnitConfigCreateView.as_view(), name="display-unit-config-create"),
+    path("worlds/<int:world_key>/calendars/<int:calendar_key>/display-configs/<int:display_config_key>/"
+         "display-unit-configs/<int:pk>/edit/", views.DisplayUnitConfigUpdateView.as_view(),
+         name="display-unit-config-update"),
     path("worlds/<int:world_key>/calendars/<int:calendar_key>/date-bookmarks/new/",
          views.DateBookmarkCreateView.as_view(), name="date-bookmark-create"),
     path("worlds/<int:world_key>/calendars/<int:calendar_key>/date-bookmarks/<int:pk>/edit/",

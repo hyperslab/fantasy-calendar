@@ -198,6 +198,13 @@ class DisplayConfigDetailView(UserPassesTestMixin, generic.DetailView):
         world = get_object_or_404(World, pk=self.kwargs['world_key'])
         return world.public or self.request.user == world.creator
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        possible_time_units = TimeUnit.objects.filter(calendar_id=self.object.calendar_id)
+        existing_unit_configs = self.object.displayunitconfig_set.all()
+        context['can_add_unit_configs'] = True if len(possible_time_units) > len(existing_unit_configs) else False
+        return context
+
 
 class WorldCreateView(LoginRequiredMixin, generic.CreateView):
     model = World
@@ -332,6 +339,37 @@ class DisplayConfigCreateView(UserPassesTestMixin, generic.CreateView):
         for time_unit in time_units:
             DisplayUnitConfig.objects.create(display_config=form.instance, time_unit=time_unit)
         return super(DisplayConfigCreateView, self).form_valid(form)
+
+
+class DisplayUnitConfigCreateView(UserPassesTestMixin, generic.CreateView):
+    model = DisplayUnitConfig
+    template_name = 'fantasycalendar/display_unit_config_create_form.html'
+    fields = ['time_unit']
+
+    def test_func(self):
+        world = get_object_or_404(World, pk=self.kwargs['world_key'])
+        return self.request.user == world.creator
+
+    def get_form(self, form_class=None):
+        form = super(DisplayUnitConfigCreateView, self).get_form()
+        form.fields['time_unit'].queryset = TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key'])
+        display_config = get_object_or_404(DisplayConfig, pk=self.kwargs['display_config_key'])
+        if display_config.displayunitconfig_set:  # exclude time units that already have configs for this display config
+            for display_unit_config in display_config.displayunitconfig_set.all():
+                form.fields['time_unit'].queryset = form.fields['time_unit'].queryset.exclude(
+                    pk=display_unit_config.time_unit_id)
+        return form
+
+    def form_valid(self, form):
+        display_config = get_object_or_404(DisplayConfig, pk=self.kwargs['display_config_key'])
+        form.instance.display_config = display_config
+        return super(DisplayUnitConfigCreateView, self).form_valid(form)
+
+    def get_success_url(self):
+        return reverse('fantasycalendar:display-config-detail',
+                       kwargs={'pk': self.object.display_config.id,
+                               'world_key': self.object.display_config.calendar.world.id,
+                               'calendar_key': self.object.display_config.calendar.id})
 
 
 class DateBookmarkCreateView(UserPassesTestMixin, generic.CreateView):
@@ -470,9 +508,36 @@ class DisplayConfigUpdateView(UserPassesTestMixin, generic.UpdateView):
             calendar_id=self.kwargs['calendar_key'])
         return form
 
+
+class DisplayUnitConfigUpdateView(UserPassesTestMixin, generic.UpdateView):
+    model = DisplayUnitConfig
+    template_name = 'fantasycalendar/display_unit_config_update_form.html'
+    fields = ['search_type', 'searchable_date_formats', 'header_display_name_type', 'header_other_date_format',
+              'base_unit_display_name_type', 'base_unit_other_date_format']
+
+    def test_func(self):
+        world = get_object_or_404(DisplayUnitConfig, pk=self.kwargs['pk']).display_config.calendar.world
+        return self.request.user == world.creator
+
+    def get_form(self, form_class=None):
+        form = super(DisplayUnitConfigUpdateView, self).get_form()
+        form.fields['searchable_date_formats'].queryset = DateFormat.objects.filter(
+            time_unit_id=form.instance.time_unit_id)
+        form.fields['header_other_date_format'].queryset = DateFormat.objects.filter(
+            time_unit_id=form.instance.time_unit_id)
+        if form.instance.time_unit.base_unit:
+            form.fields['base_unit_other_date_format'].queryset = DateFormat.objects.filter(
+                time_unit_id=form.instance.time_unit.base_unit_id)
+        else:
+            form.fields['base_unit_other_date_format'].queryset = DateFormat.objects.filter(
+                time_unit_id=form.instance.time_unit_id)
+        return form
+
     def get_success_url(self):
-        return reverse('fantasycalendar:calendar-detail',
-                       kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
+        return reverse('fantasycalendar:display-config-detail',
+                       kwargs={'pk': self.object.display_config.id,
+                               'world_key': self.object.display_config.calendar.world.id,
+                               'calendar_key': self.object.display_config.calendar.id})
 
 
 class DateBookmarkUpdateView(UserPassesTestMixin, generic.UpdateView):
