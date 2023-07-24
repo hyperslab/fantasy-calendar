@@ -22,6 +22,7 @@ urlpatterns = [
     path("api/timeunitbaseinstances/", api_views.TimeUnitBaseInstances.as_view()),
     path("api/timeunitinstancedisplayname/", api_views.TimeUnitInstanceDisplayName.as_view()),
     path("api/timeunitequivalentiteration/", api_views.TimeUnitEquivalentIteration.as_view()),
+    path("api/dateformatreverse/", api_views.DateFormatReverse.as_view()),
     path("api/datebookmarkcreatepersonal/", api_views.DateBookmarkCreatePersonal.as_view()),
     path("worlds/", views.WorldIndexView.as_view(), name="world-index"),
     path("worlds/<int:pk>/", views.WorldDetailView.as_view(), name="world-detail"),

@@ -44,6 +44,11 @@ export function getTimeUnitInstanceDisplayName(timeUnitId, iteration, then) {
     getAuthenticated(url, then);
 }
 
+export function getDateFormatReverse(dateFormat, possibleFormats, then) {
+    const url = '/fantasy-calendar/api/dateformatreverse/?formatted_date=' + dateFormat + '&possible_formats=' + possibleFormats;
+    getAuthenticated(url, then);
+}
+
 export function getDisplayConfig(displayConfigId, then) {
     const url = '/fantasy-calendar/api/displayconfigs/' + displayConfigId + '/';
     getAuthenticated(url, then);

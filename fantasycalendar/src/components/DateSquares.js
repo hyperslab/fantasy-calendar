@@ -1,9 +1,8 @@
 import React from 'react';
-import axios from 'axios';
 import DateSquare from './DateSquare.js';
 import {getTimeUnit, getTimeUnitBaseInstances} from '../apiAccess.js';
 
-export default function DateSquares({ timeUnit, iteration, baseUnitInstanceClickHandler }) {
+export default function DateSquares({ timeUnit, iteration, timeUnitPages, baseUnitInstanceClickHandler }) {
     const [baseUnit, setBaseUnit] = React.useState(null);
     const [baseUnitInstances, setBaseUnitInstances] = React.useState(null);
 
@@ -22,8 +21,9 @@ export default function DateSquares({ timeUnit, iteration, baseUnitInstanceClick
 
     if (!baseUnit || !baseUnitInstances) return null;
 
+    const headerClickable = timeUnitPages.map(x => x.id).includes(timeUnit.id);
     const squares = baseUnitInstances.map(baseUnitInstance =>
-        <DateSquare key={baseUnitInstance.iteration} timeUnit={baseUnit} timeUnitInstance={baseUnitInstance} baseUnitInstanceClickHandler={baseUnitInstanceClickHandler} />
+        <DateSquare key={baseUnitInstance.iteration} timeUnit={baseUnit} timeUnitInstance={baseUnitInstance} headerClickable={headerClickable} baseUnitInstanceClickHandler={baseUnitInstanceClickHandler} />
     );
 
     return (

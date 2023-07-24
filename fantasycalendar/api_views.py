@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN, HTTP_201_CREATED
+from rest_framework import status
 from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig, DateBookmark
 from .serializers import WorldSerializer, CalendarSerializer, TimeUnitSerializer, EventSerializer, \
     DateFormatSerializer, DisplayConfigSerializer, DateBookmarkSerializer
@@ -87,14 +87,15 @@ class TimeUnitViewSet(viewsets.ReadOnlyModelViewSet):
 class TimeUnitBaseInstances(APIView):
     def get(self, request):
         if 'time_unit_id' not in request.query_params or 'iteration' not in request.query_params:
-            return Response({'message': 'ERROR: time_unit_id and iteration required'}, status=HTTP_400_BAD_REQUEST)
+            return Response({'message': 'ERROR: time_unit_id and iteration required'},
+                            status=status.HTTP_400_BAD_REQUEST)
         time_unit_id = int(request.query_params.get('time_unit_id'))
         iteration = int(request.query_params.get('iteration'))
         time_unit = get_object_or_404(TimeUnit, pk=time_unit_id)
         if time_unit.calendar.world.creator != request.user and not time_unit.calendar.world.public:
             return Response(
                 {'message': 'ERROR: this resource is not public and you are not authenticated as its creator'},
-                status=HTTP_403_FORBIDDEN)
+                status=status.HTTP_403_FORBIDDEN)
         base_unit = time_unit.base_unit if time_unit.base_unit is not None else time_unit
         instances = time_unit.get_base_unit_instances(iteration=iteration)
         first_base_iteration = time_unit.get_first_base_unit_instance_iteration_at_iteration(iteration=iteration)
@@ -116,14 +117,15 @@ class TimeUnitBaseInstances(APIView):
 class TimeUnitInstanceDisplayName(APIView):
     def get(self, request):
         if 'time_unit_id' not in request.query_params or 'iteration' not in request.query_params:
-            return Response({'message': 'ERROR: time_unit_id and iteration required'}, status=HTTP_400_BAD_REQUEST)
+            return Response({'message': 'ERROR: time_unit_id and iteration required'},
+                            status=status.HTTP_400_BAD_REQUEST)
         time_unit_id = int(request.query_params.get('time_unit_id'))
         iteration = int(request.query_params.get('iteration'))
         time_unit = get_object_or_404(TimeUnit, pk=time_unit_id)
         if time_unit.calendar.world.creator != request.user and not time_unit.calendar.world.public:
             return Response(
                 {'message': 'ERROR: this resource is not public and you are not authenticated as its creator'},
-                status=HTTP_403_FORBIDDEN)
+                status=status.HTTP_403_FORBIDDEN)
         date_format = None
         prefer_secondary = True if 'secondary_format' in request.query_params else False
         if 'date_format_id' in request.query_params:
@@ -139,7 +141,7 @@ class TimeUnitEquivalentIteration(APIView):
         if 'time_unit_id' not in request.query_params or 'iteration' not in request.query_params or \
                 'new_time_unit_id' not in request.query_params:
             return Response({'message': 'ERROR: time_unit_id and iteration and new_time_unit_id required'},
-                            status=HTTP_400_BAD_REQUEST)
+                            status=status.HTTP_400_BAD_REQUEST)
         time_unit_id = int(request.query_params.get('time_unit_id'))
         iteration = int(request.query_params.get('iteration'))
         new_time_unit_id = int(request.query_params.get('new_time_unit_id'))
@@ -147,12 +149,12 @@ class TimeUnitEquivalentIteration(APIView):
         if time_unit.calendar.world.creator != request.user and not time_unit.calendar.world.public:
             return Response(
                 {'message': 'ERROR: this resource is not public and you are not authenticated as its creator'},
-                status=HTTP_403_FORBIDDEN)
+                status=status.HTTP_403_FORBIDDEN)
         new_time_unit = get_object_or_404(TimeUnit, pk=new_time_unit_id)
         if time_unit.calendar != new_time_unit.calendar:
             return Response(
                 {'message': 'ERROR: time_unit_id and new_time_unit_id refer to time units on different calendars'},
-                status=HTTP_400_BAD_REQUEST)
+                status=status.HTTP_400_BAD_REQUEST)
         base_iteration = time_unit.get_first_bottom_level_iteration_at_iteration(iteration=iteration)
         new_iteration = new_time_unit.get_iteration_at_bottom_level_iteration(bottom_level_iteration=base_iteration)
         return Response({'iteration': new_iteration})
@@ -207,6 +209,42 @@ class DateFormatViewSet(viewsets.ReadOnlyModelViewSet):
                 calendar_id = int(self.request.query_params.get('calendar_id'))
                 queryset = queryset.filter(calendar_id=calendar_id)
         return queryset
+
+
+class DateFormatReverse(APIView):
+    def get(self, request):
+        # initial validation
+        required_params = [
+            'formatted_date',
+            'possible_formats',
+        ]
+        missing_fields = [param for param in required_params if param not in request.query_params]
+        if len(missing_fields) > 0:
+            return Response({'message': 'ERROR: missing required fields ' + ' and '.join(missing_fields)},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # calculation
+        formatted_date = request.query_params.get('formatted_date')
+        possible_format_ids = request.query_params.get('possible_formats').split(',')
+        possible_formats = [get_object_or_404(DateFormat, pk=possible_id) for possible_id in possible_format_ids]
+        likely_formats = DateFormat.find_likely_source_date_formats(formatted_date, possible_formats)
+        if len(likely_formats) < 1:
+            return Response({'message': 'no matching formats found'})
+        likeliest_format = likely_formats[0]
+        if not likeliest_format.is_reversible():
+            return Response({'message': 'ERROR: matching format was not reversible'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        try:
+            iteration = likeliest_format.get_iteration(formatted_string=formatted_date)
+        except ValueError as error:
+            return Response({'message': 'matching format found but parse failed: ' + str(error)})
+
+        # response
+        return Response({
+            'date_format_id': likeliest_format.id,
+            'time_unit_id': likeliest_format.time_unit.id,
+            'iteration': iteration,
+        })
 
 
 class DisplayConfigViewSet(viewsets.ReadOnlyModelViewSet):
@@ -265,7 +303,7 @@ class DateBookmarkCreatePersonal(APIView):
     def post(self, request):
         # initial validation
         if not request.user:
-            return Response({'message': 'ERROR: user is not authenticated'}, status=HTTP_403_FORBIDDEN)
+            return Response({'message': 'ERROR: user is not authenticated'}, status=status.HTTP_403_FORBIDDEN)
         required_params = [
             'calendar',
             'date_bookmark_name',
@@ -275,14 +313,14 @@ class DateBookmarkCreatePersonal(APIView):
         missing_fields = [param for param in required_params if param not in request.data]
         if len(missing_fields) > 0:
             return Response({'message': 'ERROR: missing required fields ' + ' and '.join(missing_fields)},
-                            status=HTTP_400_BAD_REQUEST)
+                            status=status.HTTP_400_BAD_REQUEST)
 
         # creation
         calendar = get_object_or_404(Calendar, pk=int(request.data['calendar']))
         if not calendar.world.public and calendar.world.creator != request.user:
             return Response(
                 {'message': "ERROR: this resource's world is not public and you are not authenticated as its creator"},
-                status=HTTP_403_FORBIDDEN)
+                status=status.HTTP_403_FORBIDDEN)
         date_bookmark_name = request.data['date_bookmark_name']
         bookmark_unit = get_object_or_404(TimeUnit, pk=int(request.data['bookmark_unit']))
         bookmark_iteration = int(request.data['bookmark_iteration'])
@@ -292,4 +330,4 @@ class DateBookmarkCreatePersonal(APIView):
 
         # response
         serializer = DateBookmarkSerializer(bookmark)
-        return Response(serializer.data, status=HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

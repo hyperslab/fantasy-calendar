@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig, DateBookmark
+from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig, DateBookmark, DisplayUnitConfig
 
 
 class WorldSerializer(serializers.ModelSerializer):
@@ -33,10 +33,20 @@ class DateFormatSerializer(serializers.ModelSerializer):
         fields = ('id', 'calendar', 'time_unit', 'date_format_name', 'format_string')
 
 
+class DisplayUnitConfigSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DisplayUnitConfig
+        fields = ('id', 'time_unit', 'search_type', 'searchable_date_formats', 'header_display_name_type',
+                  'header_other_date_format', 'base_unit_display_name_type', 'base_unit_other_date_format')
+
+
 class DisplayConfigSerializer(serializers.ModelSerializer):
+    display_unit_configs = DisplayUnitConfigSerializer(source='displayunitconfig_set', many=True)
+
     class Meta:
         model = DisplayConfig
-        fields = ('id', 'calendar', 'display_config_name', 'display_unit', 'nest_level', 'default_date_bookmark')
+        fields = ('id', 'calendar', 'display_config_name', 'display_unit', 'nest_level', 'default_date_bookmark',
+                  'display_unit_configs')
 
 
 class DateBookmarkSerializer(serializers.ModelSerializer):
