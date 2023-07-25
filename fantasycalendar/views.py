@@ -3,7 +3,7 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import generic
 from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig, DateBookmark, DisplayUnitConfig
-from .forms import DisplayConfigCreateForm, DisplayConfigUpdateForm
+from .forms import DisplayConfigCreateForm, DisplayConfigUpdateForm, DisplayUnitConfigUpdateForm
 
 
 class WorldIndexView(generic.ListView):
@@ -511,9 +511,8 @@ class DisplayConfigUpdateView(UserPassesTestMixin, generic.UpdateView):
 
 class DisplayUnitConfigUpdateView(UserPassesTestMixin, generic.UpdateView):
     model = DisplayUnitConfig
+    form_class = DisplayUnitConfigUpdateForm
     template_name = 'fantasycalendar/display_unit_config_update_form.html'
-    fields = ['search_type', 'searchable_date_formats', 'header_display_name_type', 'header_other_date_format',
-              'base_unit_display_name_type', 'base_unit_other_date_format']
 
     def test_func(self):
         world = get_object_or_404(DisplayUnitConfig, pk=self.kwargs['pk']).display_config.calendar.world

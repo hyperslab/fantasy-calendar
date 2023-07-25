@@ -2,7 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
-from .models import DisplayConfig
+from .models import DisplayConfig, DisplayUnitConfig
 
 
 class DisplayConfigCreateForm(forms.ModelForm):
@@ -34,3 +34,29 @@ class DisplayConfigUpdateForm(forms.ModelForm):
                                                code='invalid'))
         return cleaned_data
 
+
+class DisplayUnitConfigUpdateForm(forms.ModelForm):
+    class Meta:
+        model = DisplayUnitConfig
+        fields = ['search_type', 'searchable_date_formats', 'header_display_name_type', 'header_other_date_format',
+                  'base_unit_display_name_type', 'base_unit_other_date_format']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data['searchable_date_formats']:
+            checked_formats = []
+            for date_format in cleaned_data['searchable_date_formats']:
+                if not date_format.is_reversible():
+                    self.add_error('searchable_date_formats',
+                                   ValidationError(_("Error: date format " + str(date_format) +
+                                                     " is not fully reversible and cannot be searched on!"),
+                                                   code='invalid'))
+                if checked_formats:
+                    if not date_format.is_differentiable(checked_formats):
+                        self.add_error('searchable_date_formats',
+                                       ValidationError(_("Error: date format " + str(date_format) +
+                                                         " is not differentiable from at least one other date format "
+                                                         "marked as searchable and cannot be searched on!"),
+                                                       code='invalid'))
+                checked_formats.append(date_format)
+        return cleaned_data
