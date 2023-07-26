@@ -39,7 +39,8 @@ class DisplayUnitConfigUpdateForm(forms.ModelForm):
     class Meta:
         model = DisplayUnitConfig
         fields = ['search_type', 'searchable_date_formats', 'header_display_name_type', 'header_other_date_format',
-                  'base_unit_display_name_type', 'base_unit_other_date_format']
+                  'base_unit_display_name_type', 'base_unit_other_date_format', 'row_grouping_time_unit',
+                  'row_grouping_label_type']
 
     def clean(self):
         cleaned_data = super().clean()
@@ -59,4 +60,11 @@ class DisplayUnitConfigUpdateForm(forms.ModelForm):
                                                          "marked as searchable and cannot be searched on!"),
                                                        code='invalid'))
                 checked_formats.append(date_format)
+        if cleaned_data['row_grouping_time_unit']:
+            if len(cleaned_data['row_grouping_time_unit'].get_expanded_length_cycle()) > 1:
+                self.add_error('row_grouping_time_unit',
+                               ValidationError(_("Error: row grouping time unit has a variable length cycle!")))
+            if len(cleaned_data['row_grouping_time_unit'].get_expanded_length_cycle()) < 1:
+                self.add_error('row_grouping_time_unit',
+                               ValidationError(_("Error: row grouping time unit has no length cycle!")))
         return cleaned_data

@@ -37,7 +37,8 @@ class DisplayUnitConfigSerializer(serializers.ModelSerializer):
     class Meta:
         model = DisplayUnitConfig
         fields = ('id', 'time_unit', 'search_type', 'searchable_date_formats', 'header_display_name_type',
-                  'header_other_date_format', 'base_unit_display_name_type', 'base_unit_other_date_format')
+                  'header_other_date_format', 'base_unit_display_name_type', 'base_unit_other_date_format',
+                  'row_grouping_time_unit', 'row_grouping_label_type')
 
 
 class DisplayConfigSerializer(serializers.ModelSerializer):

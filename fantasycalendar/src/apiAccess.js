@@ -1,66 +1,73 @@
 import axios from 'axios';
 
+const baseUrl = '/fantasy-calendar/api/';
+
 function getAuthenticated(url, then) {
-    axios.get(url).then(res => then(res));  // turns out session cookies are sent automatically so no extra auth needed
+    axios.get(baseUrl + url).then(res => then(res));  // turns out session cookies are sent automatically so no extra auth needed
 }
 
 export function getUserStatusByWorldId(worldId, then) {
-    const url = '/fantasy-calendar/api/userstatus/?world_id=' + worldId;
+    const url = 'userstatus/?world_id=' + worldId;
     getAuthenticated(url, then);
 }
 
 export function getUserStatusByCalendarId(calendarId, then) {
-    const url = '/fantasy-calendar/api/userstatus/?calendar_id=' + calendarId;
+    const url = 'userstatus/?calendar_id=' + calendarId;
     getAuthenticated(url, then);
 }
 
 export function getCalendar(calendarId, then) {
-    const url = '/fantasy-calendar/api/calendars/' + calendarId + '/';
+    const url = 'calendars/' + calendarId + '/';
     getAuthenticated(url, then);
 }
 
 export function getTimeUnit(timeUnitId, then) {
-    const url = '/fantasy-calendar/api/timeunits/' + timeUnitId + '/';
+    const url = 'timeunits/' + timeUnitId + '/';
     getAuthenticated(url, then);
 }
 
 export function getTimeUnitsByCalendarId(calendarId, then) {
-    const url = '/fantasy-calendar/api/timeunits/?calendar_id=' + calendarId;
+    const url = 'timeunits/?calendar_id=' + calendarId;
     getAuthenticated(url, then);
 }
 
 export function getTimeUnitBaseInstances(timeUnitId, iteration, then) {
-    const url = '/fantasy-calendar/api/timeunitbaseinstances/?time_unit_id=' + timeUnitId + '&iteration=' + iteration;
-    getAuthenticated(url, then);
-}
-
-export function getTimeUnitEquivalentIteration(timeUnitId, iteration, newTimeUnitId, then) {
-    const url = '/fantasy-calendar/api/timeunitequivalentiteration/?time_unit_id=' + timeUnitId + '&iteration=' + iteration + '&new_time_unit_id=' + newTimeUnitId;
+    const url = 'timeunitbaseinstances/?time_unit_id=' + timeUnitId + '&iteration=' + iteration;
     getAuthenticated(url, then);
 }
 
 export function getTimeUnitInstanceDisplayName(timeUnitId, iteration, then) {
-    const url = '/fantasy-calendar/api/timeunitinstancedisplayname/?time_unit_id=' + timeUnitId + '&iteration=' + iteration;
+    const url = 'timeunitinstancedisplayname/?time_unit_id=' + timeUnitId + '&iteration=' + iteration;
+    getAuthenticated(url, then);
+}
+
+export function getTimeUnitEquivalentIteration(timeUnitId, iteration, newTimeUnitId, then) {
+    const url = 'timeunitequivalentiteration/?time_unit_id=' + timeUnitId + '&iteration=' + iteration + '&new_time_unit_id=' + newTimeUnitId;
+    getAuthenticated(url, then);
+}
+
+export function getTimeUnitContainedIteration(timeUnitId, iteration, containingTimeUnitId, then) {
+    const url = 'timeunitcontainediteration/?time_unit_id=' + timeUnitId + '&iteration=' + iteration + '&containing_time_unit_id=' + containingTimeUnitId;
     getAuthenticated(url, then);
 }
 
 export function getDateFormatReverse(dateFormat, possibleFormats, then) {
-    const url = '/fantasy-calendar/api/dateformatreverse/?formatted_date=' + dateFormat + '&possible_formats=' + possibleFormats;
+    const url = 'dateformatreverse/?formatted_date=' + dateFormat + '&possible_formats=' + possibleFormats;
     getAuthenticated(url, then);
 }
 
 export function getDisplayConfig(displayConfigId, then) {
-    const url = '/fantasy-calendar/api/displayconfigs/' + displayConfigId + '/';
+    const url = 'displayconfigs/' + displayConfigId + '/';
     getAuthenticated(url, then);
 }
 
 export function getDateBookmark(dateBookmarkId, then) {
-    const url = '/fantasy-calendar/api/datebookmarks/' + dateBookmarkId + '/';
+    const url = 'datebookmarks/' + dateBookmarkId + '/';
     getAuthenticated(url, then);
 }
 
 export function getDateBookmarksByCalendarId(calendarId, then) {
-    const url = '/fantasy-calendar/api/datebookmarks/?calendar_id=' + calendarId;
+    const url = 'datebookmarks/?calendar_id=' + calendarId;
     getAuthenticated(url, then);
 }
 
@@ -90,11 +97,11 @@ function postAuthenticated(url, params, then) {
         }
     };
 
-    axios.post(url, params, config).then(res => then(res));
+    axios.post(baseUrl + url, params, config).then(res => then(res));
 }
 
 export function postDateBookmark(calendarId, dateBookmarkName, bookmarkUnitId, bookmarkIteration, then) {
-    const url = '/fantasy-calendar/api/datebookmarks/';
+    const url = 'datebookmarks/';
     const params = {
         calendar: calendarId,
         date_bookmark_name: dateBookmarkName,
@@ -105,7 +112,7 @@ export function postDateBookmark(calendarId, dateBookmarkName, bookmarkUnitId, b
 }
 
 export function postPersonalDateBookmark(calendarId, dateBookmarkName, bookmarkUnitId, bookmarkIteration, then) {
-    const url = '/fantasy-calendar/api/datebookmarkcreatepersonal/';
+    const url = 'datebookmarkcreatepersonal/';
     const params = {
         calendar: calendarId,
         date_bookmark_name: dateBookmarkName,

@@ -125,9 +125,15 @@ export default class Calendar extends React.Component {
     render() {
         if (!this.state.calendar || !this.state.displayUnit || !this.state.displayIteration) return null;
 
+        // helpers for calculation
+        const displayUnitConfig = this.state.displayConfig && this.state.displayConfig.display_unit_configs && this.state.displayConfig.display_unit_configs.map(x => x.time_unit).includes(this.state.displayUnit.id) ? this.state.displayConfig.display_unit_configs.find(x => x.time_unit == this.state.displayUnit.id) : null;
+
+        // to be passed to components
         const timeUnitPages = this.state.displayConfig && this.state.displayConfig.display_unit_configs ? this.state.timeUnits.filter(x => this.state.displayConfig.display_unit_configs.map(y => y.time_unit).includes(x.id)) : this.state.timeUnits;
-        const currentSearchType = this.state.displayConfig && this.state.displayConfig.display_unit_configs.map(x => x.time_unit).includes(this.state.displayUnit.id) ? this.state.displayConfig.display_unit_configs.find(x => x.time_unit == this.state.displayUnit.id).search_type : 'iteration';
-        const searchableFormats = this.state.displayConfig && this.state.displayConfig.display_unit_configs.map(x => x.time_unit).includes(this.state.displayUnit.id) ? this.state.displayConfig.display_unit_configs.find(x => x.time_unit == this.state.displayUnit.id).searchable_date_formats : [];
+        const currentSearchType = displayUnitConfig ? displayUnitConfig.search_type : 'iteration';
+        const searchableFormats = displayUnitConfig ? displayUnitConfig.searchable_date_formats : [];
+        const rowGroupingUnit = displayUnitConfig && displayUnitConfig.row_grouping_time_unit ? this.state.timeUnits.find(x => x.id == displayUnitConfig.row_grouping_time_unit) : null;
+        const rowGroupingLabelType = displayUnitConfig ? displayUnitConfig.row_grouping_label_type : 'none';
 
         return (
             <div className="calendar">
@@ -148,7 +154,7 @@ export default class Calendar extends React.Component {
                     </span>
                     <PageForwardButton timeUnitName={this.state.displayUnit.time_unit_name} onClick={this.handlePageForwardClick} />
                 </span>
-                <DateSquares timeUnit={this.state.displayUnit} iteration={this.state.displayIteration} timeUnitPages={timeUnitPages} baseUnitInstanceClickHandler={this.handleBaseUnitInstanceClick} />
+                <DateSquares timeUnit={this.state.displayUnit} iteration={this.state.displayIteration} timeUnitPages={timeUnitPages} rowGroupingUnit={rowGroupingUnit} rowGroupingLabelType={rowGroupingLabelType} baseUnitInstanceClickHandler={this.handleBaseUnitInstanceClick} />
             </div>
         );
     }

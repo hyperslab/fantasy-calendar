@@ -877,6 +877,32 @@ class DisplayUnitConfig(models.Model):
                                                     help_text=html_tooltip('The date format to use if "Other" is '
                                                                            'selected for the base unit display name '
                                                                            'type'))
+    row_grouping_time_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE, related_name='+', blank=True,
+                                               null=True,
+                                               help_text=html_tooltip('An optional time unit that can be used to '
+                                                                      'organize the calendar page into rows, e.g. many '
+                                                                      'real life month calendar pages are grouped by '
+                                                                      'one week per row; must have the same base unit '
+                                                                      'as the page\'s time unit and a non-varying '
+                                                                      'length cycle'))
+
+    class RowGroupingLabelType(models.TextChoices):
+        NO_LABELS = 'none', 'No Labels'
+        COLUMN_NAMES = 'names', 'Label Columns by Name'
+        COLUMN_NUMBERS = 'numbers', 'Label Columns by Number'
+        ROW_COUNTS = 'counts', 'Label Rows by Count'
+    row_grouping_label_type = models.CharField(max_length=32, choices=RowGroupingLabelType.choices,
+                                               default=RowGroupingLabelType.NO_LABELS,
+                                               help_text=html_tooltip('The style of labeling to use for rows/columns '
+                                                                      'if a row grouping time unit is specified: no '
+                                                                      'labels, labels on each column with the name of '
+                                                                      'the base unit of the row grouping time unit '
+                                                                      '(e.g. Wednesday for a week), labels on each '
+                                                                      'column with the number of the base unit of the '
+                                                                      'row grouping time unit (e.g. 4 instead of '
+                                                                      'Wednesday), or labels on each row that count '
+                                                                      'the occurrences of the row grouping unit (Week '
+                                                                      '1, Week 2, etc.)'))
 
     class Meta:
         constraints = [

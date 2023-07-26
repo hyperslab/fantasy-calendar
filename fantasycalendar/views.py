@@ -530,6 +530,11 @@ class DisplayUnitConfigUpdateView(UserPassesTestMixin, generic.UpdateView):
         else:
             form.fields['base_unit_other_date_format'].queryset = DateFormat.objects.filter(
                 time_unit_id=form.instance.time_unit_id)
+        if form.instance.time_unit.base_unit:
+            form.fields['row_grouping_time_unit'].queryset = TimeUnit.objects.filter(
+                base_unit_id=form.instance.time_unit.base_unit.id)
+        else:
+            form.fields['row_grouping_time_unit'].queryset = TimeUnit.objects.filter(pk=form.instance.time_unit.id)
         return form
 
     def get_success_url(self):
