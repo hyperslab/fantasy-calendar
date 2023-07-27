@@ -1,5 +1,6 @@
 import React from 'react';
 import DateSquare from './DateSquare.js';
+import LabelSquare from './LabelSquare.js';
 import {getTimeUnit, getTimeUnitBaseInstances, getTimeUnitContainedIteration} from '../apiAccess.js';
 
 export default function DateSquares({ timeUnit, iteration, timeUnitPages, rowGroupingUnit, rowGroupingLabelType, baseUnitInstanceClickHandler }) {
@@ -38,11 +39,11 @@ export default function DateSquares({ timeUnit, iteration, timeUnitPages, rowGro
     {
         if (rowGroupingLabelType == 'names')
             labels = rowBaseUnitInstances.map(baseUnitInstance =>
-                <h3 key={-100-baseUnitInstance.iteration}>{baseUnitInstance.name}</h3>
+                <LabelSquare key={-100-baseUnitInstance.iteration} labelText={baseUnitInstance.name} />
             );
         if (rowGroupingLabelType == 'numbers')
             labels = rowBaseUnitInstances.map(baseUnitInstance =>
-                <h3 key={-100-baseUnitInstance.iteration}>{baseUnitInstance.iteration}</h3>
+                <LabelSquare key={-100-baseUnitInstance.iteration} labelText={baseUnitInstance.iteration} />
             );
     }
     const blankSquares = [];
@@ -55,13 +56,14 @@ export default function DateSquares({ timeUnit, iteration, timeUnitPages, rowGro
     )));
     if (rowGroupingUnit && rowBaseUnitInstances && rowGroupingLabelType == 'counts')
         for (let i = 0; i < squares.length; i += rowBaseUnitInstances.length+1)
-            squares.splice(i, 0, <h3 key={-100-((i/(rowBaseUnitInstances.length+1))+1)}>{rowGroupingUnit.time_unit_name + ' ' + ((i/(rowBaseUnitInstances.length+1))+1)}</h3>);
+            squares.splice(i, 0, <LabelSquare key={-100-((i/(rowBaseUnitInstances.length+1))+1)} labelText={rowGroupingUnit.time_unit_name + ' ' + ((i/(rowBaseUnitInstances.length+1))+1)} />);
 
-    let gridStyleOverrides = {};
+    // CSS adjustments for row grouping and labels
+    const gridStyleOverrides = {};
     if (rowBaseUnitInstances)
-        gridStyleOverrides = {
-            gridTemplateColumns: 'repeat(' + (rowBaseUnitInstances.length + (rowGroupingLabelType == 'counts' ? 1 : 0)) + ', auto)',
-        };
+        gridStyleOverrides.gridTemplateColumns = (rowGroupingLabelType == 'counts' ? 'max-content ' : '') + 'repeat(' + rowBaseUnitInstances.length + ', auto)';
+    if (rowGroupingUnit && rowBaseUnitInstances && (rowGroupingLabelType == 'names' || rowGroupingLabelType == 'numbers'))
+        gridStyleOverrides.gridTemplateRows = 'auto';
 
     return (
         <div className="grid-container-large" style={gridStyleOverrides}>
