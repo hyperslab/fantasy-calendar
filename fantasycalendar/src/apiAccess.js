@@ -21,6 +21,11 @@ export function getCalendar(calendarId, then) {
     getAuthenticated(url, then);
 }
 
+export function getCalendarDetail(calendarId, then) {
+    const url = 'calendars/' + calendarId + '/?detail=1';
+    getAuthenticated(url, then);
+}
+
 export function getTimeUnit(timeUnitId, then) {
     const url = 'timeunits/' + timeUnitId + '/';
     getAuthenticated(url, then);

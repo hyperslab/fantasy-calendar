@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig, DateBookmark
 from .serializers import WorldSerializer, CalendarSerializer, TimeUnitSerializer, EventSerializer, \
-    DateFormatSerializer, DisplayConfigSerializer, DateBookmarkSerializer
+    DateFormatSerializer, DisplayConfigSerializer, DateBookmarkSerializer, CalendarDetailSerializer
 from .permissions import IsCreatorOrPublic, IsWorldCreatorOrPublic, IsCalendarWorldCreatorOrPublic, \
     IsCalendarWorldCreator
 
@@ -63,6 +63,12 @@ class CalendarViewSet(viewsets.ReadOnlyModelViewSet):
                 world_id = int(self.request.query_params.get('world_id'))
                 queryset = queryset.filter(world_id=world_id)
         return queryset
+
+    def get_serializer_class(self):
+        if 'detail' in self.request.query_params and self.request.query_params.get('detail'):
+            return CalendarDetailSerializer
+        else:
+            return super(CalendarViewSet, self).get_serializer_class()
 
 
 class TimeUnitViewSet(viewsets.ReadOnlyModelViewSet):

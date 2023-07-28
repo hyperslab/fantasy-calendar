@@ -72,3 +72,12 @@ class DateBookmarkPersonalSerializer(serializers.ModelSerializer):
         model = DateBookmark
         fields = ('id', 'calendar', 'date_bookmark_name', 'bookmark_unit', 'bookmark_iteration', 'display_name',
                   'personal_bookmark_creator')
+
+
+class CalendarDetailSerializer(serializers.ModelSerializer):
+    time_units = TimeUnitSerializer(source='timeunit_set', many=True)
+    date_bookmarks = DateBookmarkSerializer(source='datebookmark_set', many=True)
+
+    class Meta:
+        model = Calendar
+        fields = ('id', 'world', 'calendar_name', 'default_display_config', 'time_units', 'date_bookmarks')

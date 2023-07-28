@@ -27,45 +27,35 @@ export default class Calendar extends React.Component {
         api.getUserStatusByCalendarId(calendar_id, res => {
             this.setState({ userStatus: res.data.user_status });
         });
-        api.getCalendar(calendar_id, res => {
-            const calendar = res.data;
-            this.setState({ calendar });
-            api.getTimeUnitsByCalendarId(calendar_id, res6 => {
-                const timeUnits = res6.data;
-                this.setState({ timeUnits });
-            });
-            api.getDateBookmarksByCalendarId(calendar_id, res7 => {
-                const dateBookmarks = res7.data;
-                this.setState({ dateBookmarks });
+        api.getCalendarDetail(calendar_id, resCalendar => {
+            const calendar = resCalendar.data;
+            this.setState({
+                calendar: calendar,
+                timeUnits: calendar.time_units,  // for convenience
+                dateBookmarks: calendar.date_bookmarks,  // for convenience
             });
             if (calendar.default_display_config)
-                api.getDisplayConfig(calendar.default_display_config, res2 => {
-                    const displayConfig = res2.data;
-                    this.setState({ displayConfig });
-                    const displayUnitId = displayConfig.display_unit;
-                    api.getTimeUnit(displayUnitId, res3 => {
-                        const displayUnit = res3.data;
-                        this.setState({ displayUnit });
-                        if (displayConfig.default_date_bookmark)
-                            api.getDateBookmark(displayConfig.default_date_bookmark, res4 => {
-                                const dateBookmark = res4.data;
-                                const displayIteration = dateBookmark.bookmark_iteration;
-                                this.setState({ displayIteration });
-                            });
-                        else  // from if (displayConfig.default_date_bookmark)
-                        {
-                            const displayIteration = 1;
-                            this.setState({ displayIteration });
-                        }
-                    });
+            {
+                api.getDisplayConfig(calendar.default_display_config, resDisplayConfig => {
+                    const displayConfig = resDisplayConfig.data;
+                    this.setState({ displayConfig: displayConfig });
+                    const displayUnit = calendar.time_units.find(x => x.id == displayConfig.display_unit)
+                    this.setState({ displayUnit: displayUnit });
+                    if (displayConfig.default_date_bookmark)
+                    {
+                        const dateBookmark = calendar.date_bookmarks.find(x => x.id == displayConfig.default_date_bookmark);
+                        this.setState({ displayIteration: dateBookmark.bookmark_iteration });
+                    }
+                    else  // from if (displayConfig.default_date_bookmark)
+                    {
+                        this.setState({ displayIteration: 1 });
+                    }
                 });
+            }
             else  // from if (calendar.default_display_config)
-                api.getTimeUnitsByCalendarId(calendar_id, res5 => {
-                    const displayUnit = res5.data[0];
-                    const displayIteration = 1;
-                    this.setState({ displayUnit });
-                    this.setState({ displayIteration });
-                });
+            {
+                this.setState({ displayUnit: calendar.time_units[0], displayIteration: 1 });
+            }
         });
     }
 
@@ -78,8 +68,11 @@ export default class Calendar extends React.Component {
         this.setState({ displayIteration: this.state.displayIteration + 1 });
     }
 
-    handleBaseUnitInstanceClick = (baseUnit, baseIteration) => {
-        this.setState({ displayUnit: baseUnit, displayIteration: baseIteration });
+    handleBaseUnitInstanceClick = (baseUnitId, baseIteration) => {
+        this.setState({
+            displayUnit: this.state.timeUnits.find(x => x.id == baseUnitId),
+            displayIteration: baseIteration,
+        });
     }
 
     handleDisplayUnitSelectChange = (newUnitId) => {
