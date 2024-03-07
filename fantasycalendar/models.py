@@ -531,7 +531,7 @@ class TimeUnit(models.Model):
 class Event(models.Model):
     calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
     event_name = models.CharField(max_length=200, help_text=html_tooltip('The name of this event'))
-    event_description = models.TextField(max_length=800, blank=True,
+    event_description = models.TextField(max_length=4000, blank=True,
                                          help_text=html_tooltip('A description for this event'))
     bottom_level_iteration = models.BigIntegerField(help_text=html_tooltip('The bottom level time unit ("Day" by '
                                                                            'default) instance that this event takes '
