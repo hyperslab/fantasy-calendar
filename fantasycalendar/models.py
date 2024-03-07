@@ -45,6 +45,14 @@ class Calendar(models.Model):
         """
         return TimeUnit.objects.get(calendar_id=self.pk, base_unit=None)
 
+    def ensure_bottom_level_time_unit(self, default_name="Day"):
+        """
+        Create a default bottom-level time unit for this calendar if it does
+        not have one.
+        """
+        if not TimeUnit.objects.filter(calendar_id=self.pk, base_unit=None).exists():
+            TimeUnit.objects.create(time_unit_name=default_name, calendar=self)
+
 
 class TimeUnit(models.Model):
     calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)

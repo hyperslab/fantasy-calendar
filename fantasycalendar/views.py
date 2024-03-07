@@ -48,6 +48,7 @@ class CalendarDetailView(UserPassesTestMixin, generic.DetailView):
         elif self.object.default_display_config:
             context['display_unit'] = self.object.default_display_config.display_unit
         else:
+            self.object.ensure_bottom_level_time_unit()  # if unit not specified, it might not have one yet
             context['display_unit'] = TimeUnit.objects.filter(calendar_id=self.object.id).first()
         if 'nest_checkbox' in self.request.GET:
             context['nest_level'] = int(self.request.GET['nest_checkbox'])
@@ -230,7 +231,7 @@ class CalendarCreateView(UserPassesTestMixin, generic.CreateView):
         world = get_object_or_404(World, pk=self.kwargs['world_key'])
         form.instance.world = world
         form.instance.save()
-        TimeUnit.objects.create(time_unit_name="Day", calendar=form.instance)
+        form.instance.ensure_bottom_level_time_unit()
         return super(CalendarCreateView, self).form_valid(form)
 
 
