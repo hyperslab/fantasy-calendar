@@ -51,7 +51,8 @@ class Calendar(models.Model):
         not have one.
         """
         if not TimeUnit.objects.filter(calendar_id=self.pk, base_unit=None).exists():
-            TimeUnit.objects.create(time_unit_name=default_name, calendar=self)
+            time_unit = TimeUnit(time_unit_name=default_name, calendar=self)
+            time_unit.save()
 
 
 class TimeUnit(models.Model):
