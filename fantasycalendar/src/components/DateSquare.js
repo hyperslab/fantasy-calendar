@@ -1,12 +1,12 @@
 import React from 'react';
 import EventRow from './EventRow.js';
 
-export default function DateSquare({ timeUnitId, timeUnitInstance, headerClickable, baseUnitInstanceClickHandler }) {
+export default function DateSquare({ timeUnitId, timeUnitInstance, headerClickable, baseUnitInstanceClickHandler, showEventDescription }) {
     const rows = [];
 
     timeUnitInstance.events.forEach((event) => {
         rows.push(
-            <EventRow key={event.id} event={event} />
+            <EventRow key={event.id} event={event} showDescription={showEventDescription} />
         );
     });
 

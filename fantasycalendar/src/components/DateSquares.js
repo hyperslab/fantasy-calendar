@@ -52,7 +52,7 @@ export default function DateSquares({ timeUnit, iteration, timeUnitPages, rowGro
     }
     const headerClickable = timeUnitPages.map(x => x.id).includes(timeUnit.id);
     const squares = labels.concat(blankSquares.concat(baseUnitInstances.map(baseUnitInstance =>
-        <DateSquare key={baseUnitInstance.iteration} timeUnitId={baseUnitId} timeUnitInstance={baseUnitInstance} headerClickable={headerClickable} baseUnitInstanceClickHandler={baseUnitInstanceClickHandler} />
+        <DateSquare key={baseUnitInstance.iteration} timeUnitId={baseUnitId} timeUnitInstance={baseUnitInstance} headerClickable={headerClickable} baseUnitInstanceClickHandler={baseUnitInstanceClickHandler} showEventDescription={timeUnit.id==baseUnitId} />
     )));
     if (rowGroupingUnit && rowBaseUnitInstances && rowGroupingLabelType == 'counts')
         for (let i = 0; i < squares.length; i += rowBaseUnitInstances.length+1)
