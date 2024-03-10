@@ -177,7 +177,7 @@ class EventDetailView(UserPassesTestMixin, generic.DetailView):
             context['display_date'] = self.object.calendar.get_bottom_level_time_unit().default_date_format.\
                 get_formatted_date(self.object.bottom_level_iteration)
         else:
-            context['display_date'] = str(self.object.calendar.get_bottom_level_time_unit.time_unit_name) + ' ' + \
+            context['display_date'] = str(self.object.calendar.get_bottom_level_time_unit().time_unit_name) + ' ' + \
                                       str(self.object.bottom_level_iteration)
         return context
 
