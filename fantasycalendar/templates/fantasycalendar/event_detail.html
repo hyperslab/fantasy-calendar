@@ -6,7 +6,7 @@ Event Detail
 
 {% block content %}
 <h2><a href="{% url 'fantasycalendar:world-detail' event.calendar.world_id %}">{{ event.calendar.world.world_name }}</a> - <a
-        href="{% url 'fantasycalendar:calendar-detail' event.calendar.world_id event.calendar_id %}">{{ event.calendar.calendar_name }}</a> - {{ event.event_name }}{% if user.pk == dateformat.calendar.world.creator.pk %}
+        href="{% url 'fantasycalendar:calendar-detail' event.calendar.world_id event.calendar_id %}">{{ event.calendar.calendar_name }}</a> - {{ event.event_name }}{% if user.pk == event.calendar.world.creator.pk %}
     <a href="{% url 'fantasycalendar:event-update' event.calendar.world_id event.calendar_id event.id %}">(edit)</a>{% endif %}</h2>
 <h3>Event Description</h3>
 <p>{{ event.event_description }}</p>
