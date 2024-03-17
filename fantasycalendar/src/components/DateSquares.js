@@ -28,6 +28,7 @@ export default function DateSquares({ timeUnit, iteration, timeUnitPages, rowGro
         });
         return () => {
             setBaseUnitInstances(null);  // have to clear it here or the old squares don't go away
+            setRowBaseUnitInstances(null);
             setFirstRowOffset(0);
         }
     }, [timeUnit, iteration, rowGroupingUnit, rowGroupingLabelType]);
@@ -58,10 +59,14 @@ export default function DateSquares({ timeUnit, iteration, timeUnitPages, rowGro
         for (let i = 0; i < squares.length; i += rowBaseUnitInstances.length+1)
             squares.splice(i, 0, <LabelSquare key={-100-((i/(rowBaseUnitInstances.length+1))+1)} labelText={rowGroupingUnit.time_unit_name + ' ' + ((i/(rowBaseUnitInstances.length+1))+1)} />);
 
-    // CSS adjustments for row grouping and labels
+    // CSS adjustments for bottom level time unit view and row grouping and labels
     const gridStyleOverrides = {};
-    if (rowBaseUnitInstances)
+    // grid-template-columns
+    if (timeUnit.id == baseUnitId)
+        gridStyleOverrides.gridTemplateColumns = 'auto';
+    else if (rowBaseUnitInstances)
         gridStyleOverrides.gridTemplateColumns = (rowGroupingLabelType == 'counts' ? 'max-content ' : '') + 'repeat(' + rowBaseUnitInstances.length + ', auto)';
+    // grid-template-rows
     if (rowGroupingUnit && rowBaseUnitInstances && (rowGroupingLabelType == 'names' || rowGroupingLabelType == 'numbers'))
         gridStyleOverrides.gridTemplateRows = 'auto';
 
