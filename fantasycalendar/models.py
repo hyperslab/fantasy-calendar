@@ -326,7 +326,7 @@ class TimeUnit(models.Model):
         last_bottom_level_iteration = self.get_last_bottom_level_iteration_at_iteration(iteration=iteration)
         return [x for x in Event.objects.filter(bottom_level_iteration__gte=first_bottom_level_iteration,
                                                 bottom_level_iteration__lte=last_bottom_level_iteration,
-                                                calendar_id=self.calendar.id)]
+                                                calendar_id=self.calendar.id).order_by('display_order')]
 
     @staticmethod
     def expand_length_cycle(length_cycle) -> list[int]:
@@ -536,6 +536,11 @@ class Event(models.Model):
     bottom_level_iteration = models.BigIntegerField(help_text=html_tooltip('The bottom level time unit ("Day" by '
                                                                            'default) instance that this event takes '
                                                                            'place on'))
+    display_order = models.IntegerField(default=1,
+                                        help_text=html_tooltip('The order in which this event will display on the '
+                                                               'calendar (and in menus); events with the same display '
+                                                               'order will  display in an unpredictable order relative '
+                                                               'to each other'))
 
     def __str__(self):
         return self.event_name

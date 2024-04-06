@@ -264,7 +264,7 @@ class TimeUnitCreateView(UserPassesTestMixin, generic.CreateView):
 class EventCreateView(UserPassesTestMixin, generic.CreateView):
     model = Event
     template_name = 'fantasycalendar/event_create_form.html'
-    fields = ['event_name', 'event_description', 'bottom_level_iteration']
+    fields = ['event_name', 'event_description', 'bottom_level_iteration', 'display_order']
 
     def test_func(self):
         world = get_object_or_404(World, pk=self.kwargs['world_key'])
@@ -461,7 +461,7 @@ class TimeUnitUpdateView(UserPassesTestMixin, generic.UpdateView):
 class EventUpdateView(UserPassesTestMixin, generic.UpdateView):
     model = Event
     template_name = 'fantasycalendar/event_update_form.html'
-    fields = ['event_name', 'event_description', 'bottom_level_iteration']
+    fields = ['event_name', 'event_description', 'bottom_level_iteration', 'display_order']
 
     def test_func(self):
         world = get_object_or_404(Event, pk=self.kwargs['pk']).calendar.world
