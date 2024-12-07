@@ -9,3 +9,5 @@ psycopg2-binary==2.9.6
 whitenoise==6.4.0
 djangorestframework==3.14.0
 django-cors-headers==4.1.0
+pyodbc==5.2.0
+mssql-django==1.5
