@@ -23,6 +23,13 @@ class World(models.Model):
     def get_absolute_url(self):
         return reverse('fantasycalendar:world-detail', kwargs={'pk': self.pk})
 
+    def get_linked_calendars(self) -> list['Calendar']:
+        """
+        Return all calendars in this world that are set up to link with other
+        calendars in the same world.
+        """
+        return [x for x in Calendar.objects.filter(world_id=self.pk) if x.is_linked()]
+
 
 class Calendar(models.Model):
     world = models.ForeignKey(World, on_delete=models.CASCADE)
@@ -31,6 +38,13 @@ class Calendar(models.Model):
                                                blank=True,
                                                help_text=html_tooltip('The display configuration for this calendar to '
                                                                       'use when initially loading into the page'))
+    world_link_iteration = models.BigIntegerField(default=None, blank=True, null=True,
+                                                  help_text=html_tooltip('The bottom level time unit instance used to '
+                                                                         'link to other calendars in this world; set '
+                                                                         'this to an equivalent iteration for every '
+                                                                         'calendar in the world to be linked, or '
+                                                                         'leave it blank to leave the calendar '
+                                                                         'unlinked'))
 
     def __str__(self):
         return self.calendar_name
@@ -53,6 +67,13 @@ class Calendar(models.Model):
         if not TimeUnit.objects.filter(calendar_id=self.pk, base_unit=None).exists():
             time_unit = TimeUnit(time_unit_name=default_name, calendar=self)
             time_unit.save()
+
+    def is_linked(self) -> bool:
+        """
+        Return True if this calendar is set up to link to other calendars in
+        the same world.
+        """
+        return self.world_link_iteration is not None
 
 
 class TimeUnit(models.Model):
@@ -527,6 +548,26 @@ class TimeUnit(models.Model):
         else:
             return str(self.time_unit_name) + ' ' + str(iteration)
 
+    def is_linked(self) -> bool:
+        """
+        Return True if this time unit is the bottom level time unit of a
+        calendar that is set up to link to other calendars in the same world.
+        """
+        return self.is_bottom_level() and self.calendar.is_linked()
+
+    def get_linked_instance_iterations(self, iteration: int) -> list[tuple['Calendar', int]]:
+        """
+        Return a list of tuples containing a calendar and a bottom level time
+        unit iteration. Each calendar is a calendar with a date linked to this
+        one and its corresponding iteration is the date that is linked.
+        """
+        if not self.is_linked():
+            return []
+        linked_calendars = [x for x in self.calendar.world.get_linked_calendars() if x.pk != self.calendar.pk]
+        offset_from_link = iteration - self.calendar.world_link_iteration
+        return [(x, x.world_link_iteration + offset_from_link) for x in linked_calendars
+                if x.world_link_iteration + offset_from_link > 0]
+
 
 class Event(models.Model):
     calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
@@ -539,7 +580,7 @@ class Event(models.Model):
     display_order = models.IntegerField(default=1,
                                         help_text=html_tooltip('The order in which this event will display on the '
                                                                'calendar (and in menus); events with the same display '
-                                                               'order will  display in an unpredictable order relative '
+                                                               'order will display in an unpredictable order relative '
                                                                'to each other'))
 
     def __str__(self):

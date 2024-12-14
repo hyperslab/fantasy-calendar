@@ -42,4 +42,17 @@ Time Unit Instance
 {% else %}
     <p>No bookmarks are present for this {{ timeunit.time_unit_name }}.</p>
 {% endif %}
+{% if is_linked %}
+    <h3>Linked Dates from Other Calendars</h3>
+    {% if linked_instances %}
+        <ul>
+        {% for calendar_id, calendar_name, linked_unit_id, linked_iteration, linked_display_date in linked_instances %}
+            <li><a href="{% url 'fantasycalendar:time-unit-instance-detail' timeunit.calendar.world_id calendar_id linked_unit_id linked_iteration %}">
+                {{ calendar_name }} - {{ linked_display_date }}</a></li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No linked dates found. Either no other calendars in this world are set up to be linked or none of them existed at this date.</p>
+    {% endif %}
+{% endif %}
 {% endblock %}

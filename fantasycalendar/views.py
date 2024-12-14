@@ -160,6 +160,12 @@ class TimeUnitInstanceDetailView(UserPassesTestMixin, generic.DetailView):
         date_formats = DateFormat.objects.filter(time_unit_id=self.object.id)
         formatted_dates = [d.get_formatted_date(self.kwargs['iteration']) for d in date_formats]
         context['date_representations'] = [(df, fd) for df, fd in zip(date_formats, formatted_dates)]
+        context['is_linked'] = self.object.is_linked()
+        linked_instances = self.object.get_linked_instance_iterations(self.kwargs['iteration'])
+        context['linked_instances'] = [(calendar.id, calendar.calendar_name, calendar.get_bottom_level_time_unit().id,
+                                        iteration,
+                                        calendar.get_bottom_level_time_unit().get_instance_display_name(iteration))
+                                       for (calendar, iteration) in linked_instances]
         return context
 
 
@@ -221,7 +227,7 @@ class WorldCreateView(LoginRequiredMixin, generic.CreateView):
 class CalendarCreateView(UserPassesTestMixin, generic.CreateView):
     model = Calendar
     template_name = 'fantasycalendar/calendar_create_form.html'
-    fields = ['calendar_name']
+    fields = ['calendar_name', 'world_link_iteration']
 
     def test_func(self):
         world = get_object_or_404(World, pk=self.kwargs['world_key'])
@@ -418,7 +424,7 @@ class WorldUpdateView(UserPassesTestMixin, generic.UpdateView):
 class CalendarUpdateView(UserPassesTestMixin, generic.UpdateView):
     model = Calendar
     template_name = 'fantasycalendar/calendar_update_form.html'
-    fields = ['calendar_name', 'default_display_config']
+    fields = ['calendar_name', 'world_link_iteration', 'default_display_config']
 
     def test_func(self):
         world = get_object_or_404(Calendar, pk=self.kwargs['pk']).world
