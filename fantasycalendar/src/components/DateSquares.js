@@ -3,7 +3,7 @@ import DateSquare from './DateSquare.js';
 import LabelSquare from './LabelSquare.js';
 import {getTimeUnit, getTimeUnitBaseInstances, getTimeUnitContainedIteration} from '../apiAccess.js';
 
-export default function DateSquares({ timeUnit, iteration, timeUnitPages, rowGroupingUnit, rowGroupingLabelType, baseUnitInstanceClickHandler }) {
+export default function DateSquares({ timeUnit, iteration, timeUnitPages, rowGroupingUnit, rowGroupingLabelType, baseUnitInstanceClickHandler, maxEventsPerSquare }) {
     const [baseUnitId, setBaseUnitId] = React.useState(null);
     const [baseUnitInstances, setBaseUnitInstances] = React.useState(null);
     const [rowBaseUnitInstances, setRowBaseUnitInstances] = React.useState(null);
@@ -53,7 +53,7 @@ export default function DateSquares({ timeUnit, iteration, timeUnitPages, rowGro
     }
     const headerClickable = timeUnitPages.map(x => x.id).includes(timeUnit.id);
     const squares = labels.concat(blankSquares.concat(baseUnitInstances.map(baseUnitInstance =>
-        <DateSquare key={baseUnitInstance.iteration} timeUnitId={baseUnitId} timeUnitInstance={baseUnitInstance} headerClickable={headerClickable} baseUnitInstanceClickHandler={baseUnitInstanceClickHandler} showEventDescription={timeUnit.id==baseUnitId} />
+        <DateSquare key={baseUnitInstance.iteration} timeUnitId={baseUnitId} timeUnitInstance={baseUnitInstance} headerClickable={headerClickable} baseUnitInstanceClickHandler={baseUnitInstanceClickHandler} showEventDescription={timeUnit.id==baseUnitId} maxEvents={maxEventsPerSquare} />
     )));
     if (rowGroupingUnit && rowBaseUnitInstances && rowGroupingLabelType == 'counts')
         for (let i = 0; i < squares.length; i += rowBaseUnitInstances.length+1)

@@ -958,6 +958,13 @@ class DisplayUnitConfig(models.Model):
                                                                       'Wednesday), or labels on each row that count '
                                                                       'the occurrences of the row grouping unit (Week '
                                                                       '1, Week 2, etc.)'))
+    show_events = models.BooleanField(default=True,
+                                      help_text=html_tooltip('Whether to show events on your calendar page for this '
+                                                             'time unit'))
+    max_events_per_instance = models.IntegerField(default=0,
+                                                  help_text=html_tooltip('The maximum number of events to show for a '
+                                                                         'single time unit instance on your calendar '
+                                                                         'page for this time unit; 0 for no limit'))
 
     class Meta:
         constraints = [
