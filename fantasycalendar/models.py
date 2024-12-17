@@ -550,16 +550,18 @@ class TimeUnit(models.Model):
 
     def is_linked(self) -> bool:
         """
-        Return True if this time unit is the bottom level time unit of a
-        calendar that is set up to link to other calendars in the same world.
+        Return True if this time unit is the bottom level time unit of
+        a calendar that is set up to link to other calendars in the
+        same world.
         """
         return self.is_bottom_level() and self.calendar.is_linked()
 
     def get_linked_instance_iterations(self, iteration: int) -> list[tuple['Calendar', int]]:
         """
-        Return a list of tuples containing a calendar and a bottom level time
-        unit iteration. Each calendar is a calendar with a date linked to this
-        one and its corresponding iteration is the date that is linked.
+        Return a list of tuples containing a calendar and a bottom
+        level time unit iteration. Each calendar is a calendar with a
+        date linked to this one and its corresponding iteration is the
+        date that is linked.
         """
         if not self.is_linked():
             return []
@@ -567,6 +569,33 @@ class TimeUnit(models.Model):
         offset_from_link = iteration - self.calendar.world_link_iteration
         return [(x, x.world_link_iteration + offset_from_link) for x in linked_calendars
                 if x.world_link_iteration + offset_from_link > 0]
+
+    def get_linked_instance_display_names(self, iteration: int, prefer_secondary: bool = False,
+                                          primary_secondary_backup: bool = False) -> list[str]:
+        """
+        Return a list of human-readable names for the time unit
+        instances linked from other calendars to the instance of this
+        time unit that exists at a particular iteration.
+
+        In order, prefers the default date format for the linked time
+        unit, then something like (time_unit_name + " " + iteration) if
+        there is no default date format for the linked time unit.
+
+        If prefer_secondary is True, use the secondary date format for
+        the linked time unit place of its default date format in the
+        order of preference above.
+
+        If primary_secondary_backup is True, attempt to use the
+        secondary date format for the linked time unit if it has no
+        default date format before trying something like
+        (time_unit_name + " " + iteration), or vice versa if
+        prefer_secondary is True.
+        """
+        linked_instances = self.get_linked_instance_iterations(iteration=iteration)
+        return [x[0].get_bottom_level_time_unit().get_instance_display_name(x[1], prefer_secondary=prefer_secondary,
+                                                                            primary_secondary_backup=
+                                                                            primary_secondary_backup)
+                for x in linked_instances]
 
 
 class Event(models.Model):
