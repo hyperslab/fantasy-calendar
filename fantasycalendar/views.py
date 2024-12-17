@@ -542,6 +542,9 @@ class DisplayUnitConfigUpdateView(UserPassesTestMixin, generic.UpdateView):
                 base_unit_id=form.instance.time_unit.base_unit.id)
         else:
             form.fields['row_grouping_time_unit'].queryset = TimeUnit.objects.filter(pk=form.instance.time_unit.id)
+        form.fields['linked_instance_display_name_type'].choices = \
+            [x for x in form.fields['linked_instance_display_name_type'].choices
+             if x[0] != DisplayUnitConfig.DisplayNameType.OTHER_FORMAT]
         return form
 
     def get_success_url(self):

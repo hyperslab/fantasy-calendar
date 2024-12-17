@@ -965,6 +965,28 @@ class DisplayUnitConfig(models.Model):
                                                   help_text=html_tooltip('The maximum number of events to show for a '
                                                                          'single time unit instance on your calendar '
                                                                          'page for this time unit; 0 for no limit'))
+    show_linked_instance_display_names = models.BooleanField(default=False,
+                                                             help_text=html_tooltip('Whether to show a date '
+                                                                                    'representation for each time unit '
+                                                                                    'instance linked from other '
+                                                                                    'calendars alongside bottom level '
+                                                                                    'time unit instances on your '
+                                                                                    'calendar page for this time unit'))
+    linked_instance_display_name_type = models.CharField(max_length=32, choices=DisplayNameType.choices,
+                                                         default=DisplayNameType.SECONDARY_FORMAT,
+                                                         help_text=html_tooltip('How to determine the date format of '
+                                                                                'linked time unit instances on your '
+                                                                                'calendar page for this time unit: by '
+                                                                                'using the linked time unit\'s default '
+                                                                                'date format, by using its secondary '
+                                                                                'format, or by using no format, '
+                                                                                'generating something like "(linked '
+                                                                                'time unit name) (relative '
+                                                                                'iteration)"'))
+    show_linked_instance_events = models.BooleanField(default=False,
+                                                      help_text=html_tooltip('Whether to show events from linked '
+                                                                             'instances from other calendars on your '
+                                                                             'calendar page for this time unit'))
 
     class Meta:
         constraints = [
