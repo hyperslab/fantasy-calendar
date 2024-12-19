@@ -597,6 +597,16 @@ class TimeUnit(models.Model):
                                                                             primary_secondary_backup)
                 for x in linked_instances]
 
+    def get_linked_events(self, iteration: int) -> list['Event']:
+        """
+        Return a list of all events on calendars linked to this time
+        unit that take place during the linked instance of this time
+        unit that exists at a particular iteration.
+        """
+        linked_instances = self.get_linked_instance_iterations(iteration=iteration)
+        events_nested = [x[0].get_bottom_level_time_unit().get_events_at_iteration(x[1]) for x in linked_instances]
+        return [event for events in events_nested for event in events]
+
 
 class Event(models.Model):
     calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)

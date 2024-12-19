@@ -129,6 +129,7 @@ export default class Calendar extends React.Component {
         const rowGroupingLabelType = displayUnitConfig ? displayUnitConfig.row_grouping_label_type : 'none';
         const maxEventsPerSquare = displayUnitConfig && displayUnitConfig.show_events ? (displayUnitConfig.max_events_per_instance > 0 ? displayUnitConfig.max_events_per_instance : 99) : 0;
         const showLinkedDisplayNames = displayUnitConfig ? displayUnitConfig.show_linked_instance_display_names : false;
+        const showLinkedEvents = displayUnitConfig ? displayUnitConfig.show_linked_instance_events : false;
 
         return (
             <div className="calendar">
@@ -149,7 +150,7 @@ export default class Calendar extends React.Component {
                     </span>
                     <PageForwardButton timeUnitName={this.state.displayUnit.time_unit_name} onClick={this.handlePageForwardClick} />
                 </span>
-                <DateSquares timeUnit={this.state.displayUnit} iteration={this.state.displayIteration} timeUnitPages={timeUnitPages} rowGroupingUnit={rowGroupingUnit} rowGroupingLabelType={rowGroupingLabelType} baseUnitInstanceClickHandler={this.handleBaseUnitInstanceClick} maxEventsPerSquare={maxEventsPerSquare} showLinkedDisplayNames={showLinkedDisplayNames} />
+                <DateSquares timeUnit={this.state.displayUnit} iteration={this.state.displayIteration} timeUnitPages={timeUnitPages} rowGroupingUnit={rowGroupingUnit} rowGroupingLabelType={rowGroupingLabelType} baseUnitInstanceClickHandler={this.handleBaseUnitInstanceClick} maxEventsPerSquare={maxEventsPerSquare} showLinkedDisplayNames={showLinkedDisplayNames} showLinkedEvents={showLinkedEvents} />
             </div>
         );
     }

@@ -1,11 +1,23 @@
 import React from 'react';
 import EventRow from './EventRow.js';
 
-export default function DateSquare({ timeUnitId, timeUnitInstance, headerClickable, baseUnitInstanceClickHandler, showEventDescription, maxEvents, showLinkedDisplayNames }) {
+export default function DateSquare({ timeUnitId, timeUnitInstance, headerClickable, baseUnitInstanceClickHandler, showEventDescription, maxEvents, showLinkedDisplayNames, showLinkedEvents }) {
     const rows = [];
     let header = timeUnitInstance.display_name;
+    const displayEvents = [];
 
-    timeUnitInstance.events.slice(0, maxEvents).forEach((event) => {
+    timeUnitInstance.events.forEach((event) => {
+        displayEvents.push(event);
+    });
+
+    if (showLinkedEvents)
+    {
+        timeUnitInstance.linked_events.forEach((event) => {
+            displayEvents.push(event);
+        });
+    }
+
+    displayEvents.slice(0, maxEvents).forEach((event) => {
         rows.push(
             <EventRow key={event.id} event={event} showDescription={showEventDescription} />
         );
@@ -26,7 +38,7 @@ export default function DateSquare({ timeUnitId, timeUnitInstance, headerClickab
                 <h5>{header}</h5>
             )}
             {rows}
-            {maxEvents != 0 && timeUnitInstance.events.length > maxEvents && <div>...</div>}
+            {maxEvents != 0 && displayEvents.length > maxEvents && <div>...</div>}
         </div>
     );
 

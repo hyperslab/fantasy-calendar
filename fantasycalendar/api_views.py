@@ -110,6 +110,7 @@ class TimeUnitBaseInstances(APIView):
             iteration = first_base_iteration + index
             events = base_unit.get_events_at_iteration(iteration)
             linked_display_names = base_unit.get_linked_instance_display_names(iteration, prefer_secondary=True)
+            linked_events = base_unit.get_linked_events(iteration)
             data.append({
                 "name": instance[0],
                 "display_name": instance[0] if not base_unit.secondary_date_format else
@@ -118,6 +119,7 @@ class TimeUnitBaseInstances(APIView):
                 "iteration": iteration,
                 "events": EventSerializer(events, many=True).data,
                 "linked_display_names": linked_display_names,
+                "linked_events": EventSerializer(linked_events, many=True).data,
             })
         return Response(data)
 

@@ -3,7 +3,7 @@ import DateSquare from './DateSquare.js';
 import LabelSquare from './LabelSquare.js';
 import {getTimeUnit, getTimeUnitBaseInstances, getTimeUnitContainedIteration} from '../apiAccess.js';
 
-export default function DateSquares({ timeUnit, iteration, timeUnitPages, rowGroupingUnit, rowGroupingLabelType, baseUnitInstanceClickHandler, maxEventsPerSquare, showLinkedDisplayNames }) {
+export default function DateSquares({ timeUnit, iteration, timeUnitPages, rowGroupingUnit, rowGroupingLabelType, baseUnitInstanceClickHandler, maxEventsPerSquare, showLinkedDisplayNames, showLinkedEvents }) {
     const [baseUnitId, setBaseUnitId] = React.useState(null);
     const [baseUnitInstances, setBaseUnitInstances] = React.useState(null);
     const [rowBaseUnitInstances, setRowBaseUnitInstances] = React.useState(null);
@@ -53,7 +53,7 @@ export default function DateSquares({ timeUnit, iteration, timeUnitPages, rowGro
     }
     const headerClickable = timeUnitPages.map(x => x.id).includes(timeUnit.id);
     const squares = labels.concat(blankSquares.concat(baseUnitInstances.map(baseUnitInstance =>
-        <DateSquare key={baseUnitInstance.iteration} timeUnitId={baseUnitId} timeUnitInstance={baseUnitInstance} headerClickable={headerClickable} baseUnitInstanceClickHandler={baseUnitInstanceClickHandler} showEventDescription={timeUnit.id==baseUnitId} maxEvents={maxEventsPerSquare} showLinkedDisplayNames={showLinkedDisplayNames} />
+        <DateSquare key={baseUnitInstance.iteration} timeUnitId={baseUnitId} timeUnitInstance={baseUnitInstance} headerClickable={headerClickable} baseUnitInstanceClickHandler={baseUnitInstanceClickHandler} showEventDescription={timeUnit.id==baseUnitId} maxEvents={maxEventsPerSquare} showLinkedDisplayNames={showLinkedDisplayNames} showLinkedEvents={showLinkedEvents} />
     )));
     if (rowGroupingUnit && rowBaseUnitInstances && rowGroupingLabelType == 'counts')
         for (let i = 0; i < squares.length; i += rowBaseUnitInstances.length+1)
