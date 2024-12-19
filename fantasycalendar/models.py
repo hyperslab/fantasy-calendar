@@ -600,10 +600,15 @@ class TimeUnit(models.Model):
     def get_linked_events(self, iteration: int) -> list['Event']:
         """
         Return a list of all events on calendars linked to this time
-        unit that take place during the linked instance of this time
-        unit that exists at a particular iteration.
+        unit that take place during the instance of this time unit that
+        exists at a particular iteration.
         """
-        linked_instances = self.get_linked_instance_iterations(iteration=iteration)
+        first_bottom_level_iteration = self.get_first_bottom_level_iteration_at_iteration(iteration=iteration)
+        last_bottom_level_iteration = self.get_last_bottom_level_iteration_at_iteration(iteration=iteration)
+        bottom_level_time_unit = self.calendar.get_bottom_level_time_unit()
+        linked_instances = []
+        for i in range(first_bottom_level_iteration, last_bottom_level_iteration+1):
+            linked_instances += bottom_level_time_unit.get_linked_instance_iterations(iteration=i)
         events_nested = [x[0].get_bottom_level_time_unit().get_events_at_iteration(x[1]) for x in linked_instances]
         return [event for events in events_nested for event in events]
 
