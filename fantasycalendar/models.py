@@ -6,6 +6,7 @@ from decimal import Decimal
 
 from django.db import models
 from django.contrib import admin
+from django.db.models import F
 from django.urls import reverse
 from django.conf import settings
 from .utils import html_tooltip
@@ -603,14 +604,16 @@ class TimeUnit(models.Model):
         unit that take place during the instance of this time unit that
         exists at a particular iteration.
         """
+        if not self.is_linked():
+            return []
         first_bottom_level_iteration = self.get_first_bottom_level_iteration_at_iteration(iteration=iteration)
         last_bottom_level_iteration = self.get_last_bottom_level_iteration_at_iteration(iteration=iteration)
-        bottom_level_time_unit = self.calendar.get_bottom_level_time_unit()
-        linked_instances = []
-        for i in range(first_bottom_level_iteration, last_bottom_level_iteration+1):
-            linked_instances += bottom_level_time_unit.get_linked_instance_iterations(iteration=i)
-        events_nested = [x[0].get_bottom_level_time_unit().get_events_at_iteration(x[1]) for x in linked_instances]
-        return [event for events in events_nested for event in events]
+        first_offset = first_bottom_level_iteration - self.calendar.world_link_iteration
+        last_offset = last_bottom_level_iteration - self.calendar.world_link_iteration
+        events = Event.objects.exclude(calendar__id=self.calendar_id).\
+            exclude(bottom_level_iteration__lt=first_offset + F("calendar__world_link_iteration")).\
+            exclude(bottom_level_iteration__gt=last_offset + F("calendar__world_link_iteration"))
+        return [event for event in events]
 
 
 class Event(models.Model):
