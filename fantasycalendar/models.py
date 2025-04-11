@@ -610,6 +610,26 @@ class TimeUnit(models.Model):
         return [(x, x.world_link_iteration + offset_from_link) for x in linked_calendars
                 if x.world_link_iteration + offset_from_link > 0]
 
+    def get_linked_instances_iterations(self, iterations: list[int]) -> list[tuple['Calendar', list[int]]]:
+        """
+        Return a list of tuples containing a calendar and a list of
+        bottom level time unit iterations. Each calendar is a calendar
+        with a date linked to the ones in iterations and its
+        corresponding iterations are the dates that are linked.
+
+        Optimized to minimize hits to the database when searching for
+        several dates at once.
+        """
+        if not self.is_linked():
+            return []
+        linked_calendars = [linked_calendar for linked_calendar in self.calendar.world.get_linked_calendars()
+                            if linked_calendar.pk != self.calendar.pk]
+        offsets_from_link = [iteration - self.calendar.world_link_iteration for iteration in iterations]
+        return [(linked_calendar,
+                 [linked_calendar.world_link_iteration + offset for offset in offsets_from_link
+                  if linked_calendar.world_link_iteration + offset > 0])
+                for linked_calendar in linked_calendars]
+
     def get_linked_instance_display_names(self, iteration: int, prefer_secondary: bool = False,
                                           primary_secondary_backup: bool = False) -> list[str]:
         """
@@ -636,6 +656,40 @@ class TimeUnit(models.Model):
                                                                             primary_secondary_backup=
                                                                             primary_secondary_backup)
                 for x in linked_instances]
+
+    def get_linked_instances_display_names(self, iterations: list[int], prefer_secondary: bool = False,
+                                           primary_secondary_backup: bool = False) -> list[list[str]]:
+        """
+        Return a list of a list of human-readable names for the time
+        unit instances linked from other calendars to the instances of
+        this time unit that exist at particular iterations.
+
+        Each list in the returned outer list corresponds to the time
+        unit instance in iterations at the same index. Each inner list
+        contains all linked display names for its corresponding
+        instance.
+
+        In order, prefers the default date format for the linked time
+        unit, then something like (time_unit_name + " " + iteration) if
+        there is no default date format for the linked time unit.
+
+        If prefer_secondary is True, use the secondary date format for
+        the linked time unit place of its default date format in the
+        order of preference above.
+
+        If primary_secondary_backup is True, attempt to use the
+        secondary date format for the linked time unit if it has no
+        default date format before trying something like
+        (time_unit_name + " " + iteration), or vice versa if
+        prefer_secondary is True.
+
+        Optimized to minimize hits to the database when formatting
+        several dates at once.
+        """
+        linked_instances = self.get_linked_instances_iterations(iterations=iterations)
+        return list(list(x) for x in zip(*[x[0].get_bottom_level_time_unit().get_instance_display_names(
+            x[1], prefer_secondary=prefer_secondary, primary_secondary_backup=primary_secondary_backup)
+                for x in linked_instances][::-1]))
 
     def get_linked_events(self, iteration: int) -> list['Event']:
         """
