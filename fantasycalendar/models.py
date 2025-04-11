@@ -273,7 +273,7 @@ class TimeUnit(models.Model):
                 names.append(custom_names[i])
             else:
                 names.append(base_name + ' ' + str(i + 1))
-        return zip(names, lengths)
+        return list(zip(names, lengths))
 
     def get_first_bottom_level_iteration_at_iteration(self, iteration: int) -> int:
         """
@@ -549,6 +549,45 @@ class TimeUnit(models.Model):
         else:
             return str(self.time_unit_name) + ' ' + str(iteration)
 
+    def get_instance_display_names(self, iterations: list[int], date_format: 'DateFormat' = None,
+                                   prefer_secondary: bool = False, primary_secondary_backup: bool = False) -> list[str]:
+        """
+        Return human-readable names for the instances of this time unit
+        that exist at particular iterations.
+
+        In order, prefers a given date format, then the default date
+        format for this time unit if none is given, then something like
+        (time_unit_name + " " + iteration) if there is no default date
+        format for this time unit.
+
+        If prefer_secondary is True, use the secondary date format for
+        this time unit place of its default date format in the order of
+        preference above.
+
+        If primary_secondary_backup is True, attempt to use the
+        secondary date format for this time unit if it has no default
+        date format before trying something like (time_unit_name +
+        " " + iteration), or vice versa if prefer_secondary is True.
+
+        Optimized to minimize hits to the database when formatting
+        several dates at once.
+        """
+        if date_format is None:
+            if not prefer_secondary:
+                date_format = self.default_date_format
+                if date_format is None and primary_secondary_backup:
+                    date_format = self.secondary_date_format
+            else:
+                date_format = self.secondary_date_format
+                if date_format is None and primary_secondary_backup:
+                    date_format = self.default_date_format
+        if date_format:
+            if date_format.time_unit != self:
+                raise ValueError
+            return date_format.get_formatted_dates(iterations)
+        else:
+            return [str(self.time_unit_name) + ' ' + str(iteration) for iteration in iterations]
+
     def is_linked(self) -> bool:
         """
         Return True if this time unit is the bottom level time unit of
@@ -699,6 +738,66 @@ class DateFormat(models.Model):
         for answer, index in zip(reversed(answers), reversed(indexes)):  # has to be backwards here so indexes work
             formatted_date = formatted_date[:index] + answer + formatted_date[index:]
         return formatted_date
+
+    def get_formatted_dates(self, iterations: list[int]) -> list[str]:
+        """
+        Return strings representing human-readable dates for the
+        instances of the time unit on this date format that exist at
+        particular iterations, formatted according to the format_string
+        on this date format.
+
+        Optimized to minimize hits to the database when formatting
+        several dates at once.
+        """
+        processed_format_string = str(self.format_string)
+        codes = []
+        indexes = []
+        while '{' in processed_format_string and '}' in processed_format_string:
+            l_index = processed_format_string.index('{')
+            r_index = processed_format_string.index('}')
+            codes.append(processed_format_string[l_index + 1:r_index])
+            indexes.append(l_index)
+            processed_format_string = processed_format_string[:l_index] + processed_format_string[r_index + 1:]
+        answers = []
+
+        # pull DB data for all involved time units up front
+        own_time_unit_id = self.time_unit.id
+        time_units = dict()
+        time_units[own_time_unit_id] = TimeUnit.objects.get(pk=own_time_unit_id)
+        for code in codes:
+            [parent, sub, display] = code.split('-')
+            if int(parent) not in time_units.keys():
+                time_units[int(parent)] = TimeUnit.objects.get(pk=int(parent))
+            if int(sub) not in time_units.keys():
+                time_units[int(sub)] = TimeUnit.objects.get(pk=int(sub))
+
+        formatted_dates = list()
+        for iteration in iterations:
+            formatted_date = processed_format_string
+            bottom_level_iteration = time_units[own_time_unit_id].get_first_bottom_level_iteration_at_iteration(
+                iteration=iteration)
+            for code in codes:
+                [parent, sub, display] = code.split('-')
+                parent_unit = time_units[int(parent)]
+                sub_unit = time_units[int(sub)]
+                parent_iteration = parent_unit.get_iteration_at_bottom_level_iteration(
+                    bottom_level_iteration=bottom_level_iteration)
+                sub_iteration = sub_unit.get_iteration_at_bottom_level_iteration(
+                    bottom_level_iteration=bottom_level_iteration)
+                sub_iteration_in_parent_iteration = parent_unit. \
+                    get_sub_unit_instance_iteration_within_higher_level_iteration(
+                        sub_unit=sub_unit, sub_unit_iteration=sub_iteration)
+                answer = 'unknown display type: "' + display + '"'
+                if display.lower() in ['n', 'name']:
+                    instances = list(parent_unit.get_base_unit_instances(iteration=parent_iteration))
+                    answer = instances[sub_iteration_in_parent_iteration - 1][0]
+                elif display.lower() in ['i', 'iter', 'iteration']:
+                    answer = str(sub_iteration_in_parent_iteration)
+                answers.append(answer)
+            for answer, index in zip(reversed(answers), reversed(indexes)):  # has to be backwards here so indexes work
+                formatted_date = formatted_date[:index] + answer + formatted_date[index:]
+            formatted_dates.append(formatted_date)
+        return formatted_dates
 
     def is_reversible(self) -> bool:
         """
