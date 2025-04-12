@@ -106,13 +106,14 @@ class TimeUnitBaseInstances(APIView):
         instances = time_unit.get_base_unit_instances(iteration=iteration)
         first_base_iteration = time_unit.get_first_base_unit_instance_iteration_at_iteration(iteration=iteration)
         iterations = [first_base_iteration + x for x in range(len(instances))]
+        events = base_unit.get_events_at_iterations(iterations)
         instance_display_names = base_unit.get_instance_display_names(iterations=iterations,
                                                                       prefer_secondary=True)
         linked_instance_display_names = base_unit.get_linked_instances_display_names(iterations, prefer_secondary=True)
         data = []
         for index, instance in enumerate(instances):
             iteration = first_base_iteration + index
-            events = base_unit.get_events_at_iteration(iteration)  # TODO batch this
+            # events = base_unit.get_events_at_iteration(iteration)
             # linked_display_names = base_unit.get_linked_instance_display_names(iteration, prefer_secondary=True)
             linked_events = base_unit.get_linked_events(iteration)  # TODO batch this
             data.append({
@@ -122,7 +123,8 @@ class TimeUnitBaseInstances(APIView):
                 else instance_display_names[index],
                 "time_unit_id": base_unit.pk,
                 "iteration": iteration,
-                "events": EventSerializer(events, many=True).data,
+                # "events": EventSerializer(events, many=True).data,
+                "events": EventSerializer(events[index], many=True).data,
                 # "linked_display_names": linked_display_names,
                 "linked_display_names": linked_instance_display_names[index] if len(linked_instance_display_names) > 0
                 else [],

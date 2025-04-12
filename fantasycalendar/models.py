@@ -6,7 +6,7 @@ from decimal import Decimal
 
 from django.db import models
 from django.contrib import admin
-from django.db.models import F
+from django.db.models import F, Q
 from django.urls import reverse
 from django.conf import settings
 from .utils import html_tooltip
@@ -222,6 +222,38 @@ class TimeUnit(models.Model):
             extra = 1
         return int(base_length + extra)
 
+    def get_length_at_iterations(self, iterations: list[int]) -> list[int]:
+        """
+        Return the number of base units in the instance of this time
+        unit that exists at each given iteration in iterations. An
+        iteration of 1 corresponds to the first instance of this time
+        unit in its calendar; values 0 and below are not used. No base
+        or parent units are considered in determining the iteration
+        value.
+
+        As an example, if there are 12 "Month"s in a "Year", the fourth
+        Month of Year 3 would have iteration value 28.
+
+        The value returned is a whole integer with "leap"s already
+        factored in. Access length_cycle directly to see decimal
+        values.
+
+        Optimized to minimize hits to the database when calculating
+        several lengths at once.
+        """
+        length_cycle = self.get_length_cycle()
+        lengths = list()
+        for iteration in iterations:
+            cycle_location = (iteration - 1) % len(length_cycle)
+            cycle_iteration = int((iteration - 1) / len(length_cycle)) + 1
+            base_length = int(length_cycle[cycle_location])
+            remainder_length = length_cycle[cycle_location] % 1
+            extra = 0
+            if ((remainder_length * (cycle_iteration - 1)) % 1) + remainder_length >= 1:
+                extra = 1
+            lengths.append(int(base_length + extra))
+        return lengths
+
     def get_first_base_unit_instance_iteration_at_iteration(self, iteration: int) -> int:
         """
         Return the iteration value of the first base unit in the
@@ -240,6 +272,32 @@ class TimeUnit(models.Model):
         for i in range(current_cycle_completed_instances):
             base_iteration += length_cycle[i]
         return int(base_iteration) + 1
+
+    def get_first_base_unit_instance_iteration_at_iterations(self, iterations: list[int]) -> list[int]:
+        """
+        Return the iteration value of the first base unit in the
+        instance of this time unit that exists at each given iteration
+        in iterations.
+
+        As an example, if there are 12 "Month"s in a "Year", then
+        calling this method on the Year with an iteration value of 4
+        will return 37, as the first Month of Year 4 is Month 37.
+
+        Always returns 1 when the iteration value is 1.
+
+        Optimized to minimize hits to the database when calculating
+        several iterations at once.
+        """
+        length_cycle = self.get_length_cycle()
+        base_iterations = list()
+        for iteration in iterations:
+            number_of_complete_cycles = int((iteration - 1) / len(length_cycle))
+            current_cycle_completed_instances = (iteration - 1) % len(length_cycle)
+            base_iteration = number_of_complete_cycles * sum(length_cycle)
+            for i in range(current_cycle_completed_instances):
+                base_iteration += length_cycle[i]
+            base_iterations.append(int(base_iteration) + 1)
+        return base_iterations
 
     def get_base_unit_instances(self, iteration: int = 1) -> list[tuple[str, int]]:
         """
@@ -297,6 +355,31 @@ class TimeUnit(models.Model):
             current_unit = current_unit.base_unit
         return current_unit_iteration
 
+    def get_first_bottom_level_iteration_at_iterations(self, iterations: list[int]) -> list[int]:
+        """
+        Return the iteration value of the first bottom level time unit
+        instance contained in the instance of this time unit that
+        exists at each given iteration in iterations.
+
+        As an example, if there are 12 "Month"s in a "Year" and 30
+        "Day"s in a Month, Day being the bottom level time unit for
+        this calendar, then calling this method on the Year with an
+        iteration value of 4 will return 1081, as the first Day of Year
+        4 is Day 1081.
+
+        Always returns 1 when the iteration value is 1.
+
+        Optimized to minimize hits to the database when calculating
+        several iterations at once.
+        """
+        current_unit = self
+        current_unit_iterations = iterations
+        while current_unit.base_unit is not None:
+            current_unit_iterations = current_unit.get_first_base_unit_instance_iteration_at_iterations(
+                iterations=current_unit_iterations)
+            current_unit = current_unit.base_unit
+        return current_unit_iterations
+
     def get_bottom_level_length_at_iteration(self, iteration: int) -> int:
         """
         Return the number of bottom level time units in the instance of
@@ -316,14 +399,75 @@ class TimeUnit(models.Model):
         while current_unit.base_unit is not None:
             current_first_iteration = current_unit.get_first_base_unit_instance_iteration_at_iteration(
                 iteration=current_first_iteration)
-            new_length = 0
-            for i in range(current_first_iteration, current_first_iteration + current_length):
-                new_length += current_unit.base_unit.get_length_at_iteration(i)
-            current_length = new_length
+            # -- this commented code performs maybe a little faster in dev but hits the database more --
+            # new_length = 0
+            # for i in range(current_first_iteration, current_first_iteration + current_length):
+            #     new_length += current_unit.base_unit.get_length_at_iteration(i)
+            # current_length = new_length
+            current_length = sum(current_unit.base_unit.get_length_at_iterations(
+                list(range(current_first_iteration, current_first_iteration + current_length))))
             current_unit = current_unit.base_unit
         return current_length
 
+    def get_bottom_level_length_at_iterations(self, iterations: list[int]) -> list[int]:
+        """
+        Return the number of bottom level time units in the instance of
+        this time unit that exists at each given iteration in
+        iterations.
+
+        As an example, say there are 12 "Month"s in a "Year" and 30
+        "Day"s in a Month plus an extra "leap" Day on one of the Months
+        every 4 Years, Day being the bottom level time unit for this
+        calendar. Calling this method on the Year with an iteration
+        value of 3 will return 360, as there are 360 Days in the 3rd
+        Year, but calling it on Year 4 will return 361, as there are
+        361 Days in the 4th Year.
+
+        Optimized to minimize hits to the database when calculating
+        several lengths at once.
+        """
+        current_unit = self
+        current_lengths = self.get_length_at_iterations(iterations=iterations)
+        current_first_iterations = iterations
+        while current_unit.base_unit is not None:
+            current_first_iterations = current_unit.get_first_base_unit_instance_iteration_at_iterations(
+                iterations=current_first_iterations)
+            all_iterations = list()
+            length_lengths = list()
+            for current_first_iteration, current_length in zip(current_first_iterations, current_lengths):
+                sub_iterations = range(current_first_iteration, current_first_iteration + current_length)
+                length_lengths.append(len(sub_iterations))
+                for i in sub_iterations:
+                    all_iterations.append(i)
+            all_lengths = current_unit.base_unit.get_length_at_iterations(all_iterations)
+            new_lengths = [0] * len(current_lengths)
+            current_sub_length_index = 0
+            while len(length_lengths) > 0:
+                new_lengths[current_sub_length_index] += all_lengths.pop(0)
+                length_lengths[0] -= 1
+                if length_lengths[0] < 1:
+                    length_lengths.pop(0)
+                    current_sub_length_index += 1
+            current_lengths = new_lengths
+            current_unit = current_unit.base_unit
+        return current_lengths
+
     def get_last_bottom_level_iteration_at_iteration(self, iteration: int) -> int:
+        """
+        Return the iteration value of the last bottom level time unit
+        instance contained in the instance of this time unit that
+        exists at each given iteration in iterations.
+
+        As an example, if there are 12 "Month"s in a "Year" and 30
+        "Day"s in a Month, Day being the bottom level time unit for
+        this calendar, then calling this method on the Year with an
+        iteration value of 4 will return 1440, as the last Day of Year
+        4 is Day 1440.
+        """
+        return self.get_first_bottom_level_iteration_at_iteration(iteration=iteration) + \
+            self.get_bottom_level_length_at_iteration(iteration=iteration) - 1
+
+    def get_last_bottom_level_iteration_at_iterations(self, iterations: list[int]) -> list[int]:
         """
         Return the iteration value of the last bottom level time unit
         instance contained in the instance of this time unit that
@@ -334,9 +478,13 @@ class TimeUnit(models.Model):
         this calendar, then calling this method on the Year with an
         iteration value of 4 will return 1440, as the last Day of Year
         4 is Day 1440.
+
+        Optimized to minimize hits to the database when calculating
+        several iterations at once.
         """
-        return self.get_first_bottom_level_iteration_at_iteration(iteration=iteration) + \
-               self.get_bottom_level_length_at_iteration(iteration=iteration) - 1
+        first_bottoms = self.get_first_bottom_level_iteration_at_iterations(iterations=iterations)
+        bottom_lengths = self.get_bottom_level_length_at_iterations(iterations=iterations)
+        return [first_bottom + bottom_length - 1 for first_bottom, bottom_length in zip(first_bottoms, bottom_lengths)]
 
     def get_events_at_iteration(self, iteration: int) -> list['Event']:
         """
@@ -349,6 +497,31 @@ class TimeUnit(models.Model):
         return [x for x in Event.objects.filter(bottom_level_iteration__gte=first_bottom_level_iteration,
                                                 bottom_level_iteration__lte=last_bottom_level_iteration,
                                                 calendar_id=self.calendar.id).order_by('display_order')]
+
+    def get_events_at_iterations(self, iterations: list[int]) -> list[list['Event']]:
+        """
+        Return a list of lists of all events on the same calendar as
+        this time unit that take place during the instance of this time
+        unit that exists at each given iteration in iterations.
+
+        Optimized to minimize hits to the database when searching
+        several iterations at once.
+        """
+        first_bottom_level_iterations = self.get_first_bottom_level_iteration_at_iterations(iterations=iterations)
+        last_bottom_level_iterations = self.get_last_bottom_level_iteration_at_iterations(iterations=iterations)
+        ranges = list(zip(first_bottom_level_iterations, last_bottom_level_iterations))
+        q = Q()
+        for first_bottom_level_iteration, last_bottom_level_iteration in ranges:
+            q = q | Q(bottom_level_iteration__gte=first_bottom_level_iteration,
+                      bottom_level_iteration__lte=last_bottom_level_iteration,
+                      calendar_id=self.calendar.id)
+        events = Event.objects.filter(q).order_by('display_order')
+        event_lists = [[] for _ in range(len(iterations))]
+        for event in events:
+            for index, (first_bottom_level_iteration, last_bottom_level_iteration) in enumerate(ranges):
+                if first_bottom_level_iteration <= event.bottom_level_iteration <= last_bottom_level_iteration:
+                    event_lists[index].append(event)
+        return event_lists
 
     @staticmethod
     def expand_length_cycle(length_cycle) -> list[int]:
