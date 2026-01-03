@@ -864,7 +864,7 @@ class TimeUnit(models.Model):
             x[1], prefer_secondary=prefer_secondary, primary_secondary_backup=primary_secondary_backup)
                 for x in linked_instances][::-1]))
 
-    def get_linked_events(self, iteration: int) -> list['Event']:
+    def get_linked_events_at_iteration(self, iteration: int) -> list['Event']:
         """
         Return a list of all events on calendars linked to this time
         unit that take place during the instance of this time unit that
@@ -880,6 +880,50 @@ class TimeUnit(models.Model):
             exclude(bottom_level_iteration__lt=first_offset + F("calendar__world_link_iteration")).\
             exclude(bottom_level_iteration__gt=last_offset + F("calendar__world_link_iteration"))
         return [event for event in events]
+
+    def get_linked_events_at_iterations(self, iterations: list[int]) -> list[list['Event']]:
+        """
+        Return a list of all events on calendars linked to this time
+        unit that take place during the instance of this time unit that
+        exists at each given iteration in iterations.
+
+        Optimized to minimize hits to the database when searching
+        several iterations at once.
+        """
+        # each iteration gets a list of Event, all of which are returned via a parallel list
+        # iterations that have none will get [] so the size and positions stay in parallel
+        event_lists = [[] for _ in range(len(iterations))]
+
+        # no link? no linked events, skip the heavy lifting
+        if not self.is_linked():
+            return event_lists
+
+        # get all ranges, start and end iterations in parallel lists
+        first_bottom_level_iterations = self.get_first_bottom_level_iteration_at_iterations(iterations=iterations)
+        last_bottom_level_iterations = self.get_last_bottom_level_iteration_at_iterations(iterations=iterations)
+        first_offsets = [first_bottom_level_iteration - self.calendar.world_link_iteration
+                         for first_bottom_level_iteration in first_bottom_level_iterations]
+        last_offsets = [last_bottom_level_iteration - self.calendar.world_link_iteration
+                        for last_bottom_level_iteration in last_bottom_level_iterations]
+        ranges = list(zip(first_offsets, last_offsets))
+
+        # build a query to pull all the events we will need
+        q = Q()
+        for first_offset, last_offset in ranges:
+            q = q | Q(bottom_level_iteration__range=(first_offset + F("calendar__world_link_iteration"),
+                                                     last_offset + F("calendar__world_link_iteration")))
+        q = q & ~Q(calendar_id=self.calendar.id)
+
+        # pull the events indiscriminately into one big list
+        events = Event.objects.filter(q).order_by('display_order')
+
+        # assign each Event to its proper place in the parallel list and return it
+        for event in events:
+            for index, (first_offset, last_offset) in enumerate(ranges):
+                if first_offset + event.calendar.world_link_iteration >= event.bottom_level_iteration \
+                        >= last_offset + event.calendar.world_link_iteration:
+                    event_lists[index].append(event)
+        return event_lists
 
 
 class Event(models.Model):
