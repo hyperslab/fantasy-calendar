@@ -2,14 +2,17 @@ import React from 'react';
 import DateSquare from './DateSquare.js';
 import LabelSquare from './LabelSquare.js';
 import {getTimeUnit, getTimeUnitBaseInstances, getTimeUnitContainedIteration} from '../apiAccess.js';
+import LoadingIcon from "./LoadingIcon.js";
 
 export default function DateSquares({ timeUnit, iteration, timeUnitPages, rowGroupingUnit, rowGroupingLabelType, baseUnitInstanceClickHandler, maxEventsPerSquare, showLinkedDisplayNames, showLinkedEvents }) {
     const [baseUnitId, setBaseUnitId] = React.useState(null);
     const [baseUnitInstances, setBaseUnitInstances] = React.useState(null);
     const [rowBaseUnitInstances, setRowBaseUnitInstances] = React.useState(null);
     const [firstRowOffset, setFirstRowOffset] = React.useState(0);
+    const [loading, setLoading] = React.useState(0);
 
     React.useEffect(() => {
+        setLoading(n => n + 1);
         getTimeUnitBaseInstances(timeUnit.id, iteration, res => {
             setBaseUnitInstances(res.data);
             if (res.data && res.data.length > 0)
@@ -17,14 +20,19 @@ export default function DateSquares({ timeUnit, iteration, timeUnitPages, rowGro
                 setBaseUnitId(res.data[0].time_unit_id);
                 if (rowGroupingUnit)  // these extra calls cause a lot of slowdown for whatever reason
                 {
+                    setLoading(n => n + 1);
                     getTimeUnitBaseInstances(rowGroupingUnit.id, 1, res3 => {
                         setRowBaseUnitInstances(res3.data);
+                        setLoading(n => n - 1);
                     });
+                    setLoading(n => n + 1);
                     getTimeUnitContainedIteration(rowGroupingUnit.base_unit, res.data[0].iteration, rowGroupingUnit.id, res3 => {
                         setFirstRowOffset(res3.data.iteration - 1);
+                        setLoading(n => n - 1);
                     });
                 }
             }
+            setLoading(n => n - 1);
         });
         return () => {
             setBaseUnitInstances(null);  // have to clear it here or the old squares don't go away
@@ -33,7 +41,11 @@ export default function DateSquares({ timeUnit, iteration, timeUnitPages, rowGro
         }
     }, [timeUnit, iteration, rowGroupingUnit, rowGroupingLabelType]);
 
-    if (!baseUnitId || !baseUnitInstances) return null;
+    if (!baseUnitId || !baseUnitInstances || loading > 0) return (
+        <div className="grid-container-large" style={{gridTemplateColumns: 'auto', justifyContent: 'center'}}>
+            <LoadingIcon />
+        </div>
+    );
 
     let labels = [];
     if (rowBaseUnitInstances)
