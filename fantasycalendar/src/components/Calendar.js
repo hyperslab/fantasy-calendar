@@ -23,6 +23,21 @@ export default class Calendar extends React.Component {
     }
 
     componentDidMount() {
+        const loadData = async(calendar) => {
+            // start calling API in the background to cache some data
+            // always call this last after the API calls that are actually needed
+            const loadTimeUnitBaseInstances = async(timeUnit, iteration) => {
+                api.getTimeUnitBaseInstances(timeUnit.id, iteration, res => {});
+            };
+            calendar.date_bookmarks.forEach((bookmark) => {  // for bookmarks
+                loadTimeUnitBaseInstances(calendar.time_units.find(x => x.id == bookmark.bookmark_unit), bookmark.bookmark_iteration);
+            });
+            calendar.time_units.forEach((timeUnit) => {  // for row grouping
+                loadTimeUnitBaseInstances(timeUnit, 1);
+            });
+            // TODO call getTimeUnitContainedIteration for offset; need to read from display configs somehow to figure out rowGroupingUnit
+        };
+
         var calendar_id = window.location.pathname.split("/")[5];  // this is bad and may break if URL changes
         api.getUserStatusByCalendarId(calendar_id, res => {
             this.setState({ userStatus: res.data.user_status });
@@ -50,11 +65,13 @@ export default class Calendar extends React.Component {
                     {
                         this.setState({ displayIteration: 1 });
                     }
+                    loadData(calendar);
                 });
             }
             else  // from if (calendar.default_display_config)
             {
                 this.setState({ displayUnit: calendar.time_units[0], displayIteration: 1 });
+                loadData(calendar);
             }
         });
     }
