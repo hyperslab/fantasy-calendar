@@ -125,12 +125,12 @@ class TimeUnitBaseInstances(APIView):
                 "time_unit_id": base_unit.pk,
                 "iteration": iteration,
                 # "events": EventSerializer(events, many=True).data,
-                "events": EventSerializer(events[index], many=True).data,
+                "events": EventSerializer([e for e in events[index] if e.is_visible()], many=True).data,
                 # "linked_display_names": linked_display_names,
                 "linked_display_names": linked_instance_display_names[index] if len(linked_instance_display_names) > 0
                 else [],
                 # "linked_events": EventSerializer(linked_events, many=True).data,
-                "linked_events": EventSerializer(linked_events[index], many=True).data,
+                "linked_events": EventSerializer([e for e in linked_events[index] if e.is_visible()], many=True).data,
             })
         return Response(data)
 
@@ -218,7 +218,7 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
             time_unit = get_object_or_404(TimeUnit, pk=time_unit_id)
             if not time_unit.calendar.world.public and self.request.user != time_unit.calendar.world.creator:
                 return []
-            events = time_unit.get_events_at_iteration(iteration)
+            events = [e for e in time_unit.get_events_at_iteration(iteration) if e.is_visible()]
             return events
         else:
             queryset = super(EventViewSet, self).get_queryset()

@@ -939,6 +939,11 @@ class Event(models.Model):
                                                                'calendar (and in menus); events with the same display '
                                                                'order will display in an unpredictable order relative '
                                                                'to each other'))
+    event_group = models.ForeignKey('EventGroup', on_delete=models.SET_NULL, blank=True, null=True)
+    visible = models.BooleanField(default=True, blank=True, null=True,
+                                  help_text=html_tooltip('Whether this event should appear on the main calendar; will '
+                                                         'use group setting if not set and default to be visible if '
+                                                         'group is also not set'))
 
     def __str__(self):
         return self.event_name
@@ -946,6 +951,27 @@ class Event(models.Model):
     def get_absolute_url(self):
         return reverse('fantasycalendar:event-detail', kwargs={'pk': self.pk, 'calendar_key': self.calendar.pk,
                                                                'world_key': self.calendar.world.pk})
+
+    def is_visible(self):
+        """
+        Return True if this Event should be visible on the main
+        calendar page based on the settings of this Event and its
+        EventGroup.
+        """
+        return self.visible if self.visible is not None \
+            else self.event_group.visible if self.event_group is not None \
+            else True
+
+
+class EventGroup(models.Model):
+    calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
+    event_group_name = models.CharField(max_length=200, help_text=html_tooltip('The name of this event group'))
+    visible = models.BooleanField(default=True,
+                                  help_text=html_tooltip('Whether the events in this group should appear on the '
+                                                         'main calendar'))
+
+    def __str__(self):
+        return self.event_group_name
 
 
 class DateFormat(models.Model):
