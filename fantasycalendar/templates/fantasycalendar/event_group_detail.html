@@ -1,0 +1,22 @@
+{% extends "fantasycalendar/base.html" %}
+
+{% block title %}
+Event Group Detail
+{% endblock %}
+
+{% block content %}
+<h2><a href="{% url 'fantasycalendar:world-detail' eventgroup.calendar.world_id %}">{{ eventgroup.calendar.world.world_name }}</a> - <a
+        href="{% url 'fantasycalendar:calendar-detail' eventgroup.calendar.world_id eventgroup.calendar_id %}">{{ eventgroup.calendar.calendar_name }}</a> - {{ eventgroup.event_group_name }}{% if user.pk == eventgroup.calendar.world.creator.pk %}
+    <a href="{% url 'fantasycalendar:event-group-update' eventgroup.calendar.world_id eventgroup.calendar_id eventgroup.id %}">(edit)</a>{% endif %}</h2>
+<h3>Events</h3>
+{% if eventgroup.event_set %}
+    <ul>
+    {% for event in eventgroup.event_set.all %}
+        <li><a href="{% url 'fantasycalendar:event-detail' event.calendar.world_id event.calendar.id event.id %}">{{ event.event_name }}</a>{% if user.pk == event.calendar.world.creator.pk %} <a
+                href="{% url 'fantasycalendar:event-update' event.calendar.world_id event.calendar.id event.id %}">(edit)</a>{% endif %}</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No events have been added to this event group.</p>
+{% endif %}
+{% endblock %}

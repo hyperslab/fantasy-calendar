@@ -973,6 +973,11 @@ class EventGroup(models.Model):
     def __str__(self):
         return self.event_group_name
 
+    def get_absolute_url(self):
+        return reverse('fantasycalendar:event-group-detail', kwargs={'pk': self.pk,
+                                                                     'calendar_key': self.calendar.pk,
+                                                                     'world_key': self.calendar.world.pk})
+
 
 class DateFormat(models.Model):
     calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)

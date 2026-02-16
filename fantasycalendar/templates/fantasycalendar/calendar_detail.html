@@ -29,7 +29,7 @@ Calendar Detail
 {% if calendar.displayconfig_set %}
     <ul>
     {% for display_config in calendar.displayconfig_set.all %}
-        <li><a href="{% url 'fantasycalendar:display-config-detail' calendar.world_id calendar.id display_config.id %}">{{ display_config.display_config_name  }}{% if user.pk == calendar.world.creator.pk %}</a> <a
+        <li><a href="{% url 'fantasycalendar:display-config-detail' calendar.world_id calendar.id display_config.id %}">{{ display_config.display_config_name }}{% if user.pk == calendar.world.creator.pk %}</a> <a
                 href="{% url 'fantasycalendar:display-config-update' calendar.world_id calendar.id display_config.id %}">(edit)</a>{% endif %} <a
                 href="{% url 'fantasycalendar:calendar-detail' calendar.world_id calendar.id %}?display_unit_type={{ display_config.display_unit.id }}&nest_checkbox={{ display_config.nest_level }}&iteration={% if display_config.default_date_bookmark %}{{ display_config.default_date_bookmark.bookmark_iteration }}{% elif display_config.display_unit.id == display_unit.id %}{{ iteration }}{% else %}1{% endif %}">(apply configuration)</a></li>
     {% endfor %}
@@ -51,6 +51,18 @@ Calendar Detail
     </ul>
 {% else %}
     <p>No date bookmarks have been created for this calendar.</p>
+{% endif %}
+<h3>Event Groups{% if user.pk == calendar.world.creator.pk %} <a
+        href="{% url 'fantasycalendar:event-group-create' calendar.world_id calendar.id %}">(+new)</a>{% endif %}</h3>
+{% if calendar.eventgroup_set %}
+    <ul>
+    {% for event_group in calendar.eventgroup_set.all %}
+        <li><a href="{% url 'fantasycalendar:event-group-detail' calendar.world_id calendar.id event_group.id %}">{{ event_group.event_group_name }}{% if user.pk == calendar.world.creator.pk %}</a> <a
+                href="{% url 'fantasycalendar:event-group-update' calendar.world_id calendar.id event_group.id %}">(edit)</a>{% endif %}
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No event groups have been created for this calendar.</p>
 {% endif %}
 {% endblock %}
 

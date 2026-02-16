@@ -2,7 +2,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import generic
-from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig, DateBookmark, DisplayUnitConfig
+from .models import (World, Calendar, TimeUnit, Event, EventGroup, DateFormat, DisplayConfig, DateBookmark,
+                     DisplayUnitConfig)
 from .forms import DisplayConfigCreateForm, DisplayConfigUpdateForm, DisplayUnitConfigUpdateForm
 
 
@@ -188,6 +189,20 @@ class EventDetailView(UserPassesTestMixin, generic.DetailView):
         return context
 
 
+class EventGroupDetailView(UserPassesTestMixin, generic.DetailView):
+    model = EventGroup
+    template_name = 'fantasycalendar/event_group_detail.html'
+
+    def test_func(self):
+        world = get_object_or_404(World, pk=self.kwargs['world_key'])
+        return world.public or self.request.user == world.creator
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['event_group'] = self.object
+        return context
+
+
 class DateFormatDetailView(UserPassesTestMixin, generic.DetailView):
     model = DateFormat
     template_name = 'fantasycalendar/date_format_detail.html'
@@ -295,6 +310,16 @@ class EventCreateView(UserPassesTestMixin, generic.CreateView):
     def get_success_url(self):
         return reverse('fantasycalendar:calendar-detail',
                        kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
+
+
+class EventGroupCreateView(UserPassesTestMixin, generic.CreateView):
+    model = EventGroup
+    template_name = 'fantasycalendar/event_group_create_form.html'
+    fields = ['event_group_name', 'visible']
+
+    def test_func(self):
+        world = get_object_or_404(World, pk=self.kwargs['world_key'])
+        return self.request.user == world.creator
 
 
 class DateFormatCreateView(UserPassesTestMixin, generic.CreateView):
@@ -479,6 +504,16 @@ class EventUpdateView(UserPassesTestMixin, generic.UpdateView):
         form.fields['bottom_level_iteration'].label = \
             'Which ' + str(bottom_unit.time_unit_name) + ' does this event take place on?'
         return form
+
+
+class EventGroupUpdateView(UserPassesTestMixin, generic.UpdateView):
+    model = EventGroup
+    template_name = 'fantasycalendar/event_group_update_form.html'
+    fields = ['event_group_name', 'visible']
+
+    def test_func(self):
+        world = get_object_or_404(Event, pk=self.kwargs['pk']).calendar.world
+        return self.request.user == world.creator
 
 
 class DateFormatUpdateView(UserPassesTestMixin, generic.UpdateView):
