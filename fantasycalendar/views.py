@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
@@ -285,7 +286,7 @@ class TimeUnitCreateView(UserPassesTestMixin, generic.CreateView):
 class EventCreateView(UserPassesTestMixin, generic.CreateView):
     model = Event
     template_name = 'fantasycalendar/event_create_form.html'
-    fields = ['event_name', 'event_description', 'bottom_level_iteration', 'display_order']
+    fields = ['event_name', 'event_description', 'bottom_level_iteration', 'display_order', 'event_group', 'visible']
 
     def test_func(self):
         world = get_object_or_404(World, pk=self.kwargs['world_key'])
@@ -300,6 +301,9 @@ class EventCreateView(UserPassesTestMixin, generic.CreateView):
         bottom_unit = Calendar.objects.get(pk=self.kwargs['calendar_key']).get_bottom_level_time_unit()
         form.fields['bottom_level_iteration'].label = \
             'Which ' + str(bottom_unit.time_unit_name) + ' does this event take place on?'
+        form.fields['event_group'].queryset = EventGroup.objects.filter(calendar_id=self.kwargs['calendar_key'])
+        group_setting_text = 'Use Group Setting'  # TODO dynamically update this as selected group changes
+        form.fields['visible'].widget.choices[0] = (form.fields['visible'].widget.choices[0][0], group_setting_text)
         return form
 
     def form_valid(self, form):
@@ -492,7 +496,7 @@ class TimeUnitUpdateView(UserPassesTestMixin, generic.UpdateView):
 class EventUpdateView(UserPassesTestMixin, generic.UpdateView):
     model = Event
     template_name = 'fantasycalendar/event_update_form.html'
-    fields = ['event_name', 'event_description', 'bottom_level_iteration', 'display_order']
+    fields = ['event_name', 'event_description', 'bottom_level_iteration', 'display_order', 'event_group', 'visible']
 
     def test_func(self):
         world = get_object_or_404(Event, pk=self.kwargs['pk']).calendar.world
@@ -503,6 +507,14 @@ class EventUpdateView(UserPassesTestMixin, generic.UpdateView):
         bottom_unit = Calendar.objects.get(pk=self.kwargs['calendar_key']).get_bottom_level_time_unit()
         form.fields['bottom_level_iteration'].label = \
             'Which ' + str(bottom_unit.time_unit_name) + ' does this event take place on?'
+        form.fields['event_group'].queryset = EventGroup.objects.filter(calendar_id=self.kwargs['calendar_key'])
+        group_setting_text = 'Use Group Setting'  # TODO dynamically update this as selected group changes
+        if (get_object_or_404(Event, pk=self.kwargs['pk']).event_group
+                and not get_object_or_404(Event, pk=self.kwargs['pk']).event_group.visible):
+            group_setting_text += ' (No)'
+        else:
+            group_setting_text += ' (Yes)'  # will default to visible if not in a group
+        form.fields['visible'].widget.choices[0] = (form.fields['visible'].widget.choices[0][0], group_setting_text)
         return form
 
 
