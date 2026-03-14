@@ -302,8 +302,6 @@ class EventCreateView(UserPassesTestMixin, generic.CreateView):
         form.fields['bottom_level_iteration'].label = \
             'Which ' + str(bottom_unit.time_unit_name) + ' does this event take place on?'
         form.fields['event_group'].queryset = EventGroup.objects.filter(calendar_id=self.kwargs['calendar_key'])
-        group_setting_text = 'Use Group Setting'  # TODO dynamically update this as selected group changes
-        form.fields['visible'].widget.choices[0] = (form.fields['visible'].widget.choices[0][0], group_setting_text)
         return form
 
     def form_valid(self, form):
@@ -508,13 +506,9 @@ class EventUpdateView(UserPassesTestMixin, generic.UpdateView):
         form.fields['bottom_level_iteration'].label = \
             'Which ' + str(bottom_unit.time_unit_name) + ' does this event take place on?'
         form.fields['event_group'].queryset = EventGroup.objects.filter(calendar_id=self.kwargs['calendar_key'])
-        group_setting_text = 'Use Group Setting'  # TODO dynamically update this as selected group changes
-        if (get_object_or_404(Event, pk=self.kwargs['pk']).event_group
-                and not get_object_or_404(Event, pk=self.kwargs['pk']).event_group.visible):
-            group_setting_text += ' (No)'
-        else:
-            group_setting_text += ' (Yes)'  # will default to visible if not in a group
-        form.fields['visible'].widget.choices[0] = (form.fields['visible'].widget.choices[0][0], group_setting_text)
+        # TODO get something like the below working and add to create view also
+        # form.fields['event_group'].widget.choices = \
+        #     [(choice[0], choice[1] + ' (visible)') for choice in form.fields['event_group'].widget.choices]
         return form
 
 

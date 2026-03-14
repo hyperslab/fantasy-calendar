@@ -5,8 +5,64 @@ Edit an Event
 {% endblock %}
 
 {% block content %}
-<form method="post">{% csrf_token %}
-    {{ form.as_p }}
+<script src="//unpkg.com/alpinejs" defer></script>
+<form method="post"
+    x-data="{ selected_group: '', selected_visibility: '' }"
+    x-init="
+        if (selected_group == '' && (selected_visibility == 'unknown' || selected_visibility == ''))
+            selected_visibility = 'true';
+        $watch('selected_group', value => {
+          if (value == '' && selected_visibility == 'unknown')
+            selected_visibility = 'true';
+          else if (value != '')
+            selected_visibility = 'unknown';
+        });
+    ">{% csrf_token %}
+    {{ form.non_field_errors }}
+    <p>
+        {{ form.event_name.errors }}
+        {{ form.event_name.label_tag }}
+        {{ form.event_name }}
+        <span class="helptext">{{ form.event_name.help_text|safe }}</span>
+    </p>
+    <p>
+        {{ form.event_description.errors }}
+        {{ form.event_description.label_tag }}
+        {{ form.event_description }}
+        <span class="helptext">{{ form.event_description.help_text|safe }}</span>
+    </p>
+    <p>
+        {{ form.bottom_level_iteration.errors }}
+        {{ form.bottom_level_iteration.label_tag }}
+        {{ form.bottom_level_iteration }}
+        <span class="helptext">{{ form.bottom_level_iteration.help_text|safe }}</span>
+    </p>
+    <p>
+        {{ form.display_order.errors }}
+        {{ form.display_order.label_tag }}
+        {{ form.display_order }}
+        <span class="helptext">{{ form.display_order.help_text|safe }}</span>
+    </p>
+    <p>
+        {{ form.event_group.errors }}
+        {{ form.event_group.label_tag }}
+        <select id="{{ form.event_group.id_for_label }}" name="{{ form.event_group.name }}" x-model="selected_group">
+        {% for choice in form.event_group.field.choices %}
+            <option value="{{ choice.0 }}"{% if form.event_group.value == choice.0 %} selected{% endif %}>{{ choice.1 }}</option>
+        {% endfor %}
+        </select>
+        <span class="helptext">{{ form.event_group.help_text|safe }}</span>
+    </p>
+    <p>
+        {{ form.visible.errors }}
+        {{ form.visible.label_tag }}
+        <select id="{{ form.visible.id_for_label }}" name="{{ form.visible.name }}" x-model="selected_visibility">
+            <option x-show="selected_group != ''" value="unknown"{% if form.visible.value == None %} selected{% endif %}>Use Group Setting</option>
+            <option value="true"{% if form.visible.value == True %} selected{% endif %}>Yes</option>
+            <option value="false"{% if form.visible.value == False %} selected{% endif %}>No</option>
+        </select>
+        <span class="helptext">{{ form.visible.help_text|safe }}</span>
+    </p>
     <input type="submit" value="Save">
 </form>
 {% endblock %}
