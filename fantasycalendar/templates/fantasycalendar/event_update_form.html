@@ -7,7 +7,12 @@ Edit an Event
 {% block content %}
 <script src="//unpkg.com/alpinejs" defer></script>
 <form method="post"
-    x-data="{ selected_group: '', selected_visibility: '' }"
+    x-data="
+        {
+            selected_group: '{{ form.event_group.value }}',
+            selected_visibility: '{% if form.visible.value == True %}true{% elif form.visible.value == False %}false{% endif %}'
+        }
+    "
     x-init="
         if (selected_group == '' && (selected_visibility == 'unknown' || selected_visibility == ''))
             selected_visibility = 'true';
