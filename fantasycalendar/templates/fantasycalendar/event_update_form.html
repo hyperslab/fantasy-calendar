@@ -62,7 +62,7 @@ Edit an Event
         {{ form.visible.errors }}
         {{ form.visible.label_tag }}
         <select id="{{ form.visible.id_for_label }}" name="{{ form.visible.name }}" x-model="selected_visibility">
-            <option x-show="selected_group != ''" value="unknown"{% if form.visible.value == None %} selected{% endif %}>Use Group Setting</option>
+            <option x-show="selected_group != '' && selected_group != 'None'" value="unknown"{% if form.visible.value == None %} selected{% endif %}>Use Group Setting</option>
             <option value="true"{% if form.visible.value == True %} selected{% endif %}>Yes</option>
             <option value="false"{% if form.visible.value == False %} selected{% endif %}>No</option>
         </select>
