@@ -505,10 +505,13 @@ class EventUpdateView(UserPassesTestMixin, generic.UpdateView):
         bottom_unit = Calendar.objects.get(pk=self.kwargs['calendar_key']).get_bottom_level_time_unit()
         form.fields['bottom_level_iteration'].label = \
             'Which ' + str(bottom_unit.time_unit_name) + ' does this event take place on?'
-        form.fields['event_group'].queryset = EventGroup.objects.filter(calendar_id=self.kwargs['calendar_key'])
-        # TODO get something like the below working and add to create view also
-        # form.fields['event_group'].widget.choices = \
-        #     [(choice[0], choice[1] + ' (visible)') for choice in form.fields['event_group'].widget.choices]
+
+        class ModelChoiceFieldWithVisibility(forms.ModelChoiceField):
+            def label_from_instance(self, obj):
+                return obj.__str__() + ' (' + ('not ' if not obj.visible else '') + 'visible)'
+
+        form.fields['event_group'] = ModelChoiceFieldWithVisibility(
+            queryset=EventGroup.objects.filter(calendar_id=self.kwargs['calendar_key']))
         return form
 
 
