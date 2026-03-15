@@ -510,7 +510,7 @@ class EventUpdateView(UserPassesTestMixin, generic.UpdateView):
             def label_from_instance(self, obj):
                 return obj.__str__() + ' (' + ('not ' if not obj.visible else '') + 'visible)'
 
-        form.fields['event_group'] = ModelChoiceFieldWithVisibility(
+        form.fields['event_group'] = ModelChoiceFieldWithVisibility(required=False,
             queryset=EventGroup.objects.filter(calendar_id=self.kwargs['calendar_key']))
         return form
 
