@@ -301,7 +301,13 @@ class EventCreateView(UserPassesTestMixin, generic.CreateView):
         bottom_unit = Calendar.objects.get(pk=self.kwargs['calendar_key']).get_bottom_level_time_unit()
         form.fields['bottom_level_iteration'].label = \
             'Which ' + str(bottom_unit.time_unit_name) + ' does this event take place on?'
-        form.fields['event_group'].queryset = EventGroup.objects.filter(calendar_id=self.kwargs['calendar_key'])
+
+        class ModelChoiceFieldWithVisibility(forms.ModelChoiceField):
+            def label_from_instance(self, obj):
+                return obj.__str__() + ' (' + ('not ' if not obj.visible else '') + 'visible)'
+
+        form.fields['event_group'] = ModelChoiceFieldWithVisibility(required=False,
+            queryset=EventGroup.objects.filter(calendar_id=self.kwargs['calendar_key']))
         return form
 
     def form_valid(self, form):
