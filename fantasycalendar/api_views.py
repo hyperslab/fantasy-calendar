@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig, DateBookmark
+from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig, DateBookmark, DisplayUnitConfig
 from .serializers import WorldSerializer, CalendarSerializer, TimeUnitSerializer, EventSerializer, \
     DateFormatSerializer, DisplayConfigSerializer, DateBookmarkSerializer, CalendarDetailSerializer
 from .permissions import IsCreatorOrPublic, IsWorldCreatorOrPublic, IsCalendarWorldCreatorOrPublic, \
@@ -69,6 +69,63 @@ class CalendarViewSet(viewsets.ReadOnlyModelViewSet):
             return CalendarDetailSerializer
         else:
             return super(CalendarViewSet, self).get_serializer_class()
+
+
+class CalendarPage(APIView):
+    def get(self, request):
+        if 'time_unit_id' not in request.query_params:
+            return Response({'message': 'ERROR: time_unit_id required'}, status=status.HTTP_400_BAD_REQUEST)
+        if 'iteration' not in request.query_params:
+            return Response({'message': 'ERROR: iteration required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        time_unit = get_object_or_404(TimeUnit, pk=int(request.query_params.get('time_unit_id')))
+        calendar = time_unit.calendar
+        iteration = int(request.query_params.get('iteration'))
+        display_config = get_object_or_404(DisplayConfig, pk=int(request.query_params.get('display_config_id'))) \
+            if 'display_config_id' in request.query_params else calendar.default_display_config
+        display_unit_config = DisplayUnitConfig.objects.get(display_config_id=display_config.id,
+                                                            time_unit_id=time_unit.id)
+
+        if calendar.world.creator != request.user and not calendar.world.public:
+            return Response(
+                {'message': 'ERROR: this resource is not public and you are not authenticated as its creator'},
+                status=status.HTTP_403_FORBIDDEN)
+
+        base_unit = time_unit.base_unit if time_unit.base_unit is not None else time_unit
+        instances = time_unit.get_base_unit_instances(iteration=iteration)
+        header_instances = display_unit_config.row_grouping_time_unit.get_base_unit_instances(iteration=1)
+        first_base_iteration = time_unit.get_first_base_unit_instance_iteration_at_iteration(iteration=iteration)
+        iterations = [first_base_iteration + x for x in range(len(instances))]
+        events = base_unit.get_events_at_iterations(iterations)
+        instance_display_names = base_unit.get_instance_display_names(iterations=iterations,
+                                                                      prefer_secondary=True)
+        linked_instance_display_names = base_unit.get_linked_instances_display_names(iterations, prefer_secondary=True)
+        linked_events = base_unit.get_linked_events_at_iterations(iterations)
+
+        calendar_dates = []
+        for index, instance in enumerate(instances):
+            iteration = first_base_iteration + index
+            calendar_dates.append({
+                "name": instance[0],
+                "display_name": instance[0] if not base_unit.secondary_date_format
+                else instance_display_names[index],
+                "time_unit_id": base_unit.pk,
+                "iteration": iteration,
+                # TODO cap events based on display config
+                "events": EventSerializer([e for e in events[index] if e.is_visible()], many=True).data,
+                "linked_display_names": linked_instance_display_names[index] if len(linked_instance_display_names) > 0
+                else [],
+                "linked_events": EventSerializer([e for e in linked_events[index] if e.is_visible()], many=True).data,
+            })
+
+        # TODO support other header types based on display config
+        header_row = [name for name, length in header_instances]
+
+        data = dict()
+        data["calendar_dates"] = calendar_dates
+        data["header_row"] = header_row
+        # TODO add initial empty spaces offset (blank entries in calendar_dates maybe?)
+        return Response(data)
 
 
 class TimeUnitViewSet(viewsets.ReadOnlyModelViewSet):

@@ -19,6 +19,7 @@ urlpatterns = [
     path("", lambda req: redirect(reverse('fantasycalendar:world-index'))),
     path("api/", include(router.urls)),
     path("api/userstatus/", api_views.UserStatus.as_view()),
+    path("api/calendarpage/", api_views.CalendarPage.as_view()),
     path("api/timeunitbaseinstances/", api_views.TimeUnitBaseInstances.as_view()),
     path("api/timeunitinstancedisplayname/", api_views.TimeUnitInstanceDisplayName.as_view()),
     path("api/timeunitequivalentiteration/", api_views.TimeUnitEquivalentIteration.as_view()),
