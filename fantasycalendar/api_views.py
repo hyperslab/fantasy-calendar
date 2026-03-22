@@ -1,3 +1,5 @@
+import math
+
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -93,7 +95,6 @@ class CalendarPage(APIView):
 
         base_unit = time_unit.base_unit if time_unit.base_unit is not None else time_unit
         instances = time_unit.get_base_unit_instances(iteration=iteration)
-        header_instances = display_unit_config.row_grouping_time_unit.get_base_unit_instances(iteration=1)
         first_base_iteration = time_unit.get_first_base_unit_instance_iteration_at_iteration(iteration=iteration)
         iterations = [first_base_iteration + x for x in range(len(instances))]
         events = base_unit.get_events_at_iterations(iterations)
@@ -101,30 +102,59 @@ class CalendarPage(APIView):
                                                                       prefer_secondary=True)
         linked_instance_display_names = base_unit.get_linked_instances_display_names(iterations, prefer_secondary=True)
         linked_events = base_unit.get_linked_events_at_iterations(iterations)
+        max_events_per_instance = display_unit_config.max_events_per_instance \
+            if display_unit_config.max_events_per_instance > 0 else 99
+
+        row_grouping_unit = display_unit_config.row_grouping_time_unit
+        if row_grouping_unit:
+            row_grouping_instances = row_grouping_unit.get_base_unit_instances(iteration=1)
+            row_length = len(row_grouping_instances)
+            row_grouping_label_type = display_unit_config.row_grouping_label_type
+            row_grouping_offset = (row_grouping_unit.get_sub_unit_instance_iteration_within_higher_level_iteration(
+                sub_unit=base_unit,sub_unit_iteration=first_base_iteration)) - 1
+        else:
+            row_grouping_instances = []
+            row_length = 0
+            row_grouping_label_type = ''
+            row_grouping_offset = 0
 
         calendar_dates = []
         for index, instance in enumerate(instances):
             iteration = first_base_iteration + index
+            # max_events_per_instance count includes linked events as well
+            # show native events first, then linked events if we still have room
+            max_linked_events = max(max_events_per_instance - len(events[index]), 0)
             calendar_dates.append({
                 "name": instance[0],
                 "display_name": instance[0] if not base_unit.secondary_date_format
                 else instance_display_names[index],
                 "time_unit_id": base_unit.pk,
                 "iteration": iteration,
-                # TODO cap events based on display config
-                "events": EventSerializer([e for e in events[index] if e.is_visible()], many=True).data,
+                "events": EventSerializer(
+                    [e for e in events[index] if e.is_visible()][:max_events_per_instance], many=True).data,
                 "linked_display_names": linked_instance_display_names[index] if len(linked_instance_display_names) > 0
                 else [],
-                "linked_events": EventSerializer([e for e in linked_events[index] if e.is_visible()], many=True).data,
+                "linked_events": EventSerializer(
+                    [e for e in linked_events[index] if e.is_visible()][:max_linked_events], many=True).data,
             })
 
-        # TODO support other header types based on display config
-        header_row = [name for name, length in header_instances]
+        header_row = []
+        header_column = []
+        if row_grouping_label_type == 'names':
+            header_row = [name for name, length in row_grouping_instances]
+        if row_grouping_label_type == 'numbers':
+            header_row = [iteration for iteration, instance in enumerate(row_grouping_instances)]
+        if row_grouping_label_type == 'counts':
+            # 'counts' labels the rows, not the columns, as 'Row 1', 'Row 2' etc.
+            header_column = [row_grouping_unit.time_unit_name + ' ' + str(count + 1)
+                             for count in range(math.ceil((row_grouping_offset + len(instances)) / row_length))]
 
         data = dict()
         data["calendar_dates"] = calendar_dates
+        data["row_length"] = row_length
+        data["initial_offset"] = row_grouping_offset
         data["header_row"] = header_row
-        # TODO add initial empty spaces offset (blank entries in calendar_dates maybe?)
+        data["header_column"] = header_column
         return Response(data)
 
 
