@@ -30,6 +30,11 @@ export function getCalendarDetail(calendarId, then) {
     getAuthenticated(url, then);
 }
 
+export function getCalendarPage(timeUnitId, iteration, then) {
+    const url = 'calendarpage/?time_unit_id=' + timeUnitId + '&iteration=' + iteration;
+    getAuthenticated(url, then);
+}
+
 export function getTimeUnit(timeUnitId, then) {
     const url = 'timeunits/' + timeUnitId + '/';
     getAuthenticated(url, then);
