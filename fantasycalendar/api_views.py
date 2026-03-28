@@ -100,8 +100,12 @@ class CalendarPage(APIView):
         events = base_unit.get_events_at_iterations(iterations)
         instance_display_names = base_unit.get_instance_display_names(iterations=iterations,
                                                                       prefer_secondary=True)
-        linked_instance_display_names = base_unit.get_linked_instances_display_names(iterations, prefer_secondary=True)
-        linked_events = base_unit.get_linked_events_at_iterations(iterations)
+        linked_instance_display_names = [[] for _ in instances]
+        if display_unit_config.show_linked_instance_display_names:
+            linked_instance_display_names = base_unit.get_linked_instances_display_names(iterations, prefer_secondary=True)
+        linked_events = [[] for _ in instances]
+        if display_unit_config.show_linked_instance_events:
+            linked_events = base_unit.get_linked_events_at_iterations(iterations)
         max_events_per_instance = display_unit_config.max_events_per_instance \
             if display_unit_config.max_events_per_instance > 0 else 99
 
@@ -148,6 +152,8 @@ class CalendarPage(APIView):
             # 'counts' labels the rows, not the columns, as 'Row 1', 'Row 2' etc.
             header_column = [row_grouping_unit.time_unit_name + ' ' + str(count + 1)
                              for count in range(math.ceil((row_grouping_offset + len(instances)) / row_length))]
+        base_unit_page_exists = DisplayUnitConfig.objects.filter(display_config_id=display_config.id,
+                                                                 time_unit_id=base_unit.pk).exists()
 
         data = dict()
         data["calendar_dates"] = calendar_dates
@@ -155,6 +161,7 @@ class CalendarPage(APIView):
         data["initial_offset"] = row_grouping_offset
         data["header_row"] = header_row
         data["header_column"] = header_column
+        data["base_unit_page_exists"] = base_unit_page_exists
         return Response(data)
 
 

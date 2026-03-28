@@ -1,5 +1,6 @@
 import React from 'react';
 import DateSquares from './DateSquares.js';
+import CalendarPage from './CalendarPage.js';
 import PageForwardButton from './PageForwardButton.js';
 import PageBackButton from './PageBackButton.js';
 import DisplayUnitSelect from './DisplayUnitSelect.js';
@@ -168,6 +169,7 @@ export default class Calendar extends React.Component {
                     <PageForwardButton timeUnitName={this.state.displayUnit.time_unit_name} onClick={this.handlePageForwardClick} />
                 </span>
                 <DateSquares timeUnit={this.state.displayUnit} iteration={this.state.displayIteration} timeUnitPages={timeUnitPages} rowGroupingUnit={rowGroupingUnit} rowGroupingLabelType={rowGroupingLabelType} baseUnitInstanceClickHandler={this.handleBaseUnitInstanceClick} maxEventsPerSquare={maxEventsPerSquare} showLinkedDisplayNames={showLinkedDisplayNames} showLinkedEvents={showLinkedEvents} />
+                {/*<CalendarPage timeUnit={this.state.displayUnit} iteration={this.state.displayIteration} displayConfig={this.state.displayConfig} baseUnitInstanceClickHandler={this.handleBaseUnitInstanceClick} />*/}
             </div>
         );
     }
