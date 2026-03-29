@@ -128,6 +128,7 @@ class CalendarPage(APIView):
             # max_events_per_instance count includes linked events as well
             # show native events first, then linked events if we still have room
             max_linked_events = max(max_events_per_instance - len(events[index]), 0)
+            not_all_events_returned = len(events[index]) + len(linked_events[index]) > max_events_per_instance
             calendar_dates.append({
                 "name": instance[0],
                 "display_name": instance[0] if not base_unit.secondary_date_format
@@ -140,6 +141,7 @@ class CalendarPage(APIView):
                 else [],
                 "linked_events": EventSerializer(
                     [e for e in linked_events[index] if e.is_visible()][:max_linked_events], many=True).data,
+                "not_all_events_returned": not_all_events_returned
             })
 
         header_row = []

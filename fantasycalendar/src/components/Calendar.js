@@ -1,5 +1,4 @@
 import React from 'react';
-import DateSquares from './DateSquares.js';
 import CalendarPage from './CalendarPage.js';
 import PageForwardButton from './PageForwardButton.js';
 import PageBackButton from './PageBackButton.js';
@@ -27,16 +26,12 @@ export default class Calendar extends React.Component {
         const loadData = async(calendar) => {
             // start calling API in the background to cache some data
             // always call this last after the API calls that are actually needed
-            const loadTimeUnitBaseInstances = async(timeUnit, iteration) => {
-                api.getTimeUnitBaseInstances(timeUnit.id, iteration, res => {});
+            const loadCalendarPage = async(timeUnit, iteration) => {
+                api.getCalendarPage(timeUnit.id, iteration, res => {});
             };
             calendar.date_bookmarks.forEach((bookmark) => {  // for bookmarks
-                loadTimeUnitBaseInstances(calendar.time_units.find(x => x.id == bookmark.bookmark_unit), bookmark.bookmark_iteration);
+                loadCalendarPage(calendar.time_units.find(x => x.id == bookmark.bookmark_unit), bookmark.bookmark_iteration);
             });
-            calendar.time_units.forEach((timeUnit) => {  // for row grouping
-                loadTimeUnitBaseInstances(timeUnit, 1);
-            });
-            // TODO call getTimeUnitContainedIteration for offset; need to read from display configs somehow to figure out rowGroupingUnit
         };
 
         var calendar_id = window.location.pathname.split("/")[5];  // this is bad and may break if URL changes
@@ -143,11 +138,6 @@ export default class Calendar extends React.Component {
         const timeUnitPages = this.state.displayConfig && this.state.displayConfig.display_unit_configs ? this.state.timeUnits.filter(x => this.state.displayConfig.display_unit_configs.map(y => y.time_unit).includes(x.id)) : this.state.timeUnits;
         const currentSearchType = displayUnitConfig ? displayUnitConfig.search_type : 'iteration';
         const searchableFormats = displayUnitConfig ? displayUnitConfig.searchable_date_formats : [];
-        const rowGroupingUnit = displayUnitConfig && displayUnitConfig.row_grouping_time_unit ? this.state.timeUnits.find(x => x.id == displayUnitConfig.row_grouping_time_unit) : null;
-        const rowGroupingLabelType = displayUnitConfig ? displayUnitConfig.row_grouping_label_type : 'none';
-        const maxEventsPerSquare = displayUnitConfig && displayUnitConfig.show_events ? (displayUnitConfig.max_events_per_instance > 0 ? displayUnitConfig.max_events_per_instance : 99) : 0;
-        const showLinkedDisplayNames = displayUnitConfig ? displayUnitConfig.show_linked_instance_display_names : false;
-        const showLinkedEvents = displayUnitConfig ? displayUnitConfig.show_linked_instance_events : false;
 
         return (
             <div className="calendar">
@@ -168,8 +158,7 @@ export default class Calendar extends React.Component {
                     </span>
                     <PageForwardButton timeUnitName={this.state.displayUnit.time_unit_name} onClick={this.handlePageForwardClick} />
                 </span>
-                <DateSquares timeUnit={this.state.displayUnit} iteration={this.state.displayIteration} timeUnitPages={timeUnitPages} rowGroupingUnit={rowGroupingUnit} rowGroupingLabelType={rowGroupingLabelType} baseUnitInstanceClickHandler={this.handleBaseUnitInstanceClick} maxEventsPerSquare={maxEventsPerSquare} showLinkedDisplayNames={showLinkedDisplayNames} showLinkedEvents={showLinkedEvents} />
-                {/*<CalendarPage timeUnit={this.state.displayUnit} iteration={this.state.displayIteration} displayConfig={this.state.displayConfig} baseUnitInstanceClickHandler={this.handleBaseUnitInstanceClick} />*/}
+                <CalendarPage timeUnit={this.state.displayUnit} iteration={this.state.displayIteration} displayConfig={this.state.displayConfig} baseUnitInstanceClickHandler={this.handleBaseUnitInstanceClick} />
             </div>
         );
     }

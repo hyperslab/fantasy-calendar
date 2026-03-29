@@ -41,7 +41,7 @@ export default function CalendarPage({ timeUnit, iteration, displayConfig, baseU
     const headerClickable = calendarPage.base_unit_page_exists && calendarPage.calendar_dates[0].time_unit_id != timeUnit.id;
 
     const squares = headerRow.concat(blankSquares.concat(calendarPage.calendar_dates.map(baseUnitInstance =>
-        <DateSquare key={baseUnitInstance.iteration} timeUnitId={baseUnitInstance.time_unit_id} timeUnitInstance={baseUnitInstance} headerClickable={headerClickable} baseUnitInstanceClickHandler={baseUnitInstanceClickHandler} showEventDescription={timeUnit.id==baseUnitInstance.time_unit_id} maxEvents={99} showLinkedDisplayNames={true} showLinkedEvents={true} />
+        <DateSquare key={baseUnitInstance.iteration} timeUnitId={baseUnitInstance.time_unit_id} timeUnitInstance={baseUnitInstance} headerClickable={headerClickable} baseUnitInstanceClickHandler={baseUnitInstanceClickHandler} showEventDescription={timeUnit.id==baseUnitInstance.time_unit_id} showExtraEventEllipsis={baseUnitInstance.not_all_events_returned} />
     )));
 
     if (calendarPage.row_length > 0 && calendarPage.header_column && calendarPage.header_column.length > 0)
