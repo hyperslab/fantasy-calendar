@@ -23,14 +23,14 @@ export default class Calendar extends React.Component {
     }
 
     componentDidMount() {
-        const loadData = async(calendar) => {
+        const loadData = async(calendar, displayConfig) => {
             // start calling API in the background to cache some data
             // always call this last after the API calls that are actually needed
-            const loadCalendarPage = async(timeUnit, iteration) => {
-                api.getCalendarPage(timeUnit.id, iteration, res => {});
+            const loadCalendarPage = async(timeUnit, iteration, displayConfig = null) => {
+                api.getCalendarPage(timeUnit.id, iteration, displayConfig?.id, res => {});
             };
             calendar.date_bookmarks.forEach((bookmark) => {  // for bookmarks
-                loadCalendarPage(calendar.time_units.find(x => x.id == bookmark.bookmark_unit), bookmark.bookmark_iteration);
+                loadCalendarPage(calendar.time_units.find(x => x.id == bookmark.bookmark_unit), bookmark.bookmark_iteration, displayConfig);
             });
         };
 
@@ -61,7 +61,7 @@ export default class Calendar extends React.Component {
                     {
                         this.setState({ displayIteration: 1 });
                     }
-                    loadData(calendar);
+                    loadData(calendar, displayConfig);
                 });
             }
             else  // from if (calendar.default_display_config)
