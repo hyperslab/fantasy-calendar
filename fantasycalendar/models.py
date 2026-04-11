@@ -1328,7 +1328,9 @@ class DisplayConfig(models.Model):
 
 class DisplayUnitConfig(models.Model):
     display_config = models.ForeignKey(DisplayConfig, on_delete=models.CASCADE)
-    time_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE)
+    time_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE, related_name='displayunitconfig_set')
+    parent_time_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE, blank=True, null=True,
+                                         related_name='displayunitconfig_parent_set')
 
     class SearchType(models.TextChoices):
         ITERATION = 'iteration', 'Iteration'
@@ -1438,7 +1440,8 @@ class DisplayUnitConfig(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['display_config', 'time_unit'], name='unique_display_config_time_unit'),
+            models.UniqueConstraint(fields=['display_config', 'time_unit', 'parent_time_unit'],
+                                    name='unique_display_config_time_unit'),
         ]
 
     def __str__(self):
