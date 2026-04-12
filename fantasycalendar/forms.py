@@ -35,6 +35,16 @@ class DisplayConfigUpdateForm(forms.ModelForm):
         return cleaned_data
 
 
+class DisplayUnitConfigCreateForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(DisplayUnitConfigCreateForm, self).__init__(*args, **kwargs)
+        self.fields['time_unit_page'] = forms.ChoiceField()
+
+    class Meta:
+        model = DisplayUnitConfig
+        fields = []
+
+
 class DisplayUnitConfigUpdateForm(forms.ModelForm):
     class Meta:
         model = DisplayUnitConfig

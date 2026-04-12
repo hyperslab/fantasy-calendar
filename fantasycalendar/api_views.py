@@ -86,7 +86,7 @@ class CalendarPage(APIView):
         display_config = get_object_or_404(DisplayConfig, pk=int(request.query_params.get('display_config_id'))) \
             if 'display_config_id' in request.query_params else calendar.default_display_config
         display_unit_config = DisplayUnitConfig.objects.get(display_config_id=display_config.id,
-                                                            time_unit_id=time_unit.id) \
+                                                            time_unit_id=time_unit.id, parent_time_unit_id=None) \
             if display_config is not None else None
 
         if calendar.world.creator != request.user and not calendar.world.public:

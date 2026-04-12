@@ -5,7 +5,8 @@ from django.urls import reverse
 from django.views import generic
 from .models import (World, Calendar, TimeUnit, Event, EventGroup, DateFormat, DisplayConfig, DateBookmark,
                      DisplayUnitConfig)
-from .forms import DisplayConfigCreateForm, DisplayConfigUpdateForm, DisplayUnitConfigUpdateForm
+from .forms import (DisplayConfigCreateForm, DisplayConfigUpdateForm, DisplayUnitConfigCreateForm,
+                    DisplayUnitConfigUpdateForm)
 
 
 class WorldIndexView(generic.ListView):
@@ -223,9 +224,8 @@ class DisplayConfigDetailView(UserPassesTestMixin, generic.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        possible_time_units = TimeUnit.objects.filter(calendar_id=self.object.calendar_id)
-        existing_unit_configs = self.object.displayunitconfig_set.all()
-        context['can_add_unit_configs'] = True if len(possible_time_units) > len(existing_unit_configs) else False
+        unused_unit_configs = self.object.get_unused_display_unit_configs()
+        context['can_add_unit_configs'] = True if len(unused_unit_configs) > 0 else False
         return context
 
 
@@ -383,8 +383,8 @@ class DisplayConfigCreateView(UserPassesTestMixin, generic.CreateView):
 
 class DisplayUnitConfigCreateView(UserPassesTestMixin, generic.CreateView):
     model = DisplayUnitConfig
+    form_class = DisplayUnitConfigCreateForm
     template_name = 'fantasycalendar/display_unit_config_create_form.html'
-    fields = ['time_unit']
 
     def test_func(self):
         world = get_object_or_404(World, pk=self.kwargs['world_key'])
@@ -392,17 +392,27 @@ class DisplayUnitConfigCreateView(UserPassesTestMixin, generic.CreateView):
 
     def get_form(self, form_class=None):
         form = super(DisplayUnitConfigCreateView, self).get_form()
-        form.fields['time_unit'].queryset = TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key'])
         display_config = get_object_or_404(DisplayConfig, pk=self.kwargs['display_config_key'])
-        if display_config.displayunitconfig_set:  # exclude time units that already have configs for this display config
-            for display_unit_config in display_config.displayunitconfig_set.all():
-                form.fields['time_unit'].queryset = form.fields['time_unit'].queryset.exclude(
-                    pk=display_unit_config.time_unit_id)
+        form.fields['time_unit_page'].choices = \
+            [(str(uc[0].pk) + ',' + (str(uc[1].pk) if uc[1] is not None else ''),
+              'All ' + uc[0].time_unit_name + ' in a ' + uc[1].time_unit_name if uc[1] is not None else
+              'Single ' + uc[0].time_unit_name)
+             for uc in display_config.get_unused_display_unit_configs()]
         return form
 
     def form_valid(self, form):
         display_config = get_object_or_404(DisplayConfig, pk=self.kwargs['display_config_key'])
         form.instance.display_config = display_config
+
+        time_unit_key = form.cleaned_data['time_unit_page'].split(',')[0]
+        time_unit = get_object_or_404(TimeUnit, pk=time_unit_key)
+        form.instance.time_unit = time_unit
+
+        parent_time_unit_key = form.cleaned_data['time_unit_page'].split(',')[1]
+        if parent_time_unit_key:
+            parent_time_unit = get_object_or_404(TimeUnit, pk=parent_time_unit_key)
+            form.instance.parent_time_unit = parent_time_unit
+
         return super(DisplayUnitConfigCreateView, self).form_valid(form)
 
     def get_success_url(self):

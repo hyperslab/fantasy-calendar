@@ -1325,6 +1325,49 @@ class DisplayConfig(models.Model):
         return reverse('fantasycalendar:display-config-detail', kwargs={'pk': self.pk, 'calendar_key': self.calendar.pk,
                                                                         'world_key': self.calendar.world.pk})
 
+    def get_possible_display_unit_configs(self) -> list[(TimeUnit, TimeUnit)]:
+        """
+        Return a list of tuples of a base time unit and a parent time
+        unit representing all possible valid DisplayUnitConfig
+        instances for this DisplayConfig.
+
+        A DisplayUnitConfig can either represent a single instance of a
+        time unit, indicated by the parent time unit being None, or a
+        collection of all instances of a time unit contained within an
+        instance of the parent unit.
+
+        For example, in a Calendar with "Day", "Month," and "Year" as
+        its time units, this would return (in no particular order):
+        [Day, None] (single day)
+        [Month, None] (single month)
+        [Year, None] (single year)
+        [Day, Month] (all days within a month)
+        [Day, Year] (all days within a year)
+        [Month, Year] (all months within a year)
+
+        Note that single instance displays tend to show all instances
+        of their immediate base unit. So, in this example, by default,
+        [Month, None] and [Day, Month] will be virtually equivalent.
+        """
+        possible_unit_configs = []
+        for unit in TimeUnit.objects.filter(calendar_id=self.calendar.pk):
+            possible_unit_configs.append((unit, None))
+            for parent_unit in unit.get_all_higher_containing_units():
+                possible_unit_configs.append((unit, parent_unit))
+        return possible_unit_configs
+
+    def get_unused_display_unit_configs(self) -> list[(TimeUnit, TimeUnit)]:
+        """
+        Return a list of tuples of a base time unit and a parent time
+        unit representing all possible valid DisplayUnitConfig
+        instances for this DisplayConfig that do not currently exist.
+        """
+        existing_unit_configs = self.displayunitconfig_set.all()
+        possible_unit_configs = self.get_possible_display_unit_configs()
+        unused_unit_configs = [pc for pc in possible_unit_configs if pc not in
+                               [(ec.time_unit, ec.parent_time_unit) for ec in existing_unit_configs]]
+        return unused_unit_configs
+
 
 class DisplayUnitConfig(models.Model):
     display_config = models.ForeignKey(DisplayConfig, on_delete=models.CASCADE)
@@ -1445,8 +1488,10 @@ class DisplayUnitConfig(models.Model):
         ]
 
     def __str__(self):
-        return '"' + self.display_config.display_config_name + '" unit config for "' + self.time_unit.time_unit_name + \
-               '"'
+        if self.parent_time_unit is None:
+            return 'Single ' + str(self.time_unit)
+        else:
+            return 'All ' + str(self.time_unit) + ' in a ' + str(self.parent_time_unit)
 
 
 class DateBookmark(models.Model):

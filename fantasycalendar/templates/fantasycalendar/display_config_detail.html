@@ -31,7 +31,7 @@ Display Config Detail
 {% if displayconfig.displayunitconfig_set and displayconfig.displayunitconfig_set.all|length > 0 %}
 <ul>
     {% for unit_config in displayconfig.displayunitconfig_set.all %}
-    <li>{{ unit_config.time_unit.time_unit_name }}{% if user.pk == displayconfig.calendar.world.creator.pk %} <a
+    <li>{{ unit_config }}{% if user.pk == displayconfig.calendar.world.creator.pk %} <a
             href="{% url 'fantasycalendar:display-unit-config-update' displayconfig.calendar.world_id displayconfig.calendar.id displayconfig.id unit_config.id %}">(edit)</a>{% endif %}</li>
     {% endfor %}
 </ul>
