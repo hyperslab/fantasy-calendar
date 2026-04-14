@@ -395,7 +395,7 @@ class DisplayUnitConfigCreateView(UserPassesTestMixin, generic.CreateView):
         display_config = get_object_or_404(DisplayConfig, pk=self.kwargs['display_config_key'])
         form.fields['time_unit_page'].choices = \
             [(str(uc[0].pk) + ',' + (str(uc[1].pk) if uc[1] is not None else ''),
-              'All ' + uc[0].time_unit_name + ' in a ' + uc[1].time_unit_name if uc[1] is not None else
+              'All ' + uc[1].time_unit_name + ' in a ' + uc[0].time_unit_name if uc[1] is not None else
               'Single ' + uc[0].time_unit_name)
              for uc in display_config.get_unused_display_unit_configs()]
         return form
@@ -408,10 +408,10 @@ class DisplayUnitConfigCreateView(UserPassesTestMixin, generic.CreateView):
         time_unit = get_object_or_404(TimeUnit, pk=time_unit_key)
         form.instance.time_unit = time_unit
 
-        parent_time_unit_key = form.cleaned_data['time_unit_page'].split(',')[1]
-        if parent_time_unit_key:
-            parent_time_unit = get_object_or_404(TimeUnit, pk=parent_time_unit_key)
-            form.instance.parent_time_unit = parent_time_unit
+        base_time_unit_key = form.cleaned_data['time_unit_page'].split(',')[1]
+        if base_time_unit_key:
+            base_time_unit = get_object_or_404(TimeUnit, pk=base_time_unit_key)
+            form.instance.base_time_unit = base_time_unit
 
         return super(DisplayUnitConfigCreateView, self).form_valid(form)
 
