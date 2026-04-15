@@ -316,21 +316,55 @@ class TimeUnit(models.Model):
         containing one tuple with the name set to the time unit name
         followed by the iteration value and the length set to 1.
         """
-        if not self.base_unit:
+        return self.get_sub_unit_instances(iteration=iteration, sub_unit=self.base_unit)
+
+    def get_sub_unit_instances(self, iteration: int = 1, sub_unit: 'TimeUnit' = None) -> list[tuple[str, int]]:
+        """
+        Return a list of [str, int] tuples representing the names and
+        lengths (in whole number of base units) of all time unit
+        instances of sub_unit in the instance of this time unit that
+        exists at a particular iteration.
+
+        As an example, in a calendar with "Year"s made of "Month"s made
+        of "Day"s, calling this method on the Year with a sub_unit of
+        Month will return a list of tuples containing the name of each
+        month alongside its corresponding number of days. It might look
+        like:
+        [('January', 31), ('February', 28), ...etc. ]
+
+        Using Day as the sub_unit instead might return:
+        [('Day 1', 1), ('Day 2', 1), ...('Day 365', 1)]
+
+        sub_unit must compose this time unit on some level. If in the
+        example above a "Week" was defined as 7 days, it could not be a
+        sub_unit for Year, as a Year is defined as being made up of
+        months which are made up of days. If a Year was instead defined
+        as 52 weeks, then Week would be a valid sub_unit for Year, but
+        Month would not be. In either case Year would not be a valid
+        sub_unit for anything, since there are no time units made up of
+        it.
+
+        For bottom level time units (with no base unit), returns a list
+        containing one tuple with the name set to the time unit name
+        followed by the iteration value and the length set to 1.
+        """
+        if not sub_unit:
+            sub_unit = self.base_unit
+        if not sub_unit:
             return [(str(self.time_unit_name) + ' ' + str(iteration), 1)]
-        numer_of_instances = self.get_length_at_iteration(iteration=iteration)
+        numer_of_instances = self.get_sub_unit_length_at_iteration(iteration=iteration, sub_unit=sub_unit)
         lengths = []
         custom_names = self.get_base_unit_instance_names()
-        base_name = self.base_unit.time_unit_name
+        sub_unit_name = sub_unit.time_unit_name
         names = []
-        base_iteration = self.get_first_base_unit_instance_iteration_at_iteration(iteration=iteration)
+        sub_iteration = self.get_first_sub_unit_iteration_at_iteration(iteration=iteration, sub_unit=sub_unit)
         for i in range(numer_of_instances):
-            lengths.append(self.base_unit.get_length_at_iteration(iteration=base_iteration))
-            base_iteration += 1
+            lengths.append(sub_unit.get_length_at_iteration(iteration=sub_iteration))
+            sub_iteration += 1
             if i < len(custom_names):
                 names.append(custom_names[i])
             else:
-                names.append(base_name + ' ' + str(i + 1))
+                names.append(sub_unit_name + ' ' + str(i + 1))
         return list(zip(names, lengths))
 
     def get_first_bottom_level_iteration_at_iteration(self, iteration: int) -> int:
@@ -350,6 +384,31 @@ class TimeUnit(models.Model):
         current_unit = self
         current_unit_iteration = iteration
         while current_unit.base_unit is not None:
+            current_unit_iteration = current_unit.get_first_base_unit_instance_iteration_at_iteration(
+                iteration=current_unit_iteration)
+            current_unit = current_unit.base_unit
+        return current_unit_iteration
+
+    def get_first_sub_unit_iteration_at_iteration(self, iteration: int, sub_unit: 'TimeUnit') -> int:
+        """
+        Return the iteration value of the first time unit instance of
+        sub_unit contained in the instance of this time unit that
+        exists at a particular iteration.
+
+        As an example, if there are 12 "Month"s in a "Year" and 30
+        "Day"s in a Month, then calling this method on the Year with an
+        iteration value of 4 and a sub_unit of Day will return 1081, as
+        the first Day of Year 4 is Day 1081.
+
+        If sub_unit is not contained within this time unit, returns the
+        bottom level iteration value, equivalent to calling
+        get_first_bottom_level_iteration_at_iteration.
+
+        Always returns 1 when the iteration value is 1.
+        """
+        current_unit = self
+        current_unit_iteration = iteration
+        while sub_unit.pk != current_unit.pk and current_unit.base_unit is not None:
             current_unit_iteration = current_unit.get_first_base_unit_instance_iteration_at_iteration(
                 iteration=current_unit_iteration)
             current_unit = current_unit.base_unit
@@ -404,6 +463,34 @@ class TimeUnit(models.Model):
             # for i in range(current_first_iteration, current_first_iteration + current_length):
             #     new_length += current_unit.base_unit.get_length_at_iteration(i)
             # current_length = new_length
+            current_length = sum(current_unit.base_unit.get_length_at_iterations(
+                list(range(current_first_iteration, current_first_iteration + current_length))))
+            current_unit = current_unit.base_unit
+        return current_length
+
+    def get_sub_unit_length_at_iteration(self, iteration: int, sub_unit: 'TimeUnit') -> int:
+        """
+        Return the number of sub_unit instances in the instance of this
+        time unit that exists at a particular iteration.
+
+        As an example, say there are 12 "Month"s in a "Year" and 30
+        "Day"s in a Month plus an extra "leap" Day on one of the Months
+        every 4 Years. Calling this method on the Year with an
+        iteration value of 3 and a sub_unit of Day will return 360, as
+        there are 360 Days in the 3rd Year, but calling it on Year 4
+        with the same sub_unit will return 361, as there are 361 Days
+        in the 4th Year.
+
+        If sub_unit is not contained within this time unit, returns the
+        bottom level length value, equivalent to calling
+        get_bottom_level_length_at_iteration.
+        """
+        current_unit = self
+        current_length = self.get_length_at_iteration(iteration=iteration)
+        current_first_iteration = iteration
+        while current_unit.base_unit is not None and current_unit.base_unit.pk != sub_unit.pk:
+            current_first_iteration = current_unit.get_first_base_unit_instance_iteration_at_iteration(
+                iteration=current_first_iteration)
             current_length = sum(current_unit.base_unit.get_length_at_iterations(
                 list(range(current_first_iteration, current_first_iteration + current_length))))
             current_unit = current_unit.base_unit
@@ -1354,7 +1441,6 @@ class DisplayConfig(models.Model):
             possible_unit_configs.append((unit, None))
             for parent_unit in unit.get_all_higher_containing_units():
                 possible_unit_configs.append((parent_unit, unit))
-        print(possible_unit_configs)
         return possible_unit_configs
 
     def get_unused_display_unit_configs(self) -> list[(TimeUnit, TimeUnit)]:

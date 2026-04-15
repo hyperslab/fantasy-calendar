@@ -85,6 +85,7 @@ class CalendarPage(APIView):
         iteration = int(request.query_params.get('iteration'))
         display_config = get_object_or_404(DisplayConfig, pk=int(request.query_params.get('display_config_id'))) \
             if 'display_config_id' in request.query_params else calendar.default_display_config
+        # TODO add base_time_unit_id as a supported parameter here and in the JS frontend
         display_unit_config = DisplayUnitConfig.objects.get(display_config_id=display_config.id,
                                                             time_unit_id=time_unit.id, base_time_unit_id=None) \
             if display_config is not None else None
@@ -94,9 +95,13 @@ class CalendarPage(APIView):
                 {'message': 'ERROR: this resource is not public and you are not authenticated as its creator'},
                 status=status.HTTP_403_FORBIDDEN)
 
-        base_unit = time_unit.base_unit if time_unit.base_unit is not None else time_unit
-        instances = time_unit.get_base_unit_instances(iteration=iteration)
-        first_base_iteration = time_unit.get_first_base_unit_instance_iteration_at_iteration(iteration=iteration)
+        if display_unit_config is not None and display_unit_config.base_time_unit is not None:
+            base_unit = display_unit_config.base_time_unit
+        else:
+            base_unit = time_unit.base_unit if time_unit.base_unit is not None else time_unit
+        instances = time_unit.get_sub_unit_instances(iteration=iteration, sub_unit=base_unit)
+        first_base_iteration = time_unit.get_first_sub_unit_instance_iteration_at_iteration(iteration=iteration,
+                                                                                            sub_unit=base_unit)
         iterations = [first_base_iteration + x for x in range(len(instances))]
         events = base_unit.get_events_at_iterations(iterations)
         instance_display_names = base_unit.get_instance_display_names(iterations=iterations,
