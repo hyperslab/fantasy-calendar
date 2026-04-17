@@ -38,7 +38,7 @@ export default function CalendarPage({ timeUnit, iteration, displayConfig, baseU
         blankSquares.push(<div key={0-i} />);
     }
 
-    const headerClickable = calendarPage.base_unit_page_exists && calendarPage.calendar_dates[0].time_unit_id != timeUnit.id;
+    const headerClickable = calendarPage.sub_unit_page_exists && calendarPage.calendar_dates[0].time_unit_id != timeUnit.id;
 
     const squares = headerRow.concat(blankSquares.concat(calendarPage.calendar_dates.map(baseUnitInstance =>
         <DateSquare key={baseUnitInstance.iteration} timeUnitId={baseUnitInstance.time_unit_id} timeUnitInstance={baseUnitInstance} headerClickable={headerClickable} baseUnitInstanceClickHandler={baseUnitInstanceClickHandler} showEventDescription={timeUnit.id==baseUnitInstance.time_unit_id} showExtraEventEllipsis={baseUnitInstance.not_all_events_returned} />

@@ -85,9 +85,9 @@ class CalendarPage(APIView):
         iteration = int(request.query_params.get('iteration'))
         display_config = get_object_or_404(DisplayConfig, pk=int(request.query_params.get('display_config_id'))) \
             if 'display_config_id' in request.query_params else calendar.default_display_config
-        # TODO add base_time_unit_id as a supported parameter here and in the JS frontend
+        # TODO add sub_unit_id as a supported parameter here and in the JS frontend
         display_unit_config = DisplayUnitConfig.objects.get(display_config_id=display_config.id,
-                                                            time_unit_id=time_unit.id, base_time_unit_id=None) \
+                                                            time_unit_id=time_unit.id, sub_unit_id=None) \
             if display_config is not None else None
 
         if calendar.world.creator != request.user and not calendar.world.public:
@@ -95,23 +95,23 @@ class CalendarPage(APIView):
                 {'message': 'ERROR: this resource is not public and you are not authenticated as its creator'},
                 status=status.HTTP_403_FORBIDDEN)
 
-        if display_unit_config is not None and display_unit_config.base_time_unit is not None:
-            base_unit = display_unit_config.base_time_unit
+        if display_unit_config is not None and display_unit_config.sub_unit is not None:
+            sub_unit = display_unit_config.sub_unit
         else:
-            base_unit = time_unit.base_unit if time_unit.base_unit is not None else time_unit
-        instances = time_unit.get_sub_unit_instances(iteration=iteration, sub_unit=base_unit)
-        first_base_iteration = time_unit.get_first_sub_unit_instance_iteration_at_iteration(iteration=iteration,
-                                                                                            sub_unit=base_unit)
-        iterations = [first_base_iteration + x for x in range(len(instances))]
-        events = base_unit.get_events_at_iterations(iterations)
-        instance_display_names = base_unit.get_instance_display_names(iterations=iterations,
+            sub_unit = time_unit.base_unit if time_unit.base_unit is not None else time_unit
+        instances = time_unit.get_sub_unit_instances(iteration=iteration, sub_unit=sub_unit)
+        first_sub_iteration = time_unit.get_first_sub_unit_instance_iteration_at_iteration(iteration=iteration,
+                                                                                            sub_unit=sub_unit)
+        iterations = [first_sub_iteration + x for x in range(len(instances))]
+        events = sub_unit.get_events_at_iterations(iterations)
+        instance_display_names = sub_unit.get_instance_display_names(iterations=iterations,
                                                                       prefer_secondary=True)
         linked_instance_display_names = [[] for _ in instances]
         if display_unit_config is not None and display_unit_config.show_linked_instance_display_names:
-            linked_instance_display_names = base_unit.get_linked_instances_display_names(iterations, prefer_secondary=True)
+            linked_instance_display_names = sub_unit.get_linked_instances_display_names(iterations, prefer_secondary=True)
         linked_events = [[] for _ in instances]
         if display_unit_config is not None and display_unit_config.show_linked_instance_events:
-            linked_events = base_unit.get_linked_events_at_iterations(iterations)
+            linked_events = sub_unit.get_linked_events_at_iterations(iterations)
         max_events_per_instance = display_unit_config.max_events_per_instance \
             if display_unit_config is not None and display_unit_config.max_events_per_instance > 0 else 99
 
@@ -121,7 +121,7 @@ class CalendarPage(APIView):
             row_length = len(row_grouping_instances)
             row_grouping_label_type = display_unit_config.row_grouping_label_type
             row_grouping_offset = (row_grouping_unit.get_sub_unit_instance_iteration_within_higher_level_iteration(
-                sub_unit=base_unit,sub_unit_iteration=first_base_iteration)) - 1
+                sub_unit=sub_unit,sub_unit_iteration=first_sub_iteration)) - 1
         else:
             row_grouping_instances = []
             row_length = 0
@@ -130,16 +130,16 @@ class CalendarPage(APIView):
 
         calendar_dates = []
         for index, instance in enumerate(instances):
-            iteration = first_base_iteration + index
+            iteration = first_sub_iteration + index
             # max_events_per_instance count includes linked events as well
             # show native events first, then linked events if we still have room
             max_linked_events = max(max_events_per_instance - len(events[index]), 0)
             not_all_events_returned = len(events[index]) + len(linked_events[index]) > max_events_per_instance
             calendar_dates.append({
                 "name": instance[0],
-                "display_name": instance[0] if not base_unit.secondary_date_format
+                "display_name": instance[0] if not sub_unit.secondary_date_format
                 else instance_display_names[index],
-                "time_unit_id": base_unit.pk,
+                "time_unit_id": sub_unit.pk,
                 "iteration": iteration,
                 "events": EventSerializer(
                     [e for e in events[index] if e.is_visible()][:max_events_per_instance], many=True).data,
@@ -160,8 +160,8 @@ class CalendarPage(APIView):
             # 'counts' labels the rows, not the columns, as 'Row 1', 'Row 2' etc.
             header_column = [row_grouping_unit.time_unit_name + ' ' + str(count + 1)
                              for count in range(math.ceil((row_grouping_offset + len(instances)) / row_length))]
-        base_unit_page_exists = DisplayUnitConfig.objects.filter(display_config_id=display_config.id,
-                                                                 time_unit_id=base_unit.pk).exists() \
+        sub_unit_page_exists = DisplayUnitConfig.objects.filter(display_config_id=display_config.id,
+                                                                 time_unit_id=sub_unit.pk).exists() \
             if display_config is not None else True
 
         data = dict()
@@ -170,7 +170,7 @@ class CalendarPage(APIView):
         data["initial_offset"] = row_grouping_offset
         data["header_row"] = header_row
         data["header_column"] = header_column
-        data["base_unit_page_exists"] = base_unit_page_exists
+        data["sub_unit_page_exists"] = sub_unit_page_exists
         return Response(data)
 
 

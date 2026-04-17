@@ -1414,14 +1414,14 @@ class DisplayConfig(models.Model):
 
     def get_possible_display_unit_configs(self) -> list[(TimeUnit, TimeUnit)]:
         """
-        Return a list of tuples of a time unit and a corresponding base
+        Return a list of tuples of a time unit and a corresponding sub
         time unit representing all possible valid DisplayUnitConfig
         instances for this DisplayConfig.
 
         A DisplayUnitConfig can either represent a single instance of a
-        time unit, indicated by the base time unit being None, or a
-        collection of all instances of a base time unit contained
-        within instance of the main time unit.
+        time unit, indicated by the sub time unit being None, or a
+        collection of all instances of a sub time unit contained within
+        an instance of the main time unit.
 
         For example, in a Calendar with "Day", "Month," and "Year" as
         its time units, this would return (in no particular order):
@@ -1433,7 +1433,7 @@ class DisplayConfig(models.Model):
         [Year, Month] (all months within a year)
 
         Note that single instance displays tend to show all instances
-        of their immediate base unit. So, in this example, by default,
+        of their  base unit. So, in this example, by default,
         [Month, None] and [Month, Day] will be virtually equivalent.
         """
         possible_unit_configs = []
@@ -1445,22 +1445,22 @@ class DisplayConfig(models.Model):
 
     def get_unused_display_unit_configs(self) -> list[(TimeUnit, TimeUnit)]:
         """
-        Return a list of tuples of a base time unit and a parent time
+        Return a list of tuples of a sub time unit and a parent time
         unit representing all possible valid DisplayUnitConfig
         instances for this DisplayConfig that do not currently exist.
         """
         existing_unit_configs = self.displayunitconfig_set.all()
         possible_unit_configs = self.get_possible_display_unit_configs()
         unused_unit_configs = [pc for pc in possible_unit_configs if pc not in
-                               [(ec.time_unit, ec.base_time_unit) for ec in existing_unit_configs]]
+                               [(ec.time_unit, ec.sub_unit) for ec in existing_unit_configs]]
         return unused_unit_configs
 
 
 class DisplayUnitConfig(models.Model):
     display_config = models.ForeignKey(DisplayConfig, on_delete=models.CASCADE)
     time_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE, related_name='displayunitconfig_set')
-    base_time_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE, blank=True, null=True,
-                                         related_name='displayunitconfig_base_set')
+    sub_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE, blank=True, null=True,
+                                 related_name='displayunitconfig_sub_set')
 
     class SearchType(models.TextChoices):
         ITERATION = 'iteration', 'Iteration'
@@ -1570,15 +1570,15 @@ class DisplayUnitConfig(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['display_config', 'time_unit', 'base_time_unit'],
+            models.UniqueConstraint(fields=['display_config', 'time_unit', 'sub_unit'],
                                     name='unique_display_config_time_unit'),
         ]
 
     def __str__(self):
-        if self.base_time_unit is None:
+        if self.sub_unit is None:
             return 'Single ' + str(self.time_unit)
         else:
-            return 'All ' + str(self.base_time_unit) + ' in a ' + str(self.time_unit)
+            return 'All ' + str(self.sub_unit) + ' in a ' + str(self.time_unit)
 
 
 class DateBookmark(models.Model):

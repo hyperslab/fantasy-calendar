@@ -408,10 +408,10 @@ class DisplayUnitConfigCreateView(UserPassesTestMixin, generic.CreateView):
         time_unit = get_object_or_404(TimeUnit, pk=time_unit_key)
         form.instance.time_unit = time_unit
 
-        base_time_unit_key = form.cleaned_data['time_unit_page'].split(',')[1]
-        if base_time_unit_key:
-            base_time_unit = get_object_or_404(TimeUnit, pk=base_time_unit_key)
-            form.instance.base_time_unit = base_time_unit
+        sub_unit_key = form.cleaned_data['time_unit_page'].split(',')[1]
+        if sub_unit_key:
+            sub_unit = get_object_or_404(TimeUnit, pk=sub_unit_key)
+            form.instance.sub_unit = sub_unit
 
         return super(DisplayUnitConfigCreateView, self).form_valid(form)
 
