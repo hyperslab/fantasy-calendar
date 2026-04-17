@@ -1498,19 +1498,19 @@ class DisplayUnitConfig(models.Model):
                                                  null=True,
                                                  help_text=html_tooltip('The date format to use if "Other" is selected '
                                                                         'for the header display name type'))
-    base_unit_display_name_type = models.CharField(max_length=32, choices=DisplayNameType.choices,
+    sub_unit_display_name_type = models.CharField(max_length=32, choices=DisplayNameType.choices,
                                                    default=DisplayNameType.SECONDARY_FORMAT,
                                                    help_text=html_tooltip('How to determine the header of each cell in '
                                                                           'your calendar page for this time unit: by '
-                                                                          'using the base time unit\'s default date '
+                                                                          'using the sub time unit\'s default date '
                                                                           'format, by using its secondary format, by '
                                                                           'specifying some other format, or by using '
-                                                                          'no format, generating something like "(base '
+                                                                          'no format, generating something like "(sub '
                                                                           'time unit name) (relative iteration)"'))
-    base_unit_other_date_format = models.ForeignKey(DateFormat, on_delete=models.CASCADE, related_name='+', blank=True,
+    sub_unit_other_date_format = models.ForeignKey(DateFormat, on_delete=models.CASCADE, related_name='+', blank=True,
                                                     null=True,
                                                     help_text=html_tooltip('The date format to use if "Other" is '
-                                                                           'selected for the base unit display name '
+                                                                           'selected for the sub unit display name '
                                                                            'type'))
     row_grouping_time_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE, related_name='+', blank=True,
                                                null=True,
@@ -1518,7 +1518,7 @@ class DisplayUnitConfig(models.Model):
                                                                       'organize the calendar page into rows, e.g. many '
                                                                       'real life month calendar pages are grouped by '
                                                                       'one week per row; must have the same base unit '
-                                                                      'as the page\'s time unit and a non-varying '
+                                                                      'as the page\'s sub unit and a non-varying '
                                                                       'length cycle'))
 
     class RowGroupingLabelType(models.TextChoices):
