@@ -16,6 +16,7 @@ export default class Calendar extends React.Component {
         timeUnits: '',
         displayUnit: '',
         displayIteration: '',
+        displaySubUnit: '',
         dateBookmarks: '',
         selectedBookmarkId: '',  // set this back to empty string whenever it changes
         userStatus: 'unauthenticated',  // 'unauthenticated', 'authenticated', or 'creator'
@@ -27,7 +28,7 @@ export default class Calendar extends React.Component {
             // start calling API in the background to cache some data
             // always call this last after the API calls that are actually needed
             const loadCalendarPage = async(timeUnit, iteration, displayConfig = null) => {
-                api.getCalendarPage(timeUnit.id, iteration, displayConfig?.id, res => {});
+                api.getCalendarPage(timeUnit.id, null, iteration, displayConfig?.id, res => {});
             };
             calendar.date_bookmarks.forEach((bookmark) => {  // for bookmarks
                 loadCalendarPage(calendar.time_units.find(x => x.id == bookmark.bookmark_unit), bookmark.bookmark_iteration, displayConfig);
@@ -88,11 +89,12 @@ export default class Calendar extends React.Component {
         });
     }
 
-    handleDisplayUnitSelectChange = (newUnitId) => {
+    handleDisplayUnitSelectChange = (newUnitId, newSubUnitId) => {
         api.getTimeUnitEquivalentIteration(this.state.displayUnit.id, this.state.displayIteration, newUnitId, res => {
             this.setState({
                 displayUnit: this.state.timeUnits.find(x => x.id == newUnitId),
                 displayIteration: res.data.iteration,
+                displaySubUnit: this.state.timeUnits.find(x => x.id == newSubUnitId),
             });
         });
     }
@@ -132,10 +134,18 @@ export default class Calendar extends React.Component {
         if (!this.state.calendar || !this.state.displayUnit || !this.state.displayIteration) return null;
 
         // helpers for calculation
-        const displayUnitConfig = this.state.displayConfig && this.state.displayConfig.display_unit_configs && this.state.displayConfig.display_unit_configs.map(x => x.time_unit).includes(this.state.displayUnit.id) ? this.state.displayConfig.display_unit_configs.find(x => x.time_unit == this.state.displayUnit.id) : null;
+        var displayUnitConfig;
+        if (!this.state.displaySubUnit)
+        {
+            displayUnitConfig = this.state.displayConfig && this.state.displayConfig.display_unit_configs ? this.state.displayConfig.display_unit_configs.find(x => x.time_unit == this.state.displayUnit.id) : null;
+        }
+        else
+        {
+            displayUnitConfig = this.state.displayConfig && this.state.displayConfig.display_unit_configs ? this.state.displayConfig.display_unit_configs.find(x => x.time_unit == this.state.displayUnit.id && x.sub_unit == this.state.displaySubUnit.id) : null;
+        }
 
         // parse display configurations and grab results to pass to components
-        const timeUnitPages = this.state.displayConfig && this.state.displayConfig.display_unit_configs ? this.state.timeUnits.filter(x => this.state.displayConfig.display_unit_configs.map(y => y.time_unit).includes(x.id)) : this.state.timeUnits;
+        const timeUnitPages = this.state.displayConfig && this.state.displayConfig.display_unit_configs ? this.state.displayConfig.display_unit_configs.map(x => [this.state.timeUnits.find(y => y.id == x.time_unit), x.sub_unit !== null ? this.state.timeUnits.find(y => y.id == x.sub_unit) : null]) : this.state.timeUnits.map(x => [x, null]);
         const currentSearchType = displayUnitConfig ? displayUnitConfig.search_type : 'iteration';
         const searchableFormats = displayUnitConfig ? displayUnitConfig.searchable_date_formats : [];
 
@@ -146,7 +156,7 @@ export default class Calendar extends React.Component {
                 <span className="calendar-top-controls">
                     <PageBackButton timeUnitName={this.state.displayUnit.time_unit_name} onClick={this.handlePageBackClick} />
                     <span>
-                        {timeUnitPages.length > 1 && <DisplayUnitSelect timeUnits={timeUnitPages} currentUnit={this.state.displayUnit} onChange={this.handleDisplayUnitSelectChange} />}
+                        {timeUnitPages.length > 1 && <DisplayUnitSelect timeUnitPairs={timeUnitPages} currentUnitPair={[this.state.displayUnit, this.state.displaySubUnit]} onChange={this.handleDisplayUnitSelectChange} />}
                         {timeUnitPages.length > 1 && ['iteration', 'formats'].includes(currentSearchType) && <>&nbsp;&nbsp;</>}
                         {currentSearchType == 'iteration' && <DisplayIterationSelect currentIteration={this.state.displayIteration} onChange={this.handleDisplayIterationChange} />}
                         {currentSearchType == 'formats' && <DateFormatSearch searchableFormats={searchableFormats} handleGetResponse={this.handleDateFormatReverseGetResponse} />}
@@ -158,7 +168,7 @@ export default class Calendar extends React.Component {
                     </span>
                     <PageForwardButton timeUnitName={this.state.displayUnit.time_unit_name} onClick={this.handlePageForwardClick} />
                 </span>
-                <CalendarPage timeUnit={this.state.displayUnit} iteration={this.state.displayIteration} displayConfig={this.state.displayConfig} baseUnitInstanceClickHandler={this.handleBaseUnitInstanceClick} />
+                <CalendarPage timeUnit={this.state.displayUnit} subUnit={this.state.displaySubUnit} iteration={this.state.displayIteration} displayConfig={this.state.displayConfig} baseUnitInstanceClickHandler={this.handleBaseUnitInstanceClick} />
             </div>
         );
     }

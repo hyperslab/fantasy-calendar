@@ -4,20 +4,20 @@ import LabelSquare from './LabelSquare.js';
 import {getCalendarPage} from '../apiAccess.js';
 import LoadingIcon from "./LoadingIcon.js";
 
-export default function CalendarPage({ timeUnit, iteration, displayConfig, baseUnitInstanceClickHandler }) {
+export default function CalendarPage({ timeUnit, subUnit, iteration, displayConfig, baseUnitInstanceClickHandler }) {
     const [calendarPage, setCalendarPage] = React.useState(null);
     const [loading, setLoading] = React.useState(0);
 
     React.useEffect(() => {
         setLoading(n => n + 1);
-        getCalendarPage(timeUnit.id, iteration, displayConfig?.id, res => {
+        getCalendarPage(timeUnit.id, subUnit?.id, iteration, displayConfig?.id, res => {
             setCalendarPage(res.data);
             setLoading(n => n - 1);
         });
         return () => {
             setCalendarPage(null);  // have to clear it here or the old squares don't go away
         }
-    }, [timeUnit, iteration, displayConfig]);
+    }, [timeUnit, subUnit, iteration, displayConfig]);
 
     if (!calendarPage || loading > 0) return (
         <div className="grid-container-large" style={{gridTemplateColumns: 'auto', justifyContent: 'center'}}>
