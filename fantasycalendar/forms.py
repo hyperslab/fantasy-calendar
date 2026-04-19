@@ -64,19 +64,18 @@ class DisplayUnitConfigUpdateForm(forms.ModelForm):
                                    ValidationError(_("Error: date format " + str(date_format) +
                                                      " is not fully reversible and cannot be searched on!"),
                                                    code='invalid'))
-                if checked_formats:
-                    if not date_format.is_differentiable(checked_formats):
-                        self.add_error('searchable_date_formats',
-                                       ValidationError(_("Error: date format " + str(date_format) +
-                                                         " is not differentiable from at least one other date format "
-                                                         "marked as searchable and cannot be searched on!"),
-                                                       code='invalid'))
+                elif checked_formats and not date_format.is_differentiable(checked_formats):
+                    self.add_error('searchable_date_formats',
+                                   ValidationError(_("Error: date format " + str(date_format) +
+                                                     " is not differentiable from at least one other date format "
+                                                     "marked as searchable and cannot be searched on!"),
+                                                   code='invalid'))
                 checked_formats.append(date_format)
         if cleaned_data['row_grouping_time_unit']:
             if len(cleaned_data['row_grouping_time_unit'].get_expanded_length_cycle()) > 1:
                 self.add_error('row_grouping_time_unit',
                                ValidationError(_("Error: row grouping time unit has a variable length cycle!")))
-            if len(cleaned_data['row_grouping_time_unit'].get_expanded_length_cycle()) < 1:
+            elif len(cleaned_data['row_grouping_time_unit'].get_expanded_length_cycle()) < 1:
                 self.add_error('row_grouping_time_unit',
                                ValidationError(_("Error: row grouping time unit has no length cycle!")))
         return cleaned_data
