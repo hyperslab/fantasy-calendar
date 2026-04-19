@@ -45,7 +45,7 @@ export default function CalendarPage({ timeUnit, subUnit, iteration, displayConf
     )));
 
     if (calendarPage.row_length > 0 && calendarPage.header_column && calendarPage.header_column.length > 0)
-        for (let i = headerRow.length; i < squares.length; i += calendarPage.row_length)
+        for (let i = headerRow.length; i < squares.length; i += calendarPage.row_length+1)
             squares.splice(i, 0, <LabelSquare key={-200-((i/(calendarPage.row_length))+1)} labelText={calendarPage.header_column[parseInt(i/(calendarPage.row_length))]} />);
 
     // CSS adjustments for bottom level time unit view and row grouping and labels
