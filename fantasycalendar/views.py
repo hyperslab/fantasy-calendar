@@ -600,7 +600,10 @@ class DisplayUnitConfigUpdateView(UserPassesTestMixin, generic.UpdateView):
         else:
             form.fields['sub_unit_other_date_format'].queryset = DateFormat.objects.filter(
                 time_unit_id=form.instance.time_unit_id)
-        if form.instance.time_unit.base_unit:
+        if form.instance.sub_unit:
+            form.fields['row_grouping_time_unit'].queryset = TimeUnit.objects.filter(
+                base_unit_id=form.instance.sub_unit.id)
+        elif form.instance.time_unit.base_unit:
             form.fields['row_grouping_time_unit'].queryset = TimeUnit.objects.filter(
                 base_unit_id=form.instance.time_unit.base_unit.id)
         else:
