@@ -2,7 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
-from .models import DisplayConfig, DisplayUnitConfig
+from .models import DisplayConfig, DisplayUnitConfig, DateBookmark
 
 
 class DisplayConfigCreateForm(forms.ModelForm):
@@ -78,4 +78,18 @@ class DisplayUnitConfigUpdateForm(forms.ModelForm):
             elif len(cleaned_data['row_grouping_time_unit'].get_expanded_length_cycle()) < 1:
                 self.add_error('row_grouping_time_unit',
                                ValidationError(_("Error: row grouping time unit has no length cycle!")))
+        return cleaned_data
+
+class DateBookmarkCreateForm(forms.ModelForm):
+    class Meta:
+        model = DateBookmark
+        fields = ['date_bookmark_name', 'bookmark_unit', 'bookmark_iteration', 'bookmark_sub_unit']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if (cleaned_data['bookmark_sub_unit'] and cleaned_data['bookmark_unit'].pk not in
+                [sub_unit.pk for sub_unit in cleaned_data['bookmark_sub_unit'].get_all_higher_containing_units()]):
+            self.add_error('bookmark_sub_unit',
+                           ValidationError(_("Error: bookmark sub unit is not a valid sub unit of time unit!"),
+                                           code='invalid'))
         return cleaned_data

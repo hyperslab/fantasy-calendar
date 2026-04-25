@@ -1589,6 +1589,10 @@ class DateBookmark(models.Model):
                                       help_text=html_tooltip('The type of time unit that this bookmark is for'))
     bookmark_iteration = models.IntegerField(help_text=html_tooltip('The instance of the specified time unit type for '
                                                                     'this bookmark to link to'))
+    bookmark_sub_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE, null=True, blank=True,
+                                          related_name='datebookmark_sub_set',
+                                          help_text=html_tooltip('The sub time unit to use for the display page this '
+                                                                 'bookmark points to'))
     personal_bookmark_creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True,
                                                   blank=True, help_text=html_tooltip('The creator of this bookmark if '
                                                                                      'this is a personal bookmark; '
@@ -1609,6 +1613,9 @@ class DateBookmark(models.Model):
             return self.date_bookmark_name
         elif self.bookmark_unit.default_date_format:
             return self.bookmark_unit.default_date_format.get_formatted_date(iteration=self.bookmark_iteration)
+        elif self.bookmark_sub_unit:
+            return (str(self.bookmark_unit.time_unit_name) + ' ' + str(self.bookmark_iteration) + ' by ' +
+                    str(self.bookmark_sub_unit.time_unit_name))
         else:
             return str(self.bookmark_unit.time_unit_name) + ' ' + str(self.bookmark_iteration)
 

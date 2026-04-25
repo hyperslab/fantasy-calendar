@@ -59,8 +59,8 @@ class DateBookmarkSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DateBookmark
-        fields = ('id', 'calendar', 'date_bookmark_name', 'bookmark_unit', 'bookmark_iteration', 'display_name',
-                  'personal_bookmark_creator')
+        fields = ('id', 'calendar', 'date_bookmark_name', 'bookmark_unit', 'bookmark_iteration', 'bookmark_sub_unit',
+                  'display_name', 'personal_bookmark_creator')
 
 
 class DateBookmarkPersonalSerializer(serializers.ModelSerializer):
@@ -71,8 +71,8 @@ class DateBookmarkPersonalSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DateBookmark
-        fields = ('id', 'calendar', 'date_bookmark_name', 'bookmark_unit', 'bookmark_iteration', 'display_name',
-                  'personal_bookmark_creator')
+        fields = ('id', 'calendar', 'date_bookmark_name', 'bookmark_unit', 'bookmark_iteration', 'bookmark_sub_unit',
+                  'display_name', 'personal_bookmark_creator')
 
 
 class CalendarDetailSerializer(serializers.ModelSerializer):

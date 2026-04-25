@@ -6,7 +6,7 @@ from django.views import generic
 from .models import (World, Calendar, TimeUnit, Event, EventGroup, DateFormat, DisplayConfig, DateBookmark,
                      DisplayUnitConfig)
 from .forms import (DisplayConfigCreateForm, DisplayConfigUpdateForm, DisplayUnitConfigCreateForm,
-                    DisplayUnitConfigUpdateForm)
+                    DisplayUnitConfigUpdateForm, DateBookmarkCreateForm)
 
 
 class WorldIndexView(generic.ListView):
@@ -424,8 +424,8 @@ class DisplayUnitConfigCreateView(UserPassesTestMixin, generic.CreateView):
 
 class DateBookmarkCreateView(UserPassesTestMixin, generic.CreateView):
     model = DateBookmark
+    form_class = DateBookmarkCreateForm
     template_name = 'fantasycalendar/date_bookmark_create_form.html'
-    fields = ['date_bookmark_name', 'bookmark_unit', 'bookmark_iteration']
 
     def test_func(self):
         world = get_object_or_404(World, pk=self.kwargs['world_key'])
@@ -437,11 +437,14 @@ class DateBookmarkCreateView(UserPassesTestMixin, generic.CreateView):
             initial['bookmark_unit'] = TimeUnit.objects.get(pk=int(self.request.GET['bookmark_unit']))
         if 'bookmark_iteration' in self.request.GET:
             initial['bookmark_iteration'] = int(self.request.GET['bookmark_iteration'])
+        if 'bookmark_sub_unit' in self.request.GET:
+            initial['bookmark_sub_unit'] = TimeUnit.objects.get(pk=int(self.request.GET['bookmark_sub_unit']))
         return initial
 
     def get_form(self, form_class=None):
         form = super(DateBookmarkCreateView, self).get_form()
         form.fields['bookmark_unit'].queryset = TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key'])
+        form.fields['bookmark_sub_unit'].queryset = TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key'])
         return form
 
     def form_valid(self, form):
