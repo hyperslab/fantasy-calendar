@@ -27,11 +27,14 @@ export default class Calendar extends React.Component {
         const loadData = async(calendar, displayConfig) => {
             // start calling API in the background to cache some data
             // always call this last after the API calls that are actually needed
-            const loadCalendarPage = async(timeUnit, iteration, displayConfig = null) => {
-                api.getCalendarPage(timeUnit.id, null, iteration, displayConfig?.id, res => {});
+            const loadCalendarPage = async(timeUnit, subUnit, iteration, displayConfig = null) => {
+                api.getCalendarPage(timeUnit.id, subUnit?.id, iteration, displayConfig?.id, res => {});
             };
             calendar.date_bookmarks.forEach((bookmark) => {  // for bookmarks
-                loadCalendarPage(calendar.time_units.find(x => x.id == bookmark.bookmark_unit), bookmark.bookmark_iteration, displayConfig);
+                loadCalendarPage(calendar.time_units.find(x => x.id == bookmark.bookmark_unit),
+                bookmark.bookmark_sub_unit != null ? calendar.time_units.find(x => x.id == bookmark.bookmark_sub_unit) : null,
+                bookmark.bookmark_iteration,
+                displayConfig);
             });
         };
 
@@ -112,6 +115,7 @@ export default class Calendar extends React.Component {
         this.setState({
             displayUnit: this.state.timeUnits.find(x => x.id == newBookmark.bookmark_unit),
             displayIteration: newBookmark.bookmark_iteration,
+            displaySubUnit: newBookmark.bookmark_sub_unit != null ? this.state.timeUnits.find(x => x.id == newBookmark.bookmark_sub_unit) : '',
             selectedBookmarkId: '',
         });
     }
@@ -164,7 +168,7 @@ export default class Calendar extends React.Component {
                     <span>
                         <BookmarkSelect bookmarks={this.state.dateBookmarks} selectedBookmarkId={this.state.selectedBookmarkId} onChange={this.handleBookmarkSelectChange} />
                         &nbsp;&nbsp;
-                        <BookmarkCreateModalButton calendarId={this.state.displayUnit.calendar} timeUnit={this.state.displayUnit} iteration={this.state.displayIteration} userStatus={this.state.userStatus} handlePostResponse={this.handleBookmarkCreateModalFormPostResponse} />
+                        <BookmarkCreateModalButton calendarId={this.state.displayUnit.calendar} timeUnit={this.state.displayUnit} subUnit={this.state.displaySubUnit} iteration={this.state.displayIteration} userStatus={this.state.userStatus} handlePostResponse={this.handleBookmarkCreateModalFormPostResponse} />
                     </span>
                     <PageForwardButton timeUnitName={this.state.displayUnit.time_unit_name} onClick={this.handlePageForwardClick} />
                 </span>

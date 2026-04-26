@@ -477,9 +477,13 @@ class DateBookmarkCreatePersonal(APIView):
                 status=status.HTTP_403_FORBIDDEN)
         date_bookmark_name = request.data['date_bookmark_name']
         bookmark_unit = get_object_or_404(TimeUnit, pk=int(request.data['bookmark_unit']))
+        bookmark_sub_unit = None
+        if 'bookmark_sub_unit' in request.data and request.data['bookmark_sub_unit']:
+            bookmark_sub_unit = get_object_or_404(TimeUnit, pk=int(request.data['bookmark_sub_unit']))
         bookmark_iteration = int(request.data['bookmark_iteration'])
         bookmark = DateBookmark.objects.create(calendar=calendar, date_bookmark_name=date_bookmark_name,
                                                bookmark_unit=bookmark_unit, bookmark_iteration=bookmark_iteration,
+                                               bookmark_sub_unit=bookmark_sub_unit,
                                                personal_bookmark_creator=request.user)
 
         # response

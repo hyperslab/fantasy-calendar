@@ -19,7 +19,7 @@ const customStyles = {
 
 Modal.setAppElement('#root');
 
-export default function BookmarkCreateModalButton({ calendarId, timeUnit, iteration, userStatus, handlePostResponse }) {
+export default function BookmarkCreateModalButton({ calendarId, timeUnit, subUnit, iteration, userStatus, handlePostResponse }) {
     const [modalIsOpen, setModalIsOpen] = React.useState(false);
     const [bookmarkName, setBookmarkName] = React.useState('');
     const [displayName, setDisplayName] = React.useState('');
@@ -28,7 +28,12 @@ export default function BookmarkCreateModalButton({ calendarId, timeUnit, iterat
     function openModal() {
         setModalIsOpen(true);
         getTimeUnitInstanceDisplayName(timeUnit.id, iteration, res => {
-            setDisplayName(res.data.display_name);
+            if (subUnit && subUnit.time_unit_name) {
+                setDisplayName(res.data.display_name + ' by ' + subUnit.time_unit_name);
+            }
+            else {
+                setDisplayName(res.data.display_name);
+            }
         });
     }
 
@@ -40,9 +45,9 @@ export default function BookmarkCreateModalButton({ calendarId, timeUnit, iterat
         event.preventDefault();
         console.log('create shared: ' + createShared);
         if (createShared)
-            postDateBookmark(calendarId, bookmarkName, timeUnit.id, iteration, handlePostResponse);
+            postDateBookmark(calendarId, bookmarkName, timeUnit.id, subUnit?.id, iteration, handlePostResponse);
         else
-            postPersonalDateBookmark(calendarId, bookmarkName, timeUnit.id, iteration, handlePostResponse);
+            postPersonalDateBookmark(calendarId, bookmarkName, timeUnit.id, subUnit?.id, iteration, handlePostResponse);
         closeModal();
     }
 

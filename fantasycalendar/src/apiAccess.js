@@ -116,24 +116,26 @@ function postAuthenticated(url, params, then) {
     axios.post(baseUrl + url, params, config).then(res => then(res));
 }
 
-export function postDateBookmark(calendarId, dateBookmarkName, bookmarkUnitId, bookmarkIteration, then) {
+export function postDateBookmark(calendarId, dateBookmarkName, bookmarkUnitId, bookmarkSubUnitId, bookmarkIteration, then) {
     const url = 'datebookmarks/';
     const params = {
         calendar: calendarId,
         date_bookmark_name: dateBookmarkName,
         bookmark_unit: bookmarkUnitId,
         bookmark_iteration: bookmarkIteration,
+        bookmark_sub_unit: bookmarkSubUnitId,
     };
     postAuthenticated(url, params, then);
 }
 
-export function postPersonalDateBookmark(calendarId, dateBookmarkName, bookmarkUnitId, bookmarkIteration, then) {
+export function postPersonalDateBookmark(calendarId, dateBookmarkName, bookmarkUnitId, bookmarkSubUnitId, bookmarkIteration, then) {
     const url = 'datebookmarkcreatepersonal/';
     const params = {
         calendar: calendarId,
         date_bookmark_name: dateBookmarkName,
         bookmark_unit: bookmarkUnitId,
         bookmark_iteration: bookmarkIteration,
+        bookmark_sub_unit: bookmarkSubUnitId,
     };
     postAuthenticated(url, params, then);
 }
