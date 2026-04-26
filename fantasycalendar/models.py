@@ -400,15 +400,20 @@ class TimeUnit(models.Model):
         iteration value of 4 and a sub_unit of Day will return 1081, as
         the first Day of Year 4 is Day 1081.
 
-        If sub_unit is not contained within this time unit, returns the
-        bottom level iteration value, equivalent to calling
-        get_first_bottom_level_iteration_at_iteration.
+        A time unit's sub units are defined as all units that compose
+        it, starting with its base unit, then that unit's base unit,
+        etc. all the way down to the bottom level time unit.
+
+        Raises AttributeError if sub_unit is not found by iteratively
+        checking base_unit.
 
         Always returns 1 when the iteration value is 1.
         """
         current_unit = self
         current_unit_iteration = iteration
-        while sub_unit.pk != current_unit.pk and current_unit.base_unit is not None:
+        while sub_unit.pk != current_unit.pk:
+            if current_unit.base_unit is None:
+                raise AttributeError
             current_unit_iteration = current_unit.get_first_base_unit_instance_iteration_at_iteration(
                 iteration=current_unit_iteration)
             current_unit = current_unit.base_unit
@@ -450,9 +455,12 @@ class TimeUnit(models.Model):
         iteration value of 4 and a sub_unit of Day will return 1081, as
         the first Day of Year 4 is Day 1081.
 
-        If sub_unit is not contained within this time unit, returns the
-        bottom level iteration values, equivalent to calling
-        get_first_bottom_level_iteration_at_iterations.
+        A time unit's sub units are defined as all units that compose
+        it, starting with its base unit, then that unit's base unit,
+        etc. all the way down to the bottom level time unit.
+
+        Raises AttributeError if sub_unit is not found by iteratively
+        checking base_unit.
 
         Always returns 1 when the iteration value is 1.
 
@@ -461,7 +469,9 @@ class TimeUnit(models.Model):
         """
         current_unit = self
         current_unit_iterations = iterations
-        while sub_unit.pk != current_unit.pk and current_unit.base_unit is not None:
+        while sub_unit.pk != current_unit.pk:
+            if current_unit.base_unit is None:
+                raise AttributeError
             current_unit_iterations = current_unit.get_first_base_unit_instance_iteration_at_iterations(
                 iterations=current_unit_iterations)
             current_unit = current_unit.base_unit
@@ -739,29 +749,6 @@ class TimeUnit(models.Model):
             current_cycle_position += 1
         return (number_of_complete_cycles * len(bottom_level_length_cycle)) + current_cycle_position + 1
 
-    def get_first_sub_unit_instance_iteration_at_iteration(self, sub_unit: 'TimeUnit', iteration: int) -> int:
-        """
-        Return the iteration value of the first instance of a given
-        time unit contained in the instance of this time unit that
-        exists at a particular iteration.
-
-        The given sub_unit can be any time unit used in the composition
-        of this time unit, all the way down the tree, so to speak.
-        Raises AttributeError if sub_unit is not found by iteratively
-        checking base_unit.
-
-        Always returns 1 when the iteration value is 1.
-        """
-        current_unit = self
-        current_unit_iteration = iteration
-        while current_unit.pk is not sub_unit.pk:
-            if current_unit.base_unit is None:
-                raise AttributeError
-            current_unit_iteration = current_unit.get_first_base_unit_instance_iteration_at_iteration(
-                iteration=current_unit_iteration)
-            current_unit = current_unit.base_unit
-        return current_unit_iteration
-
     def get_sub_unit_instance_iteration_within_higher_level_iteration(self, sub_unit: 'TimeUnit',
                                                                       sub_unit_iteration: int) -> int:
         """
@@ -781,8 +768,8 @@ class TimeUnit(models.Model):
             return sub_unit_iteration
         parent_iteration = self.get_iteration_at_bottom_level_iteration(
             bottom_level_iteration=sub_unit.get_first_bottom_level_iteration_at_iteration(iteration=sub_unit_iteration))
-        first_sub_instance_iteration = self.get_first_sub_unit_instance_iteration_at_iteration(
-            sub_unit=sub_unit, iteration=parent_iteration)
+        first_sub_instance_iteration = self.get_first_sub_unit_iteration_at_iteration(
+            iteration=parent_iteration, sub_unit=sub_unit)
         return sub_unit_iteration - first_sub_instance_iteration + 1
 
     def get_all_higher_containing_units(self) -> list['TimeUnit']:
@@ -1362,8 +1349,8 @@ class DateFormat(models.Model):
                             value = base_instance_names.index(value) + 1
                         else:
                             value = int(value)
-                        absolutes[sub.id] = parent.get_first_sub_unit_instance_iteration_at_iteration(
-                            sub_unit=sub, iteration=absolutes[parent.id]) + value - 1
+                        absolutes[sub.id] = parent.get_first_sub_unit_iteration_at_iteration(
+                            iteration=absolutes[parent.id], sub_unit=sub) + value - 1
                         updated = True
                     if sub == self.time_unit and sub.id in absolutes:
                         return absolutes[sub.id]

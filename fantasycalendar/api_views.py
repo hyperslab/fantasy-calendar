@@ -110,8 +110,8 @@ class CalendarPage(APIView):
 
         # pull instance information
         instances = time_unit.get_sub_unit_instances(iteration=iteration, sub_unit=sub_unit)
-        first_sub_iteration = time_unit.get_first_sub_unit_instance_iteration_at_iteration(iteration=iteration,
-                                                                                            sub_unit=sub_unit)
+        first_sub_iteration = time_unit.get_first_sub_unit_iteration_at_iteration(iteration=iteration,
+                                                                                  sub_unit=sub_unit)
         iterations = [first_sub_iteration + x for x in range(len(instances))]
         events = sub_unit.get_events_at_iterations(iterations)
         instance_display_names = sub_unit.get_instance_display_names(iterations=iterations,
