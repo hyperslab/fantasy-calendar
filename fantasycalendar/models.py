@@ -439,6 +439,34 @@ class TimeUnit(models.Model):
             current_unit = current_unit.base_unit
         return current_unit_iterations
 
+    def get_first_sub_unit_iteration_at_iterations(self, iterations: list[int], sub_unit: 'TimeUnit') -> list[int]:
+        """
+        Return the iteration value of the first time unit instance of
+        sub_unit contained in the instance of this time unit that
+        exists at each given iteration in iterations.
+
+        As an example, if there are 12 "Month"s in a "Year" and 30
+        "Day"s in a Month, then calling this method on the Year with an
+        iteration value of 4 and a sub_unit of Day will return 1081, as
+        the first Day of Year 4 is Day 1081.
+
+        If sub_unit is not contained within this time unit, returns the
+        bottom level iteration values, equivalent to calling
+        get_first_bottom_level_iteration_at_iterations.
+
+        Always returns 1 when the iteration value is 1.
+
+        Optimized to minimize hits to the database when calculating
+        several iterations at once.
+        """
+        current_unit = self
+        current_unit_iterations = iterations
+        while sub_unit.pk != current_unit.pk and current_unit.base_unit is not None:
+            current_unit_iterations = current_unit.get_first_base_unit_instance_iteration_at_iterations(
+                iterations=current_unit_iterations)
+            current_unit = current_unit.base_unit
+        return current_unit_iterations
+
     def get_bottom_level_length_at_iteration(self, iteration: int) -> int:
         """
         Return the number of bottom level time units in the instance of
@@ -1538,6 +1566,13 @@ class DisplayUnitConfig(models.Model):
                                                                       'Wednesday), or labels on each row that count '
                                                                       'the occurrences of the row grouping unit (Week '
                                                                       '1, Week 2, etc.)'))
+    block_grouping_time_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE, related_name='+', blank=True,
+                                                 null=True,
+                                                 help_text=html_tooltip('An optional time unit that can be used to '
+                                                                        'organize the calendar page into blocks, e.g. '
+                                                                        'many real life year calendar pages are '
+                                                                        'blocked by month; must have the page\'s sub '
+                                                                        'unit as one of its own sub units'))
     show_events = models.BooleanField(default=True,
                                       help_text=html_tooltip('Whether to show events on your calendar page for this '
                                                              'time unit'))

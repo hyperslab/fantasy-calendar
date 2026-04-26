@@ -139,14 +139,36 @@ class CalendarPage(APIView):
             row_grouping_label_type = ''
             row_grouping_offset = 0
 
+        # pull block grouping information
+        block_grouping_unit = display_unit_config.block_grouping_time_unit if display_unit_config is not None else None
+        if block_grouping_unit:
+            first_bottom_level_iteration = time_unit.get_first_bottom_level_iteration_at_iteration(iteration=iteration)
+            first_block_unit_iteration = block_grouping_unit.get_iteration_at_bottom_level_iteration(
+                bottom_level_iteration=first_bottom_level_iteration)
+            last_bottom_level_iteration = first_bottom_level_iteration + len(instances) - 1
+            last_block_unit_iteration = block_grouping_unit.get_iteration_at_bottom_level_iteration(
+                bottom_level_iteration=last_bottom_level_iteration)
+            block_unit_iterations = list(range(first_block_unit_iteration, last_block_unit_iteration + 1))
+            block_start_iterations = block_grouping_unit.get_first_sub_unit_iteration_at_iterations(
+                iterations=block_unit_iterations, sub_unit=sub_unit)
+            block_names = block_grouping_unit.get_instance_display_names(iterations=block_unit_iterations)
+        else:
+            block_unit_iterations = [0]
+            block_start_iterations = []
+            block_names = ['']
+
         # build list of dates
         calendar_dates = []
+        current_block = 0
         for index, instance in enumerate(instances):
             iteration = first_sub_iteration + index
             # max_events_per_instance count includes linked events as well
             # show native events first, then linked events if we still have room
             max_linked_events = max(max_events_per_instance - len(events[index]), 0)
             not_all_events_returned = len(events[index]) + len(linked_events[index]) > max_events_per_instance
+            if (len(block_start_iterations) > current_block + 1
+                    and iteration >= block_start_iterations[current_block + 1]):
+                current_block += 1
             calendar_dates.append({
                 "name": instance[0],
                 "display_name": instance[0] if not sub_unit.secondary_date_format
@@ -159,7 +181,8 @@ class CalendarPage(APIView):
                 else [],
                 "linked_events": EventSerializer(
                     [e for e in linked_events[index] if e.is_visible()][:max_linked_events], many=True).data,
-                "not_all_events_returned": not_all_events_returned
+                "not_all_events_returned": not_all_events_returned,
+                "block_number": current_block + 1
             })
 
         # build header row/column
@@ -185,6 +208,7 @@ class CalendarPage(APIView):
         data["header_row"] = header_row
         data["header_column"] = header_column
         data["sub_unit_page_exists"] = sub_unit_page_exists
+        data["block_names"] = block_names
         return Response(data)
 
 
