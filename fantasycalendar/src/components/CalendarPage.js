@@ -1,6 +1,7 @@
 import React from 'react';
 import DateSquare from './DateSquare.js';
 import LabelSquare from './LabelSquare.js';
+import LabelRow from './LabelRow.js';
 import {getCalendarPage} from '../apiAccess.js';
 import LoadingIcon from "./LoadingIcon.js";
 
@@ -44,9 +45,60 @@ export default function CalendarPage({ timeUnit, subUnit, iteration, displayConf
         <DateSquare key={baseUnitInstance.iteration} timeUnitId={baseUnitInstance.time_unit_id} timeUnitInstance={baseUnitInstance} headerClickable={headerClickable} baseUnitInstanceClickHandler={baseUnitInstanceClickHandler} showEventDescription={timeUnit.id==baseUnitInstance.time_unit_id} showExtraEventEllipsis={baseUnitInstance.not_all_events_returned} />
     )));
 
-    if (calendarPage.row_length > 0 && calendarPage.header_column && calendarPage.header_column.length > 0)
-        for (let i = headerRow.length; i < squares.length; i += calendarPage.row_length+1)
-            squares.splice(i, 0, <LabelSquare key={-200-((i/(calendarPage.row_length+1))+1)} labelText={calendarPage.header_column[parseInt(i/(calendarPage.row_length+1))]} />);
+    // blocking
+    if (calendarPage.block_names && calendarPage.block_names.length > 0 && calendarPage.block_names[0]) {
+        let currentBlock = 0;
+        while (currentBlock < calendarPage.block_names.length) {
+            let firstBlockInstance = calendarPage.calendar_dates.find(baseUnitInstance => baseUnitInstance.block_number > currentBlock);
+            let firstBlockLocation = squares.findIndex(square => square.type === DateSquare && square.key == firstBlockInstance.iteration);
+            if (currentBlock == 0) {
+                firstBlockLocation -= calendarPage.initial_offset;
+            }
+            let firstBlockColumn = (firstBlockLocation - currentBlock) % calendarPage.row_length;
+            const labelRowAndBlanks = [];
+            if (calendarPage.row_length == 0 || currentBlock == 0 || firstBlockColumn == 0) {
+                labelRowAndBlanks.push(<LabelRow key={-400-currentBlock} labelText={calendarPage.block_names[currentBlock]} />);
+            }
+            else {
+                for (let i = 0; i < calendarPage.row_length - firstBlockColumn; i++) {
+                    labelRowAndBlanks.push(<div key={-500-i-(currentBlock*1000)} />);
+                }
+                labelRowAndBlanks.push(<LabelRow key={-400-currentBlock} labelText={calendarPage.block_names[currentBlock]} />);
+                for (let i = 0; i < firstBlockColumn; i++) {
+                    labelRowAndBlanks.push(<div key={-600-i-(currentBlock*1000)} />);
+                }
+            }
+            labelRowAndBlanks.reverse().forEach(rowOrBlank =>
+                squares.splice(firstBlockLocation, 0, rowOrBlank)
+            );
+            currentBlock++;
+        }
+    }
+
+    // header column
+    if (calendarPage.row_length > 0 && calendarPage.header_column && calendarPage.header_column.length > 0) {
+        let currentBlock = 0;
+        while (currentBlock < calendarPage.block_names.length) {
+            let firstBlockInstance = calendarPage.calendar_dates.find(baseUnitInstance => baseUnitInstance.block_number > currentBlock);
+            let firstLabelLocation = squares.findIndex(square => square.type === DateSquare && square.key == firstBlockInstance.iteration);
+            while (firstLabelLocation > 0 && squares[firstLabelLocation-1].type === 'div') {
+                firstLabelLocation--;
+            }
+            let lastBlockInstance = calendarPage.calendar_dates.findLast(baseUnitInstance => baseUnitInstance.block_number == currentBlock + 1);
+            let lastBlockLocation = squares.findIndex(square => square.type === DateSquare && square.key == lastBlockInstance.iteration);
+            for (let i = firstLabelLocation; i <= lastBlockLocation; i += calendarPage.row_length+1) {
+                let firstDateSquareInRowLocation = i;
+                while (squares[firstDateSquareInRowLocation].type !== DateSquare) {
+                    firstDateSquareInRowLocation++;
+                }
+                let dateNum = calendarPage.calendar_dates.findIndex(baseUnitInstance => baseUnitInstance.iteration == squares[firstDateSquareInRowLocation].key);
+                let rowNum = (dateNum + calendarPage.initial_offset) / calendarPage.row_length;
+                squares.splice(i, 0, <LabelSquare key={-200-rowNum-1} labelText={calendarPage.header_column[Math.floor(rowNum)]} />);
+                lastBlockLocation++;
+            }
+            currentBlock++;
+        }
+    }
 
     // CSS adjustments for bottom level time unit view and row grouping and labels
     const gridStyleOverrides = {};
