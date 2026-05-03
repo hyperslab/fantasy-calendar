@@ -33,9 +33,9 @@ export default function DateSquare({ timeUnitId, timeUnitInstance, headerClickab
     return (
         <div className="grid-item">
             {headerClickable ? (
-                <h5 className="clickable-text" onClick={() => baseUnitInstanceClickHandler(timeUnitId, timeUnitInstance.iteration)}>{header}</h5>
+                <div className="grid-item-header clickable-text" onClick={() => baseUnitInstanceClickHandler(timeUnitId, timeUnitInstance.iteration)}>{header}</div>
             ) : (
-                <h5>{header}</h5>
+                <div className="grid-item-header">{header}</div>
             )}
             {rows}
             {maxEvents != 0 && (displayEvents.length > maxEvents || showExtraEventEllipsis) && <div>...</div>}

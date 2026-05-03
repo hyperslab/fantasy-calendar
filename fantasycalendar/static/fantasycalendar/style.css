@@ -98,8 +98,8 @@ h2 a, h3 a, h4 a {
 .grid-container-large {
     display: grid;
     background-color: gray;
-    grid-template-columns: repeat(auto-fill, 180px);
-    grid-auto-rows: minmax(150px, auto);
+    grid-template-columns: repeat(auto-fill, 144px);
+    grid-auto-rows: minmax(120px, auto);
     padding: 6px;
     grid-auto-flow: row;
 }
@@ -108,6 +108,40 @@ h2 a, h3 a, h4 a {
     background-color: lightblue;
     text-align: center;
     border: 1px solid black;
+}
+
+.grid-item-label {
+    display: block;
+    font-family: Garamond, "Times New Roman", Times, serif;
+    font-variant: small-caps;
+    font-size: 1.17em;
+    font-weight: bold;
+    margin-top: .8em;
+    margin-bottom: .8em;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.grid-item-label-large {
+    display: block;
+    font-family: Garamond, "Times New Roman", Times, serif;
+    font-variant: small-caps;
+    font-size: 1.27em;
+    font-weight: bold;
+    margin-top: .8em;
+    margin-bottom: .8em;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.grid-item-header {
+    display: block;
+    font-size: .83em;
+    font-weight: bold;
+    margin-top: 1.67em;
+    margin-bottom: 1.67em;
+    margin-left: 0;
+    margin-right: 0;
 }
 
 .grid-item-row {
@@ -142,4 +176,69 @@ h2 a, h3 a, h4 a {
 
 .tooltip:hover .tooltip-text {
     visibility: visible;
+}
+
+/* medium screen calendar css */
+@media only screen and (max-width: 1200px) {
+    .grid-container-large {
+        grid-template-columns: repeat(auto-fill, 108px);
+        grid-auto-rows: minmax(90px, auto);
+    }
+}
+
+/* small screen calendar css */
+@media only screen and (max-width: 1000px) {
+    .calendar {
+        padding-left: 4px;
+        padding-right: 4px;
+    }
+    .grid-container-large {
+        grid-template-columns: repeat(auto-fill, 60px);
+        grid-auto-rows: minmax(50px, auto);
+        padding: 3px;
+    }
+    .grid-item-label {
+        font-size: .97em;
+        margin-top: .7em;
+        margin-bottom: .7em;
+    }
+    .grid-item-label-large {
+        font-size: 1.17em;
+        margin-top: .7em;
+        margin-bottom: .7em;
+    }
+    .grid-item-header {
+        font-size: .73em;
+        margin-top: 1.17em;
+        margin-bottom: .97em;
+    }
+    .grid-item-row {
+        font-size: .73em;
+    }
+    .grid-item-row-long {
+        font-size: .9em;
+    }
+}
+
+/* tiny screen calendar css */
+@media only screen and (max-width: 700px) {
+    .grid-container-large {
+        grid-template-columns: repeat(auto-fill, 48px);
+        grid-auto-rows: minmax(40px, auto);
+        padding: 2px;
+    }
+    .grid-item-label {
+        font-size: .63em;
+    }
+    .grid-item-label-large {
+        font-size: .83em;
+    }
+    .grid-item-header {
+        font-size: .60em;
+        margin-top: .9em;
+        margin-bottom: .7em;
+    }
+    .grid-item-row {
+        font-size: .68em;
+    }
 }

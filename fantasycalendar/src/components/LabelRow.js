@@ -11,7 +11,7 @@ export default function LabelRow({ labelText }) {
 
     return (
         <div className="grid-item" style={gridStyleOverrides}>
-            <h3>&nbsp;&nbsp;{labelText}&nbsp;&nbsp;</h3>
+            <div className="grid-item-label-large">&nbsp;&nbsp;{labelText}&nbsp;&nbsp;</div>
         </div>
     );
 }

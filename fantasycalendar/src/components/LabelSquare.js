@@ -10,7 +10,7 @@ export default function LabelSquare({ labelText }) {
 
     return (
         <div className="grid-item" style={gridStyleOverrides}>
-            <h3>&nbsp;&nbsp;{labelText}&nbsp;&nbsp;</h3>
+            <div className="grid-item-label">&nbsp;&nbsp;{labelText}&nbsp;&nbsp;</div>
         </div>
     );
 }
