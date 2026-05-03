@@ -21,7 +21,7 @@ export default function CalendarPage({ timeUnit, subUnit, iteration, displayConf
     }, [timeUnit, subUnit, iteration, displayConfig]);
 
     if (!calendarPage || loading > 0) return (
-        <div className="grid-container-large" style={{gridTemplateColumns: 'auto', justifyContent: 'center'}}>
+        <div className="grid-container" style={{gridTemplateColumns: 'auto', justifyContent: 'center'}}>
             <LoadingIcon />
         </div>
     );
@@ -112,7 +112,7 @@ export default function CalendarPage({ timeUnit, subUnit, iteration, displayConf
         gridStyleOverrides.gridTemplateRows = 'auto';
 
     return (
-        <div className="grid-container-large" style={gridStyleOverrides}>
+        <div className="grid-container" style={gridStyleOverrides}>
             {squares}
         </div>
     );

@@ -71,11 +71,12 @@ h2 a, h3 a, h4 a {
 
 #graphic {
     float: right;
-    width: 40%;
+    width: 60%;
     padding: 30px;
 }
 
 .calendar {
+    container-type: inline-size;
     padding-left: 10px;
     padding-right: 10px;
 }
@@ -87,15 +88,6 @@ h2 a, h3 a, h4 a {
 }
 
 .grid-container {
-    display: grid;
-    background-color: gray;
-    grid-template-columns: repeat(auto-fill, 60px);
-    grid-auto-rows: 50px;
-    padding: 3px;
-    grid-auto-flow: row;
-}
-
-.grid-container-large {
     display: grid;
     background-color: gray;
     grid-template-columns: repeat(auto-fill, 144px);
@@ -179,20 +171,20 @@ h2 a, h3 a, h4 a {
 }
 
 /* medium screen calendar css */
-@media only screen and (max-width: 1200px) {
-    .grid-container-large {
+@container (max-width: 1200px) {
+    .grid-container {
         grid-template-columns: repeat(auto-fill, 108px);
         grid-auto-rows: minmax(90px, auto);
     }
 }
 
 /* small screen calendar css */
-@media only screen and (max-width: 1000px) {
+@container (max-width: 1000px) {
     .calendar {
         padding-left: 4px;
         padding-right: 4px;
     }
-    .grid-container-large {
+    .grid-container {
         grid-template-columns: repeat(auto-fill, 60px);
         grid-auto-rows: minmax(50px, auto);
         padding: 3px;
@@ -221,8 +213,8 @@ h2 a, h3 a, h4 a {
 }
 
 /* tiny screen calendar css */
-@media only screen and (max-width: 700px) {
-    .grid-container-large {
+@container (max-width: 700px) {
+    .grid-container {
         grid-template-columns: repeat(auto-fill, 48px);
         grid-auto-rows: minmax(40px, auto);
         padding: 2px;

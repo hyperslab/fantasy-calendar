@@ -7,7 +7,7 @@ Calendar Detail
 {% block content %}
 <h2><a href="{% url 'fantasycalendar:world-detail' calendar.world_id %}">{{ calendar.world.world_name }}</a> - {{ calendar.calendar_name }}{% if user.pk == calendar.world.creator.pk %}
     <a href="{% url 'fantasycalendar:calendar-update' calendar.world_id calendar.id %}">(edit)</a>{% endif %}</h2>
-<h4><a href="{% url 'fantasycalendar:calendar-calendar' calendar.world_id calendar.id %}">View Main Calendar Page</a></h4>
+<h4><a href="{% url 'fantasycalendar:calendar-calendar' calendar.world_id calendar.id %}">View Fullscreen Calendar Page</a></h4>
 <h3>Time Units{% if user.pk == calendar.world.creator.pk %} <a href="{% url 'fantasycalendar:time-unit-create' calendar.world_id calendar.id %}">(+new)</a>{% endif %}</h3>
 {% if calendar.timeunit_set %}
     <ul>
@@ -30,8 +30,7 @@ Calendar Detail
     <ul>
     {% for display_config in calendar.displayconfig_set.all %}
         <li><a href="{% url 'fantasycalendar:display-config-detail' calendar.world_id calendar.id display_config.id %}">{{ display_config.display_config_name }}{% if user.pk == calendar.world.creator.pk %}</a> <a
-                href="{% url 'fantasycalendar:display-config-update' calendar.world_id calendar.id display_config.id %}">(edit)</a>{% endif %} <a
-                href="{% url 'fantasycalendar:calendar-detail' calendar.world_id calendar.id %}?display_unit_type={{ display_config.display_unit.id }}&nest_checkbox={{ display_config.nest_level }}&iteration={% if display_config.default_date_bookmark %}{{ display_config.default_date_bookmark.bookmark_iteration }}{% elif display_config.display_unit.id == display_unit.id %}{{ iteration }}{% else %}1{% endif %}">(apply configuration)</a></li>
+                href="{% url 'fantasycalendar:display-config-update' calendar.world_id calendar.id display_config.id %}">(edit)</a>{% endif %}</li>
     {% endfor %}
     </ul>
 {% else %}
@@ -44,8 +43,7 @@ Calendar Detail
     {% for date_bookmark in calendar.datebookmark_set.all %}
         {% if not date_bookmark.is_personal %}
         <li>{{ date_bookmark.get_display_name  }}{% if user.pk == calendar.world.creator.pk %} <a
-                href="{% url 'fantasycalendar:date-bookmark-update' calendar.world_id calendar.id date_bookmark.id %}">(edit)</a>{% endif %} <a
-                href="{% url 'fantasycalendar:calendar-detail' calendar.world_id calendar.id %}?display_unit_type={{ date_bookmark.bookmark_unit.id }}&nest_checkbox={{ nest_level }}&iteration={{ date_bookmark.bookmark_iteration }}">(go to bookmark)</a></li>
+                href="{% url 'fantasycalendar:date-bookmark-update' calendar.world_id calendar.id date_bookmark.id %}">(edit)</a>{% endif %}</li>
         {% endif %}
     {% endfor %}
     </ul>
@@ -67,47 +65,7 @@ Calendar Detail
 {% endblock %}
 
 {% block graphic %}
-{% if calendar.timeunit_set %}
-<h3><a href="{% url 'fantasycalendar:time-unit-instance-detail' calendar.world_id calendar.id display_unit.id iteration %}">{{ instance_display_name }}</a></h3>
-<form action="{% url 'fantasycalendar:calendar-detail' calendar.world_id calendar.id %}" method="get">
-    <label for="display_unit_type">Change display level: </label>
-    <select name="display_unit_type" id="display_unit_type">
-    {% for time_unit in calendar.timeunit_set.all %}
-        <option value="{{ time_unit.id }}" {% if time_unit.id == display_unit.id %}selected{% endif %}>{{ time_unit.time_unit_name }}</option>
-    {% endfor %}
-    </select>
-    <br>
-    <label for="nest_checkbox">Show base time unit detail?</label>
-    <input type="hidden" id="nest_checkbox_hidden" name="nest_checkbox" value="{% if nest_level == 1 %}1{% else %}0{% endif %}"><input type="checkbox" id="nest_checkbox" value="1" {% if nest_level == 1 %}checked{% endif %} onclick="this.previousSibling.value=1-this.previousSibling.value">
-    <br>
-    <label for="iteration">Display specific time unit instance:</label>
-    <input type="text" id="iteration" name="iteration" value="{{ iteration }}">
-    <br>
-    <input type="submit" value="Submit">
-</form>
-{% if display_nested %}
-{% for display_base_name, iteration, nested_display_base_names in display_base_names %}
-    <h4><a href="{% url 'fantasycalendar:time-unit-instance-detail' calendar.world_id calendar.id display_unit.base_unit.id iteration %}">{{ display_base_name }}</a></h4>
-    <div class="grid-container">
-    {% for nested_display_base_name, iteration, events in nested_display_base_names %}
-        <div class="grid-item"><a href="{% url 'fantasycalendar:time-unit-instance-detail' calendar.world_id calendar.id smallest_display_unit.id iteration %}">{{ nested_display_base_name }}</a>
-        {% for event in events %}
-            <br><a href="{% url 'fantasycalendar:event-detail' calendar.world_id calendar.id event.id %}">{{ event.event_name }}</a>
-        {% endfor %}
-        </div>
-    {% endfor %}
-    </div>
-{% endfor %}
-{% else %}
-<div class="grid-container">
-{% for display_base_name, iteration, events in display_base_names %}
-    <div class="grid-item"><a href="{% url 'fantasycalendar:time-unit-instance-detail' calendar.world_id calendar.id smallest_display_unit.id iteration %}">{{ display_base_name }}</a>
-    {% for event in events %}
-        <br><a href="{% url 'fantasycalendar:event-detail' calendar.world_id calendar.id event.id %}">{{ event.event_name }}</a>
-    {% endfor %}
-    </div>
-{% endfor %}
-</div>
-{% endif %}
-{% endif %}
+<div id="root"></div>
+{% load static %}
+<script src="{% static 'fantasycalendar/main.js' %}"></script>
 {% endblock %}
