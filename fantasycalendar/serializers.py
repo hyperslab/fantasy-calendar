@@ -47,7 +47,7 @@ class DisplayConfigSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DisplayConfig
-        fields = ('id', 'calendar', 'display_config_name', 'display_unit', 'nest_level', 'default_date_bookmark',
+        fields = ('id', 'calendar', 'display_config_name', 'default_display_unit_config', 'default_date_bookmark',
                   'display_unit_configs')
 
 

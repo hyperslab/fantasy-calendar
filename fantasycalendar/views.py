@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.db import transaction
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import generic
@@ -46,19 +47,20 @@ class CalendarDetailView(UserPassesTestMixin, generic.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if 'display_unit_type' in self.request.GET:
-            context['display_unit'] = TimeUnit.objects.get(pk=self.request.GET['display_unit_type'])
+        if 'display_unit' in self.request.GET:
+            context['display_unit'] = TimeUnit.objects.get(pk=self.request.GET['display_unit'])
         elif self.object.default_display_config:
-            context['display_unit'] = self.object.default_display_config.display_unit
+            context['display_unit'] = self.object.default_display_config.default_display_unit_config.time_unit
         else:
             self.object.ensure_bottom_level_time_unit()  # if unit not specified, it might not have one yet
             context['display_unit'] = TimeUnit.objects.filter(calendar_id=self.object.id).first()
-        if 'nest_checkbox' in self.request.GET:
-            context['nest_level'] = int(self.request.GET['nest_checkbox'])
+        if 'display_sub_unit' in self.request.GET:
+            context['display_sub_unit'] = TimeUnit.objects.get(pk=self.request.GET['display_sub_unit'])
         elif self.object.default_display_config:
-            context['nest_level'] = self.object.default_display_config.nest_level
+            context['display_sub_unit'] = self.object.default_display_config.default_display_unit_config.sub_unit
         else:
-            context['nest_level'] = 0
+            self.object.ensure_bottom_level_time_unit()  # if unit not specified, it might not have one yet
+            context['display_sub_unit'] = TimeUnit.objects.filter(calendar_id=self.object.id).first()
         if 'iteration' in self.request.GET:
             context['iteration'] = int(self.request.GET['iteration'])
         elif self.object.default_display_config and self.object.default_display_config.default_date_bookmark:
@@ -313,18 +315,45 @@ class DisplayConfigCreateView(UserPassesTestMixin, generic.CreateView):
 
     def get_form(self, form_class=None):
         form = super(DisplayConfigCreateView, self).get_form()
-        form.fields['display_unit'].queryset = TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key'])
+
+        possible_unit_configs = []
+        for unit in TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key']):
+            possible_unit_configs.append((unit, None))
+            for parent_unit in unit.get_all_higher_containing_units():
+                possible_unit_configs.append((parent_unit, unit))
+        form.fields['default_time_unit_page'].choices = \
+            [(str(uc[0].pk) + ',' + (str(uc[1].pk) if uc[1] is not None else ''),
+              'All ' + uc[1].time_unit_name + ' in a ' + uc[0].time_unit_name if uc[1] is not None else
+              'Single ' + uc[0].time_unit_name)
+             for uc in possible_unit_configs]
+
         form.fields['default_date_bookmark'].queryset = DateBookmark.objects.filter(
             calendar_id=self.kwargs['calendar_key'])
+
+        form.order_fields(['display_config_name', 'default_time_unit_page', 'default_date_bookmark'])
+
         return form
 
     def form_valid(self, form):
         calendar = get_object_or_404(Calendar, pk=self.kwargs['calendar_key'])
         form.instance.calendar = calendar
-        form.instance.save()
-        time_units = calendar.timeunit_set.all()
-        for time_unit in time_units:
-            DisplayUnitConfig.objects.create(display_config=form.instance, time_unit=time_unit)
+        instance = form.save(commit=False)
+
+        time_unit_key = form.cleaned_data['default_time_unit_page'].split(',')[0]
+        time_unit = get_object_or_404(TimeUnit, pk=time_unit_key)
+        sub_unit_key = form.cleaned_data['default_time_unit_page'].split(',')[1]
+        sub_unit = None
+        if sub_unit_key:
+            sub_unit = get_object_or_404(TimeUnit, pk=sub_unit_key)
+        default_display_unit_config = DisplayUnitConfig(
+            display_config=instance, time_unit=time_unit, sub_unit=sub_unit)
+
+        with transaction.atomic():
+            instance.save()
+            default_display_unit_config.save()
+            instance.default_display_unit_config = default_display_unit_config
+            instance.save()
+
         return super(DisplayConfigCreateView, self).form_valid(form)
 
 
@@ -520,7 +549,8 @@ class DisplayConfigUpdateView(UserPassesTestMixin, generic.UpdateView):
 
     def get_form(self, form_class=None):
         form = super(DisplayConfigUpdateView, self).get_form()
-        form.fields['display_unit'].queryset = TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key'])
+        form.fields['default_display_unit_config'].queryset = DisplayUnitConfig.objects.filter(
+            display_config_id=self.kwargs['pk'])
         form.fields['default_date_bookmark'].queryset = DateBookmark.objects.filter(
             calendar_id=self.kwargs['calendar_key'])
         return form

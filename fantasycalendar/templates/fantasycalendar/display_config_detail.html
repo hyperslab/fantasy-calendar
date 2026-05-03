@@ -8,13 +8,9 @@ Display Config Detail
 <h2><a href="{% url 'fantasycalendar:world-detail' displayconfig.calendar.world_id %}">{{ displayconfig.calendar.world.world_name }}</a> - <a
         href="{% url 'fantasycalendar:calendar-detail' displayconfig.calendar.world_id displayconfig.calendar_id %}">{{ displayconfig.calendar.calendar_name }}</a> - {{ displayconfig.display_config_name }}{% if user.pk == displayconfig.calendar.world.creator.pk %}
     <a href="{% url 'fantasycalendar:display-config-update' displayconfig.calendar.world_id displayconfig.calendar_id displayconfig.id %}">(edit)</a>{% endif %}</h2>
-<h3>Default Display Unit:</h3>
+<h3>Default Page:</h3>
 <ul><li>
-    <a href="{% url 'fantasycalendar:time-unit-detail' displayconfig.calendar.world_id displayconfig.calendar_id displayconfig.display_unit_id %}">{{ displayconfig.display_unit.time_unit_name }}</a>
-</li></ul>
-<h3>Display Nested by Default?</h3>
-<ul><li>
-    {% if displayconfig.nest_level > 0 %}Yes{% else %}No{% endif %}
+    {{ displayconfig.default_display_unit_config }}
 </li></ul>
 <h3>Default Date Bookmark:</h3>
 {% if displayconfig.default_date_bookmark %}

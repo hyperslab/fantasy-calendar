@@ -54,8 +54,13 @@ export default class Calendar extends React.Component {
                 api.getDisplayConfig(calendar.default_display_config, resDisplayConfig => {
                     const displayConfig = resDisplayConfig.data;
                     this.setState({ displayConfig: displayConfig });
-                    const displayUnit = calendar.time_units.find(x => x.id == displayConfig.display_unit)
+                    const displayUnit = calendar.time_units.find(x => x.id == displayConfig.display_unit_configs.find(y => y.id == displayConfig.default_display_unit_config).time_unit)
                     this.setState({ displayUnit: displayUnit });
+                    const displaySubUnit = calendar.time_units.find(x => x.id == displayConfig.display_unit_configs.find(y => y.id == displayConfig.default_display_unit_config).sub_unit)
+                    if (displaySubUnit)
+                    {
+                        this.setState({ displaySubUnit: displaySubUnit });
+                    }
                     if (displayConfig.default_date_bookmark)
                     {
                         const dateBookmark = calendar.date_bookmarks.find(x => x.id == displayConfig.default_date_bookmark);

@@ -1412,10 +1412,8 @@ class DisplayConfig(models.Model):
     calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
     display_config_name = models.CharField(max_length=200,
                                            help_text=html_tooltip('The name of this display configuration'))
-    display_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE,
-                                     help_text=html_tooltip('The type of time unit to display by default'))
-    nest_level = models.IntegerField(default=0,
-                                     help_text=html_tooltip('"0" for no nested display, "1" for nested display'))
+    default_display_unit_config = models.ForeignKey('DisplayUnitConfig', on_delete=models.CASCADE, null=True,
+                                                    help_text=html_tooltip('The time unit page to show by default'))
     default_date_bookmark = models.ForeignKey('DateBookmark', on_delete=models.CASCADE, null=True, blank=True,
                                               help_text=html_tooltip('The date to show by default when this display '
                                                                      'configuration is initially loaded'))

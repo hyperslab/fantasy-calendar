@@ -6,16 +6,30 @@ from .models import DisplayConfig, DisplayUnitConfig, DateBookmark
 
 
 class DisplayConfigCreateForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(DisplayConfigCreateForm, self).__init__(*args, **kwargs)
+        self.fields['default_time_unit_page'] = forms.ChoiceField()
+
     class Meta:
         model = DisplayConfig
-        fields = ['display_config_name', 'display_unit', 'nest_level', 'default_date_bookmark']
+        fields = ['display_config_name', 'default_date_bookmark']
 
     def clean(self):
         cleaned_data = super().clean()
+        time_unit_key = int(cleaned_data['default_time_unit_page'].split(',')[0])
+        sub_unit_key = int(cleaned_data['default_time_unit_page'].split(',')[1]) \
+            if cleaned_data['default_time_unit_page'].split(',')[1] else None
         if cleaned_data['default_date_bookmark']:
-            if cleaned_data['default_date_bookmark'].bookmark_unit != cleaned_data['display_unit']:
+            if cleaned_data['default_date_bookmark'].bookmark_unit.pk != time_unit_key:
                 self.add_error('default_date_bookmark',
                                ValidationError(_("Error: default bookmark's time unit does not match display unit!"),
+                                               code='invalid'))
+            elif ((sub_unit_key and not cleaned_data['default_date_bookmark'].bookmark_sub_unit) or
+                  (not sub_unit_key and cleaned_data['default_date_bookmark'].bookmark_sub_unit) or
+                  (sub_unit_key and cleaned_data['default_date_bookmark'].bookmark_sub_unit and
+                  cleaned_data['default_date_bookmark'].bookmark_sub_unit.pk != sub_unit_key)):
+                self.add_error('default_date_bookmark',
+                               ValidationError(_("Error: default bookmark's sub unit does not match display sub unit!"),
                                                code='invalid'))
         return cleaned_data
 
@@ -23,14 +37,24 @@ class DisplayConfigCreateForm(forms.ModelForm):
 class DisplayConfigUpdateForm(forms.ModelForm):
     class Meta:
         model = DisplayConfig
-        fields = ['display_config_name', 'display_unit', 'nest_level', 'default_date_bookmark']
+        fields = ['display_config_name', 'default_display_unit_config', 'default_date_bookmark']
 
     def clean(self):
         cleaned_data = super().clean()
+        time_unit_key = cleaned_data['default_display_unit_config'].time_unit.pk
+        sub_unit_key = cleaned_data['default_display_unit_config'].sub_unit.pk \
+            if cleaned_data['default_display_unit_config'].sub_unit else None
         if cleaned_data['default_date_bookmark']:
-            if cleaned_data['default_date_bookmark'].bookmark_unit != cleaned_data['display_unit']:
+            if cleaned_data['default_date_bookmark'].bookmark_unit.pk != time_unit_key:
                 self.add_error('default_date_bookmark',
                                ValidationError(_("Error: default bookmark's time unit does not match display unit!"),
+                                               code='invalid'))
+            elif ((sub_unit_key and not cleaned_data['default_date_bookmark'].bookmark_sub_unit) or
+                  (not sub_unit_key and cleaned_data['default_date_bookmark'].bookmark_sub_unit) or
+                  (sub_unit_key and cleaned_data['default_date_bookmark'].bookmark_sub_unit and
+                   cleaned_data['default_date_bookmark'].bookmark_sub_unit.pk != sub_unit_key)):
+                self.add_error('default_date_bookmark',
+                               ValidationError(_("Error: default bookmark's sub unit does not match display sub unit!"),
                                                code='invalid'))
         return cleaned_data
 
