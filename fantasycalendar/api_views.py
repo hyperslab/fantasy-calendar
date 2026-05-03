@@ -1,6 +1,7 @@
 import math
 
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -288,7 +289,14 @@ class TimeUnitInstanceDisplayName(APIView):
             date_format = get_object_or_404(DateFormat, pk=date_format_id)
         display_name = time_unit.get_instance_display_name(iteration=iteration, date_format=date_format,
                                                            prefer_secondary=prefer_secondary)
-        return Response({'display_name': display_name})
+        page_link = ''
+        if time_unit.calendar.world.creator == request.user:
+            page_link = reverse('fantasycalendar:time-unit-instance-detail',
+                                kwargs={'world_key': time_unit.calendar.world.pk,
+                                        'calendar_key': time_unit.calendar.pk,
+                                        'pk': time_unit.pk,
+                                        'iteration': iteration})
+        return Response({'display_name': display_name, 'page_link': page_link})
 
 
 class TimeUnitEquivalentIteration(APIView):
