@@ -170,6 +170,28 @@ class TimeUnit(models.Model):
             names = [names]
         return names
 
+    def get_sub_unit_instance_names(self, sub_unit: 'TimeUnit' = None) -> list[str]:
+        """
+        Return base_unit_instance_names of the parent unit of sub_unit
+        that is a sub unit of this time unit as a list of each name.
+        So, the names returned are names of sub_unit instances as they
+        exist in the "chain" they share with this time unit.
+
+        Identical to get_base_unit_instance_names when sub_unit is
+        None.
+
+        Raises AttributeError if sub_unit is not found by iteratively
+        checking base_unit.
+        """
+        if not sub_unit:
+            return self.get_base_unit_instance_names()
+        current_unit = self
+        while current_unit.base_unit != sub_unit:
+            current_unit = current_unit.base_unit
+            if not current_unit:
+                raise AttributeError
+        return current_unit.get_base_unit_instance_names()
+
     def set_base_unit_instance_names(self, names: list[str]):
         """
         Save base_unit_instance_names from a list of each name.
@@ -354,7 +376,7 @@ class TimeUnit(models.Model):
             return [(str(self.time_unit_name) + ' ' + str(iteration), 1)]
         numer_of_instances = self.get_sub_unit_length_at_iteration(iteration=iteration, sub_unit=sub_unit)
         lengths = []
-        custom_names = self.get_base_unit_instance_names()
+        custom_names = self.get_sub_unit_instance_names(sub_unit=sub_unit)
         sub_unit_name = sub_unit.time_unit_name
         names = []
         sub_iteration = self.get_first_sub_unit_iteration_at_iteration(iteration=iteration, sub_unit=sub_unit)
