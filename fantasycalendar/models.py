@@ -178,12 +178,12 @@ class TimeUnit(models.Model):
         exist in the "chain" they share with this time unit.
 
         Identical to get_base_unit_instance_names when sub_unit is
-        None.
+        None or this time unit.
 
         Raises AttributeError if sub_unit is not found by iteratively
         checking base_unit.
         """
-        if not sub_unit:
+        if not sub_unit or sub_unit == self:
             return self.get_base_unit_instance_names()
         current_unit = self
         while current_unit.base_unit != sub_unit:
