@@ -131,12 +131,14 @@ class EventDetailView(UserPassesTestMixin, generic.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.object.calendar.get_bottom_level_time_unit().default_date_format:
-            context['display_date'] = self.object.calendar.get_bottom_level_time_unit().default_date_format.\
+        bottom_level_time_unit = self.object.calendar.get_bottom_level_time_unit()
+        if bottom_level_time_unit.default_date_format:
+            context['display_date'] = bottom_level_time_unit.default_date_format.\
                 get_formatted_date(self.object.bottom_level_iteration)
         else:
-            context['display_date'] = str(self.object.calendar.get_bottom_level_time_unit().time_unit_name) + ' ' + \
+            context['display_date'] = str(bottom_level_time_unit.time_unit_name) + ' ' + \
                                       str(self.object.bottom_level_iteration)
+        context['time_unit'] = bottom_level_time_unit
         return context
 
 

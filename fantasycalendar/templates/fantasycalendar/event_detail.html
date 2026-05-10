@@ -14,5 +14,5 @@ Event Detail
 <h3>Event Description</h3>
 <p>{{ event.event_description }}</p>
 <h3>Takes Place on:</h3>
-<p>{{ display_date }}</p>
+<p><a href="{% url 'fantasycalendar:time-unit-instance-detail' event.calendar.world_id event.calendar_id time_unit.id event.bottom_level_iteration %}">{{ display_date }}</a></p>
 {% endblock %}
