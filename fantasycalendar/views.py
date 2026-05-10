@@ -267,8 +267,11 @@ class EventCreateView(UserPassesTestMixin, generic.CreateView):
         return super(EventCreateView, self).form_valid(form)
 
     def get_success_url(self):
-        return reverse('fantasycalendar:calendar-detail',
-                       kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
+        return reverse('fantasycalendar:time-unit-instance-detail',
+                       kwargs={'world_key': self.object.calendar.world.pk,
+                               'calendar_key': self.object.calendar.pk,
+                               'pk': self.object.calendar.get_bottom_level_time_unit().pk,
+                               'iteration': self.object.bottom_level_iteration})
 
 
 class EventGroupCreateView(UserPassesTestMixin, generic.CreateView):
