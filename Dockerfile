@@ -1,3 +1,14 @@
+FROM node:18-alpine
+
+WORKDIR /app/fantasycalendar
+
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile
+
+COPY . .
+
+RUN yarn run build
+
 FROM python:3.11
 
 WORKDIR /app
