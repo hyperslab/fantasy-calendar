@@ -15,8 +15,8 @@ export default class Calendar extends React.Component {
         calendar: '',
         timeUnits: '',
         displayUnit: '',
-        displayIteration: '',
         displaySubUnit: '',
+        displayIteration: '',
         dateBookmarks: '',
         selectedBookmarkId: '',  // set this back to empty string whenever it changes
         userStatus: 'unauthenticated',  // 'unauthenticated', 'authenticated', or 'creator'
@@ -38,7 +38,10 @@ export default class Calendar extends React.Component {
             });
         };
 
-        var calendar_id = window.location.pathname.split("/")[5];  // this is bad and may break if URL changes
+        // required props validation
+        if (!this.props.hasOwnProperty('calendarId') || !(this.props.calendarId)) return;  // note: 0 is an invalid calendarId, failing there is intentional
+
+        var calendar_id = this.props.calendarId;
         api.getUserStatusByCalendarId(calendar_id, res => {
             this.setState({ userStatus: res.data.user_status });
         });
@@ -49,33 +52,86 @@ export default class Calendar extends React.Component {
                 timeUnits: calendar.time_units,  // for convenience
                 dateBookmarks: calendar.date_bookmarks,  // for convenience
             });
-            if (calendar.default_display_config)
+            var displayConfigId = this.props.displayConfigId ?? calendar.default_display_config;
+            if (displayConfigId)  // technically 0 can be passed explicitly to this.props.displayConfigId to force using no display config on calendars with a default set but it does not work very well
             {
-                api.getDisplayConfig(calendar.default_display_config, resDisplayConfig => {
+                api.getDisplayConfig(displayConfigId, resDisplayConfig => {
+                    // save full display config to state
                     const displayConfig = resDisplayConfig.data;
                     this.setState({ displayConfig: displayConfig });
-                    const displayUnit = calendar.time_units.find(x => x.id == displayConfig.display_unit_configs.find(y => y.id == displayConfig.default_display_unit_config).time_unit)
+
+                    // determine initial time unit page with priority props > config default
+                    var displayUnit = calendar.time_units.find(x => x.id == displayConfig.display_unit_configs.find(y => y.id == displayConfig.default_display_unit_config).time_unit);
+                    var displaySubUnit = calendar.time_units.find(x => x.id == displayConfig.display_unit_configs.find(y => y.id == displayConfig.default_display_unit_config).sub_unit);
+                    if (this.props.hasOwnProperty('displayUnitId') && this.props.displayUnitId)
+                    {
+                        var matchingPage = null;
+                        if (this.props.hasOwnProperty('displaySubUnitId') && this.props.displaySubUnitId)
+                        {
+                            // must have a page matching time unit AND sub unit if sub unit is provided
+                            matchingPage = displayConfig.display_unit_configs.find(x => x.time_unit == this.props.displayUnitId && x.sub_unit == this.props.displaySubUnitId);
+                        }
+                        else
+                        {
+                            // must page a page matching time unit with NO sub unit if sub unit is not provided
+                            matchingPage = displayConfig.display_unit_configs.find(x => x.time_unit == this.props.displayUnitId && (!x.sub_unit || x.sub_unit == x.time_unit));
+                        }
+                        if (matchingPage)  // reassign to page specified by props if props are provided and the page exists
+                        {
+                            displayUnit = calendar.time_units.find(x => x.id == this.props.displayUnitId);
+                            displaySubUnit = (this.props.hasOwnProperty('displaySubUnitId') && this.props.displaySubUnitId) ? calendar.time_units.find(x => x.id == this.props.displaySubUnitId) : null;
+                        }
+                    }
                     this.setState({ displayUnit: displayUnit });
-                    const displaySubUnit = calendar.time_units.find(x => x.id == displayConfig.display_unit_configs.find(y => y.id == displayConfig.default_display_unit_config).sub_unit)
                     if (displaySubUnit)
                     {
                         this.setState({ displaySubUnit: displaySubUnit });
                     }
-                    if (displayConfig.default_date_bookmark)
+
+                    // determine initial iteration with priority prop > default bookmark > 1
+                    if (this.props.hasOwnProperty('displayIteration') && this.props.displayIteration && typeof this.props.displayIteration === 'number' && this.props.displayIteration > 0)
+                    {
+                        this.setState({ displayIteration: this.props.displayIteration });
+                    }
+                    else if (displayConfig.default_date_bookmark)
                     {
                         const dateBookmark = calendar.date_bookmarks.find(x => x.id == displayConfig.default_date_bookmark);
                         this.setState({ displayIteration: dateBookmark.bookmark_iteration });
                     }
-                    else  // from if (displayConfig.default_date_bookmark)
+                    else
                     {
                         this.setState({ displayIteration: 1 });
                     }
                     loadData(calendar, displayConfig);
                 });
             }
-            else  // from if (calendar.default_display_config)
+            else  // if there is no display config being used, checks for what is allowed are much less strict
             {
-                this.setState({ displayUnit: calendar.time_units[0], displayIteration: 1 });
+                // determine initial time unit page with priority props > config default
+                if (this.props.hasOwnProperty('displayUnitId') && this.props.displayUnitId && calendar.time_units.find(x => x.id == this.props.displayUnitId))
+                {
+                    this.setState({ displayUnit: calendar.time_units.find(x => x.id == this.props.displayUnitId) });
+
+                    // must specify a time unit to specify a sub unit
+                    if (this.props.hasOwnProperty('displaySubUnitId') && this.props.displaySubUnitId  && calendar.time_units.find(x => x.id == this.props.displaySubUnitId))
+                    {
+                        this.setState({ displaySubUnit: calendar.time_units.find(x => x.id == this.props.displaySubUnitId) });
+                    }
+                }
+                else
+                {
+                    this.setState({ displayUnit: calendar.time_units[0] });
+                }
+
+                // determine initial iteration with priority prop > 1
+                if (this.props.hasOwnProperty('displayIteration') && this.props.displayIteration && typeof this.props.displayIteration === 'number' && this.props.displayIteration > 0)
+                {
+                    this.setState({ displayIteration: this.props.displayIteration });
+                }
+                else
+                {
+                    this.setState({ displayIteration: 1 });
+                }
                 loadData(calendar);
             }
         });
@@ -140,6 +196,12 @@ export default class Calendar extends React.Component {
     }
 
     render() {
+        // error message if required props missing
+        if (!this.props.hasOwnProperty('calendarId') || !(this.props.calendarId)) return (
+            <div className="calendar"><h2>COMPONENT ERROR: CALENDAR ID IS REQUIRED</h2></div>
+        );
+
+        // this just means it's still pulling data, not an error
         if (!this.state.calendar || !this.state.displayUnit || !this.state.displayIteration) return null;
 
         // helpers for calculation
