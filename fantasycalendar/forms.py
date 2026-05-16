@@ -15,7 +15,8 @@ class CalendarUpdateForm(forms.ModelForm):
                     if self.instance.default_display_config.default_display_unit_config else None,
                 help_text=DisplayConfig._meta.get_field('default_display_unit_config').help_text)
             self.fields['default_date_bookmark'] = forms.ModelChoiceField(
-                DateBookmark.objects.filter(calendar_id=self.instance.pk), required=False,
+                DateBookmark.objects.filter(calendar_id=self.instance.pk, personal_bookmark_creator=None),
+                required=False,
                 initial=self.instance.default_display_config.default_date_bookmark.pk
                     if self.instance.default_display_config.default_date_bookmark else None,
                 help_text=DisplayConfig._meta.get_field('default_date_bookmark').help_text)

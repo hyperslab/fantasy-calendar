@@ -334,7 +334,7 @@ class DisplayConfigCreateView(UserPassesTestMixin, generic.CreateView):
              for uc in possible_unit_configs]
 
         form.fields['default_date_bookmark'].queryset = DateBookmark.objects.filter(
-            calendar_id=self.kwargs['calendar_key'])
+            calendar_id=self.kwargs['calendar_key'], personal_bookmark_creator=None)
 
         form.order_fields(['display_config_name', 'default_time_unit_page', 'default_date_bookmark'])
 
@@ -560,7 +560,7 @@ class DisplayConfigUpdateView(UserPassesTestMixin, generic.UpdateView):
         form.fields['default_display_unit_config'].queryset = DisplayUnitConfig.objects.filter(
             display_config_id=self.kwargs['pk'])
         form.fields['default_date_bookmark'].queryset = DateBookmark.objects.filter(
-            calendar_id=self.kwargs['calendar_key'])
+            calendar_id=self.kwargs['calendar_key'], personal_bookmark_creator=None)
         return form
 
 
