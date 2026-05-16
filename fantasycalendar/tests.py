@@ -1,7 +1,122 @@
 from decimal import Decimal
 
 from django.test import TestCase
-from .models import TimeUnit, Calendar, World, DateFormat
+from .models import TimeUnit, Calendar, World, DateFormat, DisplayConfig, DisplayUnitConfig
+
+
+class CalendarModelTests(TestCase):
+    def test_ensure_default_display_config_with_no_display_configs(self):
+        """
+        ensure_default_display_config() creates a display config with a
+        bottom level time unit page for a calendar with no display
+        configs.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        bottom_level_time_unit = TimeUnit.objects.create(calendar=calendar)
+        higher_level_time_unit = TimeUnit.objects.create(calendar=calendar, base_unit=bottom_level_time_unit)
+        calendar.ensure_default_display_config()
+        default_display_config = calendar.default_display_config
+        self.assertIsNotNone(default_display_config)
+        self.assertIsNotNone(default_display_config.default_display_unit_config)
+        self.assertEqual(default_display_config.default_display_unit_config.time_unit, bottom_level_time_unit)
+        self.assertIsNone(default_display_config.default_display_unit_config.sub_unit)
+
+    def test_ensure_default_display_config_with_non_default_display_config_with_base_unit_page(self):
+        """
+        ensure_default_display_config() assigns an existing display
+        config as the default if it has a display unit config for this
+        calendar's bottom level time unit.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        bottom_level_time_unit = TimeUnit.objects.create(calendar=calendar)
+        higher_level_time_unit = TimeUnit.objects.create(calendar=calendar, base_unit=bottom_level_time_unit)
+        display_config = DisplayConfig.objects.create(calendar=calendar, display_config_name='Test')
+        display_unit_config = DisplayUnitConfig.objects.create(display_config=display_config,
+                                                               time_unit=bottom_level_time_unit,
+                                                               sub_unit=None)
+        display_config.default_display_unit_config = display_unit_config
+        display_config.save()
+        calendar.ensure_default_display_config()
+        default_display_config = calendar.default_display_config
+        self.assertEqual(display_config, default_display_config)
+
+    def test_ensure_default_display_config_with_non_default_display_config_with_no_base_unit_page(self):
+        """
+        ensure_default_display_config() does not assign an existing
+        display config as the default if it does not have a display
+        unit config for this calendar's bottom level time unit. It
+        creates a new one with a bottom level time unit page instead.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        bottom_level_time_unit = TimeUnit.objects.create(calendar=calendar)
+        higher_level_time_unit = TimeUnit.objects.create(calendar=calendar, base_unit=bottom_level_time_unit)
+        display_config = DisplayConfig.objects.create(calendar=calendar, display_config_name='Test')
+        display_unit_config = DisplayUnitConfig.objects.create(display_config=display_config,
+                                                               time_unit=higher_level_time_unit,
+                                                               sub_unit=bottom_level_time_unit)
+        display_config.default_display_unit_config = display_unit_config
+        display_config.save()
+        calendar.ensure_default_display_config()
+        default_display_config = calendar.default_display_config
+        self.assertNotEqual(display_config, default_display_config)
+        self.assertIsNotNone(default_display_config)
+        self.assertIsNotNone(default_display_config.default_display_unit_config)
+        self.assertEqual(default_display_config.default_display_unit_config.time_unit, bottom_level_time_unit)
+        self.assertIsNone(default_display_config.default_display_unit_config.sub_unit)
+
+    def test_ensure_default_display_config_with_non_default_display_config_with_no_base_unit_page_with_no_prefer(self):
+        """
+        ensure_default_display_config() does assign an existing display
+        config as the default if it does not have a display unit config
+        for this calendar's bottom level time unit if
+        prefer_bottom_level_page is False and does not create a bottom
+        level time unit page for it.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        bottom_level_time_unit = TimeUnit.objects.create(calendar=calendar)
+        higher_level_time_unit = TimeUnit.objects.create(calendar=calendar, base_unit=bottom_level_time_unit)
+        display_config = DisplayConfig.objects.create(calendar=calendar, display_config_name='Test')
+        display_unit_config = DisplayUnitConfig.objects.create(display_config=display_config,
+                                                               time_unit=higher_level_time_unit,
+                                                               sub_unit=bottom_level_time_unit)
+        display_config.default_display_unit_config = display_unit_config
+        display_config.save()
+        calendar.ensure_default_display_config(prefer_bottom_level_page=False)
+        default_display_config = calendar.default_display_config
+        self.assertEqual(display_config, default_display_config)
+        self.assertIs(DisplayConfig.objects.all().count(), 1)
+        self.assertIs(DisplayUnitConfig.objects.all().count(), 1)
+        self.assertNotEqual(default_display_config.default_display_unit_config.time_unit, bottom_level_time_unit)
+
+    def test_ensure_default_display_config_with_default_display_config_with_no_base_unit_page(self):
+        """
+        ensure_default_display_config() does not change the default
+        display config if one is already assigned or create any new
+        display configs or display unit configs, even if the default
+        display config does not have a bottom level time unit page.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        bottom_level_time_unit = TimeUnit.objects.create(calendar=calendar)
+        higher_level_time_unit = TimeUnit.objects.create(calendar=calendar, base_unit=bottom_level_time_unit)
+        display_config = DisplayConfig.objects.create(calendar=calendar, display_config_name='Test')
+        display_unit_config = DisplayUnitConfig.objects.create(display_config=display_config,
+                                                               time_unit=higher_level_time_unit,
+                                                               sub_unit=bottom_level_time_unit)
+        display_config.default_display_unit_config = display_unit_config
+        display_config.save()
+        calendar.default_display_config = display_config
+        calendar.save()
+        calendar.ensure_default_display_config()
+        default_display_config = calendar.default_display_config
+        self.assertEqual(display_config, default_display_config)
+        self.assertIs(DisplayConfig.objects.all().count(), 1)
+        self.assertIs(DisplayUnitConfig.objects.all().count(), 1)
+        self.assertNotEqual(default_display_config.default_display_unit_config.time_unit, bottom_level_time_unit)
 
 
 class TimeUnitModelTests(TestCase):

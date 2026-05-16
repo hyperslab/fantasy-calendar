@@ -69,26 +69,30 @@ class Calendar(models.Model):
             time_unit = TimeUnit(time_unit_name=default_name, calendar=self)
             time_unit.save()
 
-    def ensure_default_display_config(self, default_name="Default Display Config", add_bottom_level_page=True):
+    def ensure_default_display_config(self, default_name="Default Display Config", prefer_bottom_level_page=True):
         """
         Create a default display config for this calendar if it does
         not have any. If it does have display configs but none are set
         as the default, pick one at random and set it as the default.
 
-        If add_bottom_level_page is True, a display unit config for
-        this calendar's bottom level time unit will be created on the
-        newly created display config. If it is True and the calendar
-        has existing display configs but none are set as the default,
-        a display config must already have a bottom level time unit
-        page to be assigned as the default. If none match this
-        condition, a new display config will be created. If there is
+        If prefer_bottom_level_page is True, a display unit config for
+        this calendar's bottom level time unit must exist on an
+        existing display config for it to be assigned as the default.
+        If none match this condition, a new display config will be
+        created to be used as the calendar's default. If there is
         already a default display config but it does not have a bottom
-        level time unit page, no page will be created.
+        level time unit page, it will remain as the default and no page
+        will be created.
+
+        Regardless of prefer_bottom_level_page, when a new display
+        config is created, a display unit config for this calendar's
+        bottom level time unit also will be created and set as its
+        default page.
         """
         bottom_level_time_unit_id = self.get_bottom_level_time_unit().pk
         if not self.default_display_config:
             possible_display_configs = DisplayConfig.objects.filter(calendar_id=self.pk)
-            if add_bottom_level_page:
+            if prefer_bottom_level_page:
                 possible_display_configs = possible_display_configs.filter(
                     displayunitconfig__time_unit=bottom_level_time_unit_id,
                     displayunitconfig__sub_unit=None
@@ -99,19 +103,14 @@ class Calendar(models.Model):
             else:
                 display_config = DisplayConfig(display_config_name=default_name, calendar=self)
                 display_config.save()
+                display_unit_config = DisplayUnitConfig(display_config=display_config,
+                                                        time_unit=self.get_bottom_level_time_unit(),
+                                                        sub_unit=None)
+                display_unit_config.save()
+                display_config.default_display_unit_config = display_unit_config
+                display_config.save()
             self.default_display_config = display_config
             self.save()
-            if add_bottom_level_page:
-                if not DisplayUnitConfig.objects.filter(display_config=self.default_display_config,
-                                                        time_unit__id=bottom_level_time_unit_id,
-                                                        sub_unit=None).exists():
-                    display_unit_config = DisplayUnitConfig(display_config=self.default_display_config,
-                                                            time_unit=self.get_bottom_level_time_unit(),
-                                                            sub_unit=None)
-                    display_unit_config.save()
-                    if not self.default_display_config.default_display_unit_config:
-                        self.default_display_config.default_display_unit_config = display_unit_config
-                        self.default_display_config.save()
 
     def is_linked(self) -> bool:
         """
