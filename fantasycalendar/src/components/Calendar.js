@@ -53,7 +53,7 @@ export default class Calendar extends React.Component {
                 dateBookmarks: calendar.date_bookmarks,  // for convenience
             });
             var displayConfigId = this.props.displayConfigId ?? calendar.default_display_config;
-            if (displayConfigId)  // technically 0 can be passed explicitly to this.props.displayConfigId to force using no display config on calendars with a default set but it does not work very well
+            if (displayConfigId)  // 0 can be passed explicitly to this.props.displayConfigId to force using no display config on calendars with a default set
             {
                 api.getDisplayConfig(displayConfigId, resDisplayConfig => {
                     // save full display config to state

@@ -11,7 +11,7 @@ export default function CalendarPage({ timeUnit, subUnit, iteration, displayConf
 
     React.useEffect(() => {
         setLoading(n => n + 1);
-        getCalendarPage(timeUnit.id, subUnit?.id, iteration, displayConfig?.id, res => {
+        getCalendarPage(timeUnit.id, subUnit?.id, iteration, displayConfig?.id ?? 0, res => {
             setCalendarPage(res.data);
             setLoading(n => n - 1);
         });

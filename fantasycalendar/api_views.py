@@ -98,8 +98,13 @@ class CalendarPage(APIView):
             sub_unit = get_object_or_404(TimeUnit, pk=int(request.query_params.get('sub_unit_id')))
         else:
             sub_unit = time_unit.base_unit if time_unit.base_unit is not None else time_unit
-        display_config = get_object_or_404(DisplayConfig, pk=int(request.query_params.get('display_config_id'))) \
-            if 'display_config_id' in request.query_params else calendar.default_display_config  # None is OK here
+        display_config = calendar.default_display_config  # None is OK here
+        if 'display_config_id' in request.query_params:
+            display_config_id = int(request.query_params.get('display_config_id'))
+            if display_config_id > 0:
+                display_config = get_object_or_404(DisplayConfig, pk=display_config_id)
+            else:  # id of 0 or less will force using no display config
+                display_config = None   # but not providing an id at all will use the calendar default
         if display_config is not None:
             display_unit_config = get_object_or_404(  # if we are using a display_config only allow extant pages
                 DisplayUnitConfig, display_config_id=display_config.id, time_unit_id=time_unit.id,
