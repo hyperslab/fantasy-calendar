@@ -24,17 +24,23 @@ Calendar Detail
 {% else %}
     <p>No time units have been created for this calendar.</p>
 {% endif %}
-<h3>Display Configurations{% if user.pk == calendar.world.creator.pk %} <a
-        href="{% url 'fantasycalendar:display-config-create' calendar.world_id calendar.id %}">(+new)</a>{% endif %}</h3>
-{% if calendar.displayconfig_set %}
-    <ul>
-    {% for display_config in calendar.displayconfig_set.all %}
-        <li><a href="{% url 'fantasycalendar:display-config-detail' calendar.world_id calendar.id display_config.id %}">{{ display_config.display_config_name }}{% if user.pk == calendar.world.creator.pk %}</a> <a
-                href="{% url 'fantasycalendar:display-config-update' calendar.world_id calendar.id display_config.id %}">(edit)</a>{% endif %}</li>
-    {% endfor %}
-    </ul>
+{% if calendar.default_display_config %}
+    <h3>Time Unit Pages{% if user.pk == calendar.world.creator.pk %} <a
+            href="{% url 'fantasycalendar:display-unit-config-create' calendar.world_id calendar.id calendar.default_display_config.id %}">(+new)</a>{% endif %}</h3>
+    {% if calendar.default_display_config.displayunitconfig_set %}
+        <ul>
+        {% for unit_config in calendar.default_display_config.displayunitconfig_set.all %}
+        <li>{{ unit_config }}
+            {% if calendar.default_display_config.default_display_unit_config and unit_config.pk == calendar.default_display_config.default_display_unit_config.pk %} <b>(default)</b>{% endif %}
+            {% if user.pk == calendar.world.creator.pk %} <a
+                href="{% url 'fantasycalendar:display-unit-config-update' calendar.world_id calendar.id calendar.default_display_config.id unit_config.id %}">(edit)</a>{% endif %}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No time unit pages have been created for this calendar.</p>
+    {% endif %}
 {% else %}
-    <p>No display configurations have been created for this calendar.</p>
+    <h3>Time Unit Pages</h3><p>No configuration data exists for this calendar.</p>
 {% endif %}
 <h3>Shared Date Bookmarks{% if user.pk == calendar.world.creator.pk %} <a
         href="{% url 'fantasycalendar:date-bookmark-create' calendar.world_id calendar.id %}">(+new)</a>{% endif %}</h3>
@@ -42,7 +48,9 @@ Calendar Detail
     <ul>
     {% for date_bookmark in calendar.datebookmark_set.all %}
         {% if not date_bookmark.is_personal %}
-        <li>{{ date_bookmark.get_display_name  }}{% if user.pk == calendar.world.creator.pk %} <a
+        <li>{{ date_bookmark.get_display_name  }}
+            {% if calendar.default_display_config and calendar.default_display_config.default_date_bookmark and date_bookmark.pk == calendar.default_display_config.default_date_bookmark.pk %} <b>(default)</b>{% endif %}
+            {% if user.pk == calendar.world.creator.pk %} <a
                 href="{% url 'fantasycalendar:date-bookmark-update' calendar.world_id calendar.id date_bookmark.id %}">(edit)</a>{% endif %}</li>
         {% endif %}
     {% endfor %}

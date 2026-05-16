@@ -398,10 +398,9 @@ class DisplayUnitConfigCreateView(UserPassesTestMixin, generic.CreateView):
         return super(DisplayUnitConfigCreateView, self).form_valid(form)
 
     def get_success_url(self):
-        return reverse('fantasycalendar:display-config-detail',
-                       kwargs={'pk': self.object.display_config.id,
-                               'world_key': self.object.display_config.calendar.world.id,
-                               'calendar_key': self.object.display_config.calendar.id})
+        return reverse('fantasycalendar:calendar-detail',
+                       kwargs={'pk': self.object.display_config.calendar.id,
+                               'world_key': self.object.display_config.calendar.world.id})
 
 
 class DateBookmarkCreateView(UserPassesTestMixin, generic.CreateView):
@@ -605,10 +604,9 @@ class DisplayUnitConfigUpdateView(UserPassesTestMixin, generic.UpdateView):
         return form
 
     def get_success_url(self):
-        return reverse('fantasycalendar:display-config-detail',
-                       kwargs={'pk': self.object.display_config.id,
-                               'world_key': self.object.display_config.calendar.world.id,
-                               'calendar_key': self.object.display_config.calendar.id})
+        return reverse('fantasycalendar:calendar-detail',
+                       kwargs={'pk': self.object.display_config.calendar.id,
+                               'world_key': self.object.display_config.calendar.world.id})
 
 
 class DateBookmarkUpdateView(UserPassesTestMixin, generic.UpdateView):
