@@ -146,10 +146,11 @@ export default class Calendar extends React.Component {
         this.setState({ displayIteration: this.state.displayIteration + 1 });
     }
 
-    handleBaseUnitInstanceClick = (baseUnitId, baseIteration) => {
+    handleTimeUnitInstanceClick = (timeUnitId, subUnitId, iteration) => {
         this.setState({
-            displayUnit: this.state.timeUnits.find(x => x.id == baseUnitId),
-            displayIteration: baseIteration,
+            displayUnit: this.state.timeUnits.find(x => x.id == timeUnitId),
+            displaySubUnit: subUnitId ? this.state.timeUnits.find(x => x.id == subUnitId) : '',
+            displayIteration: iteration,
         });
     }
 
@@ -157,8 +158,8 @@ export default class Calendar extends React.Component {
         api.getTimeUnitEquivalentIteration(this.state.displayUnit.id, this.state.displayIteration, newUnitId, res => {
             this.setState({
                 displayUnit: this.state.timeUnits.find(x => x.id == newUnitId),
-                displayIteration: res.data.iteration,
                 displaySubUnit: this.state.timeUnits.find(x => x.id == newSubUnitId),
+                displayIteration: res.data.iteration,
             });
         });
     }
@@ -175,8 +176,8 @@ export default class Calendar extends React.Component {
         const newBookmark = this.state.dateBookmarks.find(x => x.id == newBookmarkId);
         this.setState({
             displayUnit: this.state.timeUnits.find(x => x.id == newBookmark.bookmark_unit),
-            displayIteration: newBookmark.bookmark_iteration,
             displaySubUnit: newBookmark.bookmark_sub_unit != null ? this.state.timeUnits.find(x => x.id == newBookmark.bookmark_sub_unit) : '',
+            displayIteration: newBookmark.bookmark_iteration,
             selectedBookmarkId: '',
         });
     }
@@ -239,7 +240,7 @@ export default class Calendar extends React.Component {
                     </span>
                     <PageForwardButton timeUnitName={this.state.displayUnit.time_unit_name} onClick={this.handlePageForwardClick} />
                 </span>
-                <CalendarPage timeUnit={this.state.displayUnit} subUnit={this.state.displaySubUnit} iteration={this.state.displayIteration} displayConfig={this.state.displayConfig} baseUnitInstanceClickHandler={this.handleBaseUnitInstanceClick} />
+                <CalendarPage timeUnit={this.state.displayUnit} subUnit={this.state.displaySubUnit} iteration={this.state.displayIteration} displayConfig={this.state.displayConfig} timeUnitInstanceClickHandler={this.handleTimeUnitInstanceClick} />
             </div>
         );
     }

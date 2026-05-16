@@ -115,10 +115,10 @@ class DisplayUnitConfigUpdateForm(forms.ModelForm):
     class Meta:
         model = DisplayUnitConfig
         fields = ['search_type', 'searchable_date_formats', 'header_display_name_type', 'header_other_date_format',
-                  'sub_unit_display_name_type', 'sub_unit_other_date_format', 'row_grouping_time_unit',
-                  'row_grouping_label_type', 'block_grouping_time_unit', 'show_events', 'max_events_per_instance',
-                  'show_linked_instance_display_names', 'linked_instance_display_name_type',
-                  'show_linked_instance_events']
+                  'sub_unit_display_name_type', 'sub_unit_other_date_format', 'sub_unit_page', 'row_grouping_time_unit',
+                  'row_grouping_label_type', 'row_unit_page', 'block_grouping_time_unit', 'block_unit_page',
+                  'show_events', 'max_events_per_instance', 'show_linked_instance_display_names',
+                  'linked_instance_display_name_type', 'show_linked_instance_events']
 
     def clean(self):
         cleaned_data = super().clean()
@@ -144,6 +144,24 @@ class DisplayUnitConfigUpdateForm(forms.ModelForm):
             elif len(cleaned_data['row_grouping_time_unit'].get_expanded_length_cycle()) < 1:
                 self.add_error('row_grouping_time_unit',
                                ValidationError(_("Error: row grouping time unit has no length cycle!")))
+        if cleaned_data['row_unit_page']:
+            if not cleaned_data['row_grouping_time_unit']:
+                self.add_error('row_unit_page',
+                               ValidationError(_("Error: row unit page requires a row grouping time unit!")))
+            elif cleaned_data['row_grouping_label_type'] != 'counts':
+                self.add_error('row_unit_page',
+                               ValidationError(_("Error: row unit page requires rows labeled by count!")))
+            elif cleaned_data['row_grouping_time_unit'].pk != cleaned_data['row_unit_page'].time_unit.pk:
+                self.add_error('row_unit_page',
+                               ValidationError(_("Error: row unit page time unit must match row grouping time unit!")))
+        if cleaned_data['block_unit_page']:
+            if not cleaned_data['block_grouping_time_unit']:
+                self.add_error('block_unit_page',
+                               ValidationError(_("Error: block unit page requires a block grouping time unit!")))
+            elif cleaned_data['block_grouping_time_unit'].pk != cleaned_data['block_unit_page'].time_unit.pk:
+                self.add_error('block_unit_page',
+                               ValidationError(_("Error: block unit page time unit must match block grouping time "
+                                                 "unit!")))
         return cleaned_data
 
 class DateBookmarkCreateForm(forms.ModelForm):

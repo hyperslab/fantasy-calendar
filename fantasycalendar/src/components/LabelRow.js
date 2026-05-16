@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function LabelRow({ labelText }) {
+export default function LabelRow({ labelText, timeUnitId, subUnitId, timeUnitIteration, headerClickable, timeUnitInstanceClickHandler }) {
     const gridStyleOverrides = {
         display: 'flex',
         alignItems: 'center',
@@ -11,7 +11,11 @@ export default function LabelRow({ labelText }) {
 
     return (
         <div className="grid-item" style={gridStyleOverrides}>
-            <div className="grid-item-label-large">&nbsp;&nbsp;{labelText}&nbsp;&nbsp;</div>
+            {headerClickable ? (
+                <div className="grid-item-label-large clickable-text" onClick={() => timeUnitInstanceClickHandler(timeUnitId, subUnitId, timeUnitIteration)}>&nbsp;&nbsp;{labelText}&nbsp;&nbsp;</div>
+            ) : (
+                <div className="grid-item-label-large">&nbsp;&nbsp;{labelText}&nbsp;&nbsp;</div>
+            )}
         </div>
     );
 }

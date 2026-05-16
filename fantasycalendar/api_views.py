@@ -118,6 +118,7 @@ class CalendarPage(APIView):
         instances = time_unit.get_sub_unit_instances(iteration=iteration, sub_unit=sub_unit)
         first_sub_iteration = time_unit.get_first_sub_unit_iteration_at_iteration(iteration=iteration,
                                                                                   sub_unit=sub_unit)
+        first_bottom_level_iteration = time_unit.get_first_bottom_level_iteration_at_iteration(iteration=iteration)
         iterations = [first_sub_iteration + x for x in range(len(instances))]
         events = sub_unit.get_events_at_iterations(iterations)
         instance_display_names = sub_unit.get_instance_display_names(iterations=iterations,
@@ -139,11 +140,14 @@ class CalendarPage(APIView):
             row_grouping_label_type = display_unit_config.row_grouping_label_type
             row_grouping_offset = (row_grouping_unit.get_sub_unit_instance_iteration_within_higher_level_iteration(
                 sub_unit=sub_unit,sub_unit_iteration=first_sub_iteration)) - 1
+            row_grouping_first_iteration = row_grouping_unit.get_iteration_at_bottom_level_iteration(
+                bottom_level_iteration=first_bottom_level_iteration)
         else:
             row_grouping_instances = []
             row_length = 0
             row_grouping_label_type = ''
             row_grouping_offset = 0
+            row_grouping_first_iteration = 1
 
         # pull block grouping information
         block_grouping_unit = display_unit_config.block_grouping_time_unit if display_unit_config is not None else None
@@ -162,6 +166,7 @@ class CalendarPage(APIView):
             block_unit_iterations = [0]
             block_start_iterations = []
             block_names = ['']
+        blocks = zip(block_names, block_unit_iterations)
 
         # build list of dates
         calendar_dates = []
@@ -200,11 +205,30 @@ class CalendarPage(APIView):
             header_row = [iteration for iteration, instance in enumerate(row_grouping_instances)]
         if row_grouping_label_type == 'counts':
             # 'counts' labels the rows, not the columns, as 'Row 1', 'Row 2' etc.
-            header_column = [row_grouping_unit.time_unit_name + ' ' + str(count + 1)
+            header_column_names = [row_grouping_unit.time_unit_name + ' ' + str(count + 1)
                              for count in range(math.ceil((row_grouping_offset + len(instances)) / row_length))]
-        sub_unit_page_exists = DisplayUnitConfig.objects.filter(display_config_id=display_config.id,
-                                                                 time_unit_id=sub_unit.pk).exists() \
-            if display_config is not None else True
+            header_column_iterations = [count for count in range(
+                row_grouping_first_iteration, row_grouping_first_iteration + len(header_column_names))]
+            header_column = zip(header_column_names, header_column_iterations)
+
+        # pull related time unit pages
+        if display_unit_config is None:
+            sub_unit_page = [sub_unit.pk, None]
+            row_unit_page = None
+            block_unit_page = None
+        else:
+            sub_unit_page = \
+                [display_unit_config.sub_unit_page.time_unit.pk, display_unit_config.sub_unit_page.sub_unit.pk
+                if display_unit_config.sub_unit_page.sub_unit else None] \
+                    if display_unit_config.sub_unit_page else None
+            row_unit_page = \
+                [display_unit_config.row_unit_page.time_unit.pk, display_unit_config.row_unit_page.sub_unit.pk
+                if display_unit_config.row_unit_page.sub_unit else None] \
+                    if display_unit_config.row_unit_page else None
+            block_unit_page = \
+                [display_unit_config.block_unit_page.time_unit.pk, display_unit_config.block_unit_page.sub_unit.pk
+                if display_unit_config.block_unit_page.sub_unit else None] \
+                    if display_unit_config.block_unit_page else None
 
         # assemble and send response
         data = dict()
@@ -213,8 +237,10 @@ class CalendarPage(APIView):
         data["initial_offset"] = row_grouping_offset
         data["header_row"] = header_row
         data["header_column"] = header_column
-        data["sub_unit_page_exists"] = sub_unit_page_exists
-        data["block_names"] = block_names
+        data["blocks"] = blocks
+        data["sub_unit_page"] = sub_unit_page
+        data["row_unit_page"] = row_unit_page
+        data["block_unit_page"] = block_unit_page
         return Response(data)
 
 

@@ -6,7 +6,7 @@ from decimal import Decimal
 
 from django.db import models
 from django.contrib import admin
-from django.db.models import F, Q, FilteredRelation
+from django.db.models import F, Q
 from django.urls import reverse
 from django.conf import settings
 from .utils import html_tooltip
@@ -1590,6 +1590,11 @@ class DisplayUnitConfig(models.Model):
                                                     help_text=html_tooltip('The date format to use if "Other" is '
                                                                            'selected for the sub unit display name '
                                                                            'type'))
+    sub_unit_page = models.ForeignKey('DisplayUnitConfig', on_delete=models.SET_NULL, related_name='+', blank=True,
+                                      null=True,
+                                      help_text=html_tooltip('The time unit page to navigate to when the sub unit '
+                                                             'header is clicked; if blank, the sub unit header will '
+                                                             'not be clickable'))
     row_grouping_time_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE, related_name='+', blank=True,
                                                null=True,
                                                help_text=html_tooltip('An optional time unit that can be used to '
@@ -1616,6 +1621,10 @@ class DisplayUnitConfig(models.Model):
                                                                       'Wednesday), or labels on each row that count '
                                                                       'the occurrences of the row grouping unit (Week '
                                                                       '1, Week 2, etc.)'))
+    row_unit_page = models.ForeignKey('DisplayUnitConfig', on_delete=models.SET_NULL, related_name='+', blank=True,
+                                      null=True,
+                                      help_text=html_tooltip('The time unit page to navigate to when the row label is '
+                                                             'clicked; if blank, the row label will not be clickable'))
     block_grouping_time_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE, related_name='+', blank=True,
                                                  null=True,
                                                  help_text=html_tooltip('An optional time unit that can be used to '
@@ -1623,6 +1632,11 @@ class DisplayUnitConfig(models.Model):
                                                                         'many real life year calendar pages are '
                                                                         'blocked by month; must have the page\'s sub '
                                                                         'unit as one of its own sub units'))
+    block_unit_page = models.ForeignKey('DisplayUnitConfig', on_delete=models.SET_NULL, related_name='+', blank=True,
+                                        null=True,
+                                        help_text=html_tooltip('The time unit page to navigate to when the block label '
+                                                               'is clicked; if blank, the block label will not be '
+                                                               'clickable'))
     show_events = models.BooleanField(default=True,
                                       help_text=html_tooltip('Whether to show events on your calendar page for this '
                                                              'time unit'))

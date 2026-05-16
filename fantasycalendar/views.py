@@ -583,21 +583,32 @@ class DisplayUnitConfigUpdateView(UserPassesTestMixin, generic.UpdateView):
             form.fields['sub_unit_other_date_format'].queryset = DateFormat.objects.filter(
                 time_unit_id=form.instance.sub_unit_id)
             form.fields['row_grouping_time_unit'].queryset = TimeUnit.objects.filter(
-                base_unit_id=form.instance.sub_unit.id)
+                base_unit_id=form.instance.sub_unit_id)
             form.fields['block_grouping_time_unit'].queryset = TimeUnit.objects.filter(
                 id__in=[unit.id for unit in form.instance.sub_unit.get_all_higher_containing_units()])
+            form.fields['sub_unit_page'].queryset = DisplayUnitConfig.objects.filter(
+                time_unit_id=form.instance.sub_unit_id, display_config_id=form.instance.display_config_id)
         elif form.instance.time_unit.base_unit:
             form.fields['sub_unit_other_date_format'].queryset = DateFormat.objects.filter(
                 time_unit_id=form.instance.time_unit.base_unit_id)
             form.fields['row_grouping_time_unit'].queryset = TimeUnit.objects.filter(
-                base_unit_id=form.instance.time_unit.base_unit.id)
+                base_unit_id=form.instance.time_unit.base_unit_id)
             form.fields['block_grouping_time_unit'].queryset = TimeUnit.objects.filter(
                 id__in=[unit.id for unit in form.instance.time_unit.base_unit.get_all_higher_containing_units()])
+            form.fields['sub_unit_page'].queryset = DisplayUnitConfig.objects.filter(
+                time_unit_id=form.instance.time_unit.base_unit_id, display_config_id=form.instance.display_config_id)
         else:
             form.fields['sub_unit_other_date_format'].queryset = DateFormat.objects.filter(
                 time_unit_id=form.instance.time_unit_id)
-            form.fields['row_grouping_time_unit'].queryset = TimeUnit.objects.filter(pk=form.instance.time_unit.id)
-            form.fields['block_grouping_time_unit'].queryset = TimeUnit.objects.filter(pk=form.instance.time_unit.id)
+            form.fields['row_grouping_time_unit'].queryset = TimeUnit.objects.filter(pk=form.instance.time_unit_id)
+            form.fields['block_grouping_time_unit'].queryset = TimeUnit.objects.filter(pk=form.instance.time_unit_id)
+            form.fields['sub_unit_page'].queryset = DisplayUnitConfig.objects.none()
+        form.fields['row_unit_page'].queryset = DisplayUnitConfig.objects.filter(
+            time_unit__in=form.fields['row_grouping_time_unit'].queryset,
+            display_config_id=form.instance.display_config_id).exclude(id=form.instance.id)
+        form.fields['block_unit_page'].queryset = DisplayUnitConfig.objects.filter(
+            time_unit__in=form.fields['block_grouping_time_unit'].queryset,
+            display_config_id=form.instance.display_config_id).exclude(id=form.instance.id)
         form.fields['linked_instance_display_name_type'].choices = \
             [x for x in form.fields['linked_instance_display_name_type'].choices
              if x[0] != DisplayUnitConfig.DisplayNameType.OTHER_FORMAT]

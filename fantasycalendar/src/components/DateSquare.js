@@ -1,7 +1,7 @@
 import React from 'react';
 import EventRow from './EventRow.js';
 
-export default function DateSquare({ timeUnitId, timeUnitInstance, headerClickable, baseUnitInstanceClickHandler, showEventDescription, maxEvents = 99, showLinkedDisplayNames = true, showLinkedEvents = true, showExtraEventEllipsis = false }) {
+export default function DateSquare({ timeUnitId, subUnitId, timeUnitInstance, headerClickable, timeUnitInstanceClickHandler, showEventDescription, maxEvents = 99, showLinkedDisplayNames = true, showLinkedEvents = true, showExtraEventEllipsis = false }) {
     const rows = [];
     let header = timeUnitInstance.display_name;
     const displayEvents = [];
@@ -33,7 +33,7 @@ export default function DateSquare({ timeUnitId, timeUnitInstance, headerClickab
     return (
         <div className="grid-item">
             {headerClickable ? (
-                <div className="grid-item-header clickable-text" onClick={() => baseUnitInstanceClickHandler(timeUnitId, timeUnitInstance.iteration)}>{header}</div>
+                <div className="grid-item-header clickable-text" onClick={() => timeUnitInstanceClickHandler(timeUnitId, subUnitId, timeUnitInstance.iteration)}>{header}</div>
             ) : (
                 <div className="grid-item-header">{header}</div>
             )}
