@@ -6,7 +6,7 @@ from decimal import Decimal
 
 from django.db import models
 from django.contrib import admin
-from django.db.models import F, Q
+from django.db.models import F, Q, FilteredRelation
 from django.urls import reverse
 from django.conf import settings
 from .utils import html_tooltip
@@ -62,17 +62,61 @@ class Calendar(models.Model):
 
     def ensure_bottom_level_time_unit(self, default_name="Day"):
         """
-        Create a default bottom-level time unit for this calendar if it does
-        not have one.
+        Create a default bottom-level time unit for this calendar if it
+        does not have one.
         """
         if not TimeUnit.objects.filter(calendar_id=self.pk, base_unit=None).exists():
             time_unit = TimeUnit(time_unit_name=default_name, calendar=self)
             time_unit.save()
 
+    def ensure_default_display_config(self, default_name="Default Display Config", add_bottom_level_page=True):
+        """
+        Create a default display config for this calendar if it does
+        not have any. If it does have display configs but none are set
+        as the default, pick one at random and set it as the default.
+
+        If add_bottom_level_page is True, a display unit config for
+        this calendar's bottom level time unit will be created on the
+        newly created display config. If it is True and the calendar
+        has existing display configs but none are set as the default,
+        a display config must already have a bottom level time unit
+        page to be assigned as the default. If none match this
+        condition, a new display config will be created. If there is
+        already a default display config but it does not have a bottom
+        level time unit page, no page will be created.
+        """
+        bottom_level_time_unit_id = self.get_bottom_level_time_unit().pk
+        if not self.default_display_config:
+            possible_display_configs = DisplayConfig.objects.filter(calendar_id=self.pk)
+            if add_bottom_level_page:
+                possible_display_configs = possible_display_configs.filter(
+                    displayunitconfig__time_unit=bottom_level_time_unit_id,
+                    displayunitconfig__sub_unit=None
+                )
+            candidate_display_config = possible_display_configs.first()
+            if candidate_display_config:
+                display_config = candidate_display_config
+            else:
+                display_config = DisplayConfig(display_config_name=default_name, calendar=self)
+                display_config.save()
+            self.default_display_config = display_config
+            self.save()
+            if add_bottom_level_page:
+                if not DisplayUnitConfig.objects.filter(display_config=self.default_display_config,
+                                                        time_unit__id=bottom_level_time_unit_id,
+                                                        sub_unit=None).exists():
+                    display_unit_config = DisplayUnitConfig(display_config=self.default_display_config,
+                                                            time_unit=self.get_bottom_level_time_unit(),
+                                                            sub_unit=None)
+                    display_unit_config.save()
+                    if not self.default_display_config.default_display_unit_config:
+                        self.default_display_config.default_display_unit_config = display_unit_config
+                        self.default_display_config.save()
+
     def is_linked(self) -> bool:
         """
-        Return True if this calendar is set up to link to other calendars in
-        the same world.
+        Return True if this calendar is set up to link to other
+        calendars in the same world.
         """
         return self.world_link_iteration is not None
 

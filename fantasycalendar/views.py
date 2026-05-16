@@ -205,6 +205,7 @@ class CalendarCreateView(UserPassesTestMixin, generic.CreateView):
         form.instance.world = world
         form.instance.save()
         form.instance.ensure_bottom_level_time_unit()
+        form.instance.ensure_default_display_config()
         return super(CalendarCreateView, self).form_valid(form)
 
 
