@@ -2,13 +2,54 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
-from .models import DisplayConfig, DisplayUnitConfig, DateBookmark
+from .models import Calendar, DisplayConfig, DisplayUnitConfig, DateBookmark
+
+
+class CalendarUpdateForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(CalendarUpdateForm, self).__init__(*args, **kwargs)
+        if self.instance.default_display_config:
+            self.fields['default_time_unit_page'] = forms.ModelChoiceField(
+                DisplayUnitConfig.objects.filter(display_config_id=self.instance.default_display_config.pk),
+                initial=self.instance.default_display_config.default_display_unit_config.pk
+                    if self.instance.default_display_config.default_display_unit_config else None,
+                help_text=DisplayConfig._meta.get_field('default_display_unit_config').help_text)
+            self.fields['default_date_bookmark'] = forms.ModelChoiceField(
+                DateBookmark.objects.filter(calendar_id=self.instance.pk), required=False,
+                initial=self.instance.default_display_config.default_date_bookmark.pk
+                    if self.instance.default_display_config.default_date_bookmark else None,
+                help_text=DisplayConfig._meta.get_field('default_date_bookmark').help_text)
+
+    class Meta:
+        model = Calendar
+        fields = ['calendar_name', 'world_link_iteration']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if self.instance.default_display_config:
+            time_unit_key = cleaned_data['default_time_unit_page'].time_unit.pk
+            sub_unit_key = cleaned_data['default_time_unit_page'].sub_unit.pk \
+                if cleaned_data['default_time_unit_page'].sub_unit else None
+            if cleaned_data['default_date_bookmark']:
+                if cleaned_data['default_date_bookmark'].bookmark_unit.pk != time_unit_key:
+                    self.add_error('default_date_bookmark',
+                                   ValidationError(_("Error: default bookmark's time unit does not match display "
+                                                     "unit!"), code='invalid'))
+                elif ((sub_unit_key and not cleaned_data['default_date_bookmark'].bookmark_sub_unit) or
+                      (not sub_unit_key and cleaned_data['default_date_bookmark'].bookmark_sub_unit) or
+                      (sub_unit_key and cleaned_data['default_date_bookmark'].bookmark_sub_unit and
+                       cleaned_data['default_date_bookmark'].bookmark_sub_unit.pk != sub_unit_key)):
+                    self.add_error('default_date_bookmark',
+                                   ValidationError(_("Error: default bookmark's sub unit does not match display sub "
+                                                     "unit!"), code='invalid'))
+        return cleaned_data
 
 
 class DisplayConfigCreateForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(DisplayConfigCreateForm, self).__init__(*args, **kwargs)
-        self.fields['default_time_unit_page'] = forms.ChoiceField()
+        self.fields['default_time_unit_page'] = forms.ChoiceField(
+            help_text=DisplayConfig._meta.get_field('default_display_unit_config').help_text)
 
     class Meta:
         model = DisplayConfig

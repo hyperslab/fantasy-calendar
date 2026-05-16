@@ -7,7 +7,7 @@ from django.views import generic
 from .models import (World, Calendar, TimeUnit, Event, EventGroup, DateFormat, DisplayConfig, DateBookmark,
                      DisplayUnitConfig)
 from .forms import (DisplayConfigCreateForm, DisplayConfigUpdateForm, DisplayUnitConfigCreateForm,
-                    DisplayUnitConfigUpdateForm, DateBookmarkCreateForm)
+                    DisplayUnitConfigUpdateForm, DateBookmarkCreateForm, CalendarUpdateForm)
 
 
 class WorldIndexView(generic.ListView):
@@ -451,17 +451,20 @@ class WorldUpdateView(UserPassesTestMixin, generic.UpdateView):
 
 class CalendarUpdateView(UserPassesTestMixin, generic.UpdateView):
     model = Calendar
+    form_class = CalendarUpdateForm
     template_name = 'fantasycalendar/calendar_update_form.html'
-    fields = ['calendar_name', 'world_link_iteration', 'default_display_config']
 
     def test_func(self):
         world = get_object_or_404(Calendar, pk=self.kwargs['pk']).world
         return self.request.user == world.creator
 
-    def get_form(self, form_class=None):
-        form = super(CalendarUpdateView, self).get_form()
-        form.fields['default_display_config'].queryset = DisplayConfig.objects.filter(calendar_id=self.kwargs['pk'])
-        return form
+    def form_valid(self, form):
+        if form.instance.default_display_config:
+            form.instance.default_display_config.default_display_unit_config = (
+                form.cleaned_data)['default_time_unit_page']
+            form.instance.default_display_config.default_date_bookmark = form.cleaned_data['default_date_bookmark']
+            form.instance.default_display_config.save()
+        return super(CalendarUpdateView, self).form_valid(form)
 
 
 class TimeUnitUpdateView(UserPassesTestMixin, generic.UpdateView):
