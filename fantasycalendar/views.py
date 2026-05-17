@@ -284,6 +284,15 @@ class EventGroupCreateView(UserPassesTestMixin, generic.CreateView):
         world = get_object_or_404(World, pk=self.kwargs['world_key'])
         return self.request.user == world.creator
 
+    def form_valid(self, form):
+        calendar = get_object_or_404(Calendar, pk=self.kwargs['calendar_key'])
+        form.instance.calendar = calendar
+        return super(EventGroupCreateView, self).form_valid(form)
+
+    def get_success_url(self):
+        return reverse('fantasycalendar:calendar-detail',
+                       kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
+
 
 class DateFormatCreateView(UserPassesTestMixin, generic.CreateView):
     model = DateFormat
