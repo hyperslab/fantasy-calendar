@@ -20,7 +20,6 @@ MIDDLEWARE = [
 ]
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 conn_str = os.environ['AZURE_SQL_CONNECTIONSTRING']
 conn_str_params = {pair.split('=')[0]: pair.split('=')[1] for pair in conn_str.split(';')}

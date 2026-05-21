@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'set this in local_settings.py or azure_settings.py'
+SECRET_KEY = 'set this in local_settings.py or azure_*_settings.py'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -128,6 +128,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -157,8 +158,14 @@ INTERNAL_IPS = [
 # Copy environment settings which should contain the real SECRET_KEY
 # Can also override any other settings
 
-if 'WEBSITE_HOSTNAME' in os.environ:
-    from .azure_settings import *
+# put "ENV CONTAINER=yes" in Dockerfile to use container settings
+if 'CONTAINER' in os.environ and len(os.environ['CONTAINER']) > 0 and os.environ['CONTAINER'].lower()[0] == 'y':
+    if 'CONTAINER_APP_ENV_DNS_SUFFIX' in os.environ:
+        from .azure_container_settings import *
+    else:
+        from .container_build_settings import *  # "dummy" settings so Docker builds correctly
+elif 'WEBSITE_HOSTNAME' in os.environ:
+    from .azure_app_settings import *
 else:
     try:
         from .local_settings import *
