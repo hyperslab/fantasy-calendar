@@ -40,7 +40,7 @@ export default function CalendarPage({ timeUnit, subUnit, iteration, displayConf
     }
 
     let subUnitPage = calendarPage.sub_unit_page;
-    if (subUnitPage && subUnitPage[0] == timeUnit.id && subUnitPage[1] == subUnit.id) {
+    if (subUnitPage && subUnitPage[0] == timeUnit.id && ((!subUnit && !subUnitPage[1]) || subUnitPage[1] == subUnit?.id)) {
         subUnitPage = null;  // don't allow navigation to the page we're already on
     }
 
@@ -56,7 +56,7 @@ export default function CalendarPage({ timeUnit, subUnit, iteration, displayConf
         blockIterations.push(block[1]);
     });
     let blockUnitPage = calendarPage.block_unit_page;
-    if (blockUnitPage && blockUnitPage[0] == timeUnit.id && blockUnitPage[1] == subUnit.id) {
+    if (blockUnitPage && blockUnitPage[0] == timeUnit.id && ((!subUnit && !blockUnitPage[1]) || blockUnitPage[1] == subUnit?.id)) {
         blockUnitPage = null;  // don't allow navigation to the page we're already on
     }
     if (blockNames.length > 0 && blockNames[0]) {
@@ -96,7 +96,7 @@ export default function CalendarPage({ timeUnit, subUnit, iteration, displayConf
         rowIterations.push(row[1]);
     });
     let rowUnitPage = calendarPage.row_unit_page;
-    if (rowUnitPage && rowUnitPage[0] == timeUnit.id && rowUnitPage[1] == subUnit.id) {
+    if (rowUnitPage && rowUnitPage[0] == timeUnit.id && ((!subUnit && !rowUnitPage[1]) || rowUnitPage[1] == subUnit?.id)) {
         rowUnitPage = null;  // don't allow navigation to the page we're already on
     }
     if (calendarPage.row_length > 0 && rowNames.length > 0) {
