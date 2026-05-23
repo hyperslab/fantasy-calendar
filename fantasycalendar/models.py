@@ -1490,7 +1490,7 @@ class DisplayConfig(models.Model):
         return reverse('fantasycalendar:display-config-detail', kwargs={'pk': self.pk, 'calendar_key': self.calendar.pk,
                                                                         'world_key': self.calendar.world.pk})
 
-    def get_possible_display_unit_configs(self) -> list[(TimeUnit, TimeUnit)]:
+    def get_possible_display_unit_configs(self, include_non_bottom_singles: bool = False) -> list[(TimeUnit, TimeUnit)]:
         """
         Return a list of tuples of a time unit and a corresponding sub
         time unit representing all possible valid DisplayUnitConfig
@@ -1504,31 +1504,37 @@ class DisplayConfig(models.Model):
         For example, in a Calendar with "Day", "Month," and "Year" as
         its time units, this would return (in no particular order):
         [Day, None] (single day)
-        [Month, None] (single month)
-        [Year, None] (single year)
         [Month, Day] (all days within a month)
         [Year, Day] (all days within a year)
         [Year, Month] (all months within a year)
 
-        Note that single instance displays tend to show all instances
-        of their  base unit. So, in this example, by default,
-        [Month, None] and [Month, Day] will be virtually equivalent.
+        By default, [Month, None] and [Year, None] are not included.
+        The typical behavior of single instance displays for
+        non-bottom-level time units is to show all instances of their
+        base unit, rendering these pages equivalent to [Month, Day] and
+        [Year, Month] respectively. Set include_non_bottom_singles to
+        True to include these functional duplicates.
         """
         possible_unit_configs = []
         for unit in TimeUnit.objects.filter(calendar_id=self.calendar.pk):
-            possible_unit_configs.append((unit, None))
+            if unit.is_bottom_level() or include_non_bottom_singles:
+                possible_unit_configs.append((unit, None))
             for parent_unit in unit.get_all_higher_containing_units():
                 possible_unit_configs.append((parent_unit, unit))
         return possible_unit_configs
 
-    def get_unused_display_unit_configs(self) -> list[(TimeUnit, TimeUnit)]:
+    def get_unused_display_unit_configs(self, include_non_bottom_singles: bool = False) -> list[(TimeUnit, TimeUnit)]:
         """
         Return a list of tuples of a sub time unit and a parent time
         unit representing all possible valid DisplayUnitConfig
         instances for this DisplayConfig that do not currently exist.
+
+        See get_possible_display_unit_configs for details of what
+        constitutes a possible valid DisplayUnitConfig instance.
         """
         existing_unit_configs = self.displayunitconfig_set.all()
-        possible_unit_configs = self.get_possible_display_unit_configs()
+        possible_unit_configs = self.get_possible_display_unit_configs(
+            include_non_bottom_singles=include_non_bottom_singles)
         unused_unit_configs = [pc for pc in possible_unit_configs if pc not in
                                [(ec.time_unit, ec.sub_unit) for ec in existing_unit_configs]]
         return unused_unit_configs
