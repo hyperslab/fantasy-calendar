@@ -27,3 +27,4 @@ README.md
 fcsite/local*settings.py
 **/*.sqlite3
 LICENSE
+**/.idea

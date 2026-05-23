@@ -1,11 +1,12 @@
-FROM node:18-alpine
+FROM node:18-alpine AS react
 
-WORKDIR /app/fantasycalendar
+WORKDIR /src/fantasycalendar
 
-COPY package.json yarn.lock ./
+COPY fantasycalendar/package.json fantasycalendar/yarn.lock fantasycalendar/webpack.config.js fantasycalendar/.babelrc ./
+
 RUN yarn install --frozen-lockfile
 
-COPY . .
+COPY fantasycalendar/src/. ./src/
 
 RUN yarn run build
 
@@ -15,6 +16,7 @@ FROM python:3.11
 ENV CONTAINER=yes
 
 # install msodbc
+WORKDIR /pkg
 RUN curl -sSL -O https://packages.microsoft.com/config/ubuntu/24.04/packages-microsoft-prod.deb
 RUN dpkg -i packages-microsoft-prod.deb
 RUN rm packages-microsoft-prod.deb
@@ -28,6 +30,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
+
+COPY --from=react /src/fantasycalendar/static/fantasycalendar/main.js /app/fantasycalendar/static/fantasycalendar/main.js
 
 # missing static files will blow everything up without this
 RUN python manage.py collectstatic --no-input
