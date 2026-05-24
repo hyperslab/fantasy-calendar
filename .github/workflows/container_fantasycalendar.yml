@@ -23,7 +23,7 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Log in to ACR
-        uses: azure/docker-login@v3
+        uses: azure/docker-login@v4
         with:
           login-server: ${{ secrets.AZURE_CONTAINER_REGISTRY }}.azurecr.io
           username: ${{ secrets.AZURE_CLIENT_ID }}
