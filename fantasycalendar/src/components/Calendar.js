@@ -49,8 +49,7 @@ export default class Calendar extends React.Component {
             const calendar = resCalendar.data;
             this.setState({
                 calendar: calendar,
-                timeUnits: calendar.time_units,  // for convenience
-                dateBookmarks: calendar.date_bookmarks,  // for convenience
+                timeUnits: calendar.time_units,
             });
             var displayConfigId = this.props.displayConfigId ?? calendar.default_display_config;
             if (displayConfigId)  // 0 can be passed explicitly to this.props.displayConfigId to force using no display config on calendars with a default set
@@ -59,6 +58,10 @@ export default class Calendar extends React.Component {
                     // save full display config to state
                     const displayConfig = resDisplayConfig.data;
                     this.setState({ displayConfig: displayConfig });
+
+                    // only show bookmarks with a matching time unit page
+                    const allowedBookmarks = calendar.date_bookmarks.filter(dateBookmark => displayConfig.display_unit_configs.find(page => page.time_unit == dateBookmark.bookmark_unit && page.sub_unit == dateBookmark.bookmark_sub_unit));
+                    this.setState({ dateBookmarks: allowedBookmarks });
 
                     // determine initial time unit page with priority props > config default
                     var displayUnit = calendar.time_units.find(x => x.id == displayConfig.display_unit_configs.find(y => y.id == displayConfig.default_display_unit_config).time_unit);
@@ -95,8 +98,11 @@ export default class Calendar extends React.Component {
                     }
                     else if (displayConfig.default_date_bookmark)
                     {
-                        const dateBookmark = calendar.date_bookmarks.find(x => x.id == displayConfig.default_date_bookmark);
-                        this.setState({ displayIteration: dateBookmark.bookmark_iteration });
+                        const defaultDateBookmark = allowedBookmarks.find(x => x.id == displayConfig.default_date_bookmark);
+                        if (defaultDateBookmark)
+                        {
+                            this.setState({ displayIteration: defaultDateBookmark.bookmark_iteration });
+                        }
                     }
                     else
                     {
@@ -107,6 +113,9 @@ export default class Calendar extends React.Component {
             }
             else  // if there is no display config being used, checks for what is allowed are much less strict
             {
+                // all pages are allowed, so all bookmarks are allowed
+                this.setState({ dateBookmarks: calendar.date_bookmarks });
+
                 // determine initial time unit page with priority props > config default
                 if (this.props.hasOwnProperty('displayUnitId') && this.props.displayUnitId && calendar.time_units.find(x => x.id == this.props.displayUnitId))
                 {
