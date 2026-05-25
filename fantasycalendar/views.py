@@ -331,6 +331,10 @@ class DisplayConfigCreateView(UserPassesTestMixin, generic.CreateView):
     def get_form(self, form_class=None):
         form = super(DisplayConfigCreateView, self).get_form()
 
+        # provide default name if this is the calendar's first display config
+        if not DisplayConfig.objects.filter(calendar_id=self.kwargs['calendar_key']).exists():
+            form['display_config_name'].initial = 'Default Display Config'
+
         possible_unit_configs = []
         for unit in TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key']):
             possible_unit_configs.append((unit, None))
@@ -369,7 +373,20 @@ class DisplayConfigCreateView(UserPassesTestMixin, generic.CreateView):
             instance.default_display_unit_config = default_display_unit_config
             instance.save()
 
+        # set as calendar default if this is the calendar's first display config
+        if DisplayConfig.objects.filter(calendar_id=self.kwargs['calendar_key']).count() == 1:
+            calendar.default_display_config = form.instance
+            calendar.save()
+
         return super(DisplayConfigCreateView, self).form_valid(form)
+
+    def get_success_url(self):
+        # show calendar page instead of detail page if this is the calendar's first display config
+        if DisplayConfig.objects.filter(calendar_id=self.kwargs['calendar_key']).count() == 1:
+            return reverse('fantasycalendar:calendar-detail',
+                           kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
+        else:
+            return super(DisplayConfigCreateView, self).get_success_url()
 
 
 class DisplayUnitConfigCreateView(UserPassesTestMixin, generic.CreateView):

@@ -54,7 +54,7 @@ h1, h2, h3, h4 {
     font-variant: small-caps;
 }
 
-li a {
+li a, p a {
     color: darkcyan;
     text-decoration: none;
 }

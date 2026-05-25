@@ -40,7 +40,9 @@ Calendar Detail
         <p>No time unit pages have been created for this calendar.</p>
     {% endif %}
 {% else %}
-    <h3>Time Unit Pages</h3><p>No configuration data exists for this calendar.</p>
+    <h3>Time Unit Pages</h3>
+    <p>No configuration data exists for this calendar.{% if user.pk == calendar.world.creator.pk %} <a
+        href="{% url 'fantasycalendar:display-config-create' calendar.world_id calendar.id %}">(create it)</a>{% endif %}</p>
 {% endif %}
 <h3>Shared Date Bookmarks{% if user.pk == calendar.world.creator.pk %} <a
         href="{% url 'fantasycalendar:date-bookmark-create' calendar.world_id calendar.id %}">(+new)</a>{% endif %}</h3>
