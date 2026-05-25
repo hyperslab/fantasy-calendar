@@ -1,0 +1,21 @@
+{% extends "fantasycalendar/base.html" %}
+
+{% block title %}
+Delete a Display Unit Configuration
+{% endblock %}
+
+{% block content %}
+<form method="post">{% csrf_token %}
+    <p>Are you sure you want to delete "{{ displayunitconfig }}"?</p>
+    {% if warnings %}
+        <p><b>Warning!</b></p>
+        <ul>
+        {% for warning in warnings %}
+            <li>{{ warning }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+    {{ form.as_p }}
+    <input type="submit" value="Confirm">
+</form>
+{% endblock %}

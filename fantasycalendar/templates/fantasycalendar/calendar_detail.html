@@ -33,7 +33,10 @@ Calendar Detail
         <li>{{ unit_config }}
             {% if calendar.default_display_config.default_display_unit_config and unit_config.pk == calendar.default_display_config.default_display_unit_config.pk %} <b>(default)</b>{% endif %}
             {% if user.pk == calendar.world.creator.pk %} <a
-                href="{% url 'fantasycalendar:display-unit-config-update' calendar.world_id calendar.id calendar.default_display_config.id unit_config.id %}">(edit)</a>{% endif %}</li>
+                href="{% url 'fantasycalendar:display-unit-config-update' calendar.world_id calendar.id calendar.default_display_config.id unit_config.id %}">(edit)</a>
+                {% if not calendar.default_display_config.default_display_unit_config or unit_config.pk != calendar.default_display_config.default_display_unit_config.pk %} <a
+                    href="{% url 'fantasycalendar:display-unit-config-delete' calendar.world_id calendar.id calendar.default_display_config.id unit_config.id %}">(delete)</a>{% endif %}
+            {% endif %}</li>
         {% endfor %}
         </ul>
     {% else %}

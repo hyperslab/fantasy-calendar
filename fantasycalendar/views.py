@@ -658,3 +658,33 @@ class DateBookmarkUpdateView(UserPassesTestMixin, generic.UpdateView):
     def get_success_url(self):
         return reverse('fantasycalendar:calendar-detail',
                        kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
+
+
+class DisplayUnitConfigDeleteView(UserPassesTestMixin, generic.DeleteView):
+    model = DisplayUnitConfig
+    template_name = 'fantasycalendar/display_unit_config_delete_form.html'
+
+    def test_func(self):
+        world = get_object_or_404(DisplayUnitConfig, pk=self.kwargs['pk']).display_config.calendar.world
+        return self.request.user == world.creator
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        warnings = []
+        if not self.object.time_unit.is_bottom_level() and not self.object.sub_unit:
+            equivalent_page = 'All ' + str(self.object.time_unit.base_unit) + ' in a ' + str(self.object.time_unit)
+            if any(self.object.time_unit == time_unit and self.object.time_unit.base_unit == base_unit
+                   for time_unit, base_unit in self.object.display_config.get_unused_display_unit_configs()):
+                page_extancy = 'can be created'
+            else:
+                page_extancy = 'already exists'
+            warnings.append("Non-bottom-level pages with no sub unit can no longer be created, so if you delete this "
+                            "page, you can't create it again. An equivalent page which " + page_extancy + " is \"" +
+                            equivalent_page + "\".")
+        context['warnings'] = warnings
+        return context
+
+    def get_success_url(self):
+        return reverse('fantasycalendar:calendar-detail',
+                       kwargs={'pk': self.object.display_config.calendar.id,
+                               'world_key': self.object.display_config.calendar.world.id})
