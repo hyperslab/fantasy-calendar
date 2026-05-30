@@ -686,7 +686,8 @@ class TimeUnit(models.Model):
         last_bottom_level_iteration = self.get_last_bottom_level_iteration_at_iteration(iteration=iteration)
         return [x for x in Event.objects.filter(bottom_level_iteration__gte=first_bottom_level_iteration,
                                                 bottom_level_iteration__lte=last_bottom_level_iteration,
-                                                calendar_id=self.calendar.id).order_by('display_order')]
+                                                calendar_id=self.calendar.id).order_by('bottom_level_iteration',
+                                                                                       'display_order')]
 
     def get_events_at_iterations(self, iterations: list[int]) -> list[list['Event']]:
         """

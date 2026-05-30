@@ -152,7 +152,8 @@ class EventGroupDetailView(UserPassesTestMixin, generic.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['event_group'] = self.object
+        context['events_sorted'] = Event.objects.filter(event_group_id=self.object.id).order_by(
+            'bottom_level_iteration', 'display_order')
         return context
 
 
