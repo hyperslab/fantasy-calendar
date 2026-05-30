@@ -148,6 +148,10 @@ h2 a, h3 a, h4 a {
     cursor: pointer;
 }
 
+.display-linebreak {
+    white-space: pre-line;
+}
+
 .tooltip {
     position: relative;
     display: inline-block;

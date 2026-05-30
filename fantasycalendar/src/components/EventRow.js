@@ -9,6 +9,14 @@ export default function EventRow({ event, showDescription }) {
             </div>
         );
     }
+    else if (event.event_description.includes('\n'))
+    {
+        return (
+            <div className="grid-item-row-long display-linebreak">
+                <b>{ event.event_name }</b><p>{ event.event_description }</p>
+            </div>
+        );
+    }
     else
     {
         return (

@@ -12,7 +12,7 @@ Event Detail
     <h3>Event Group: <a href="{% url 'fantasycalendar:event-group-detail' event.calendar.world_id event.calendar_id event.event_group_id %}">{{ event.event_group.event_group_name }}</a></h3>
 {% endif %}
 <h3>Event Description</h3>
-<p>{{ event.event_description }}</p>
+<p>{{ event.event_description|linebreaksbr }}</p>
 <h3>Takes Place on:</h3>
 <p><a href="{% url 'fantasycalendar:time-unit-instance-detail' event.calendar.world_id event.calendar_id time_unit.id event.bottom_level_iteration %}">{{ display_date }}</a></p>
 {% endblock %}
