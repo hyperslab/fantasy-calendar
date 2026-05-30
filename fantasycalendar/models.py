@@ -1479,7 +1479,7 @@ class DisplayConfig(models.Model):
                                            help_text=html_tooltip('The name of this display configuration'))
     default_display_unit_config = models.ForeignKey('DisplayUnitConfig', on_delete=models.PROTECT, null=True,
                                                     help_text=html_tooltip('The time unit page to show by default'))
-    default_date_bookmark = models.ForeignKey('DateBookmark', on_delete=models.CASCADE, null=True, blank=True,
+    default_date_bookmark = models.ForeignKey('DateBookmark', on_delete=models.SET_NULL, null=True, blank=True,
                                               help_text=html_tooltip('The date to show by default when this display '
                                                                      'configuration is initially loaded'))
 

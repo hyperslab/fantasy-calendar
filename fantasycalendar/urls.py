@@ -79,4 +79,6 @@ urlpatterns = [
          views.DateBookmarkCreateView.as_view(), name="date-bookmark-create"),
     path("worlds/<int:world_key>/calendars/<int:calendar_key>/date-bookmarks/<int:pk>/edit/",
          views.DateBookmarkUpdateView.as_view(), name="date-bookmark-update"),
+    path("worlds/<int:world_key>/calendars/<int:calendar_key>/date-bookmarks/<int:pk>/delete/",
+         views.DateBookmarkDeleteView.as_view(), name="date-bookmark-delete"),
 ]

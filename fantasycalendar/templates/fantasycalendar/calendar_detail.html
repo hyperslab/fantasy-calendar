@@ -56,7 +56,8 @@ Calendar Detail
         <li>{{ date_bookmark.get_display_name  }}
             {% if calendar.default_display_config and calendar.default_display_config.default_date_bookmark and date_bookmark.pk == calendar.default_display_config.default_date_bookmark.pk %} <b>(default)</b>{% endif %}
             {% if user.pk == calendar.world.creator.pk %} <a
-                href="{% url 'fantasycalendar:date-bookmark-update' calendar.world_id calendar.id date_bookmark.id %}">(edit)</a>{% endif %}</li>
+                href="{% url 'fantasycalendar:date-bookmark-update' calendar.world_id calendar.id date_bookmark.id %}">(edit)</a> <a
+                href="{% url 'fantasycalendar:date-bookmark-delete' calendar.world_id calendar.id date_bookmark.id %}">(delete)</a>{% endif %}</li>
         {% endif %}
     {% endfor %}
     </ul>

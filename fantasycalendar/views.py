@@ -688,3 +688,27 @@ class DisplayUnitConfigDeleteView(UserPassesTestMixin, generic.DeleteView):
         return reverse('fantasycalendar:calendar-detail',
                        kwargs={'pk': self.object.display_config.calendar.id,
                                'world_key': self.object.display_config.calendar.world.id})
+
+
+class DateBookmarkDeleteView(UserPassesTestMixin, generic.DeleteView):
+    model = DateBookmark
+    template_name = 'fantasycalendar/date_bookmark_delete_form.html'
+
+    def test_func(self):
+        world = get_object_or_404(DateBookmark, pk=self.kwargs['pk']).calendar.world
+        return self.request.user == world.creator
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        warnings = []
+        if (self.object.calendar.default_display_config
+                and self.object.calendar.default_display_config.default_date_bookmark
+                and self.object.calendar.default_display_config.default_date_bookmark.pk == self.object.pk):
+            warnings.append("This bookmark is set as the calendar default. Removing it will cause the calendar to "
+                            "start on iteration 1 of its default page until a new bookmark is set.")
+        context['warnings'] = warnings
+        return context
+
+    def get_success_url(self):
+        return reverse('fantasycalendar:calendar-detail',
+                       kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
