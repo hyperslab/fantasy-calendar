@@ -49,6 +49,8 @@ urlpatterns = [
          name="event-create"),
     path("worlds/<int:world_key>/calendars/<int:calendar_key>/events/<int:pk>/edit/", views.EventUpdateView.as_view(),
          name="event-update"),
+    path("worlds/<int:world_key>/calendars/<int:calendar_key>/events/<int:pk>/delete/",
+         views.EventDeleteView.as_view(), name="event-delete"),
     path("worlds/<int:world_key>/calendars/<int:calendar_key>/event-groups/<int:pk>/",
          views.EventGroupDetailView.as_view(), name="event-group-detail"),
     path("worlds/<int:world_key>/calendars/<int:calendar_key>/event-groups/new/", views.EventGroupCreateView.as_view(),
