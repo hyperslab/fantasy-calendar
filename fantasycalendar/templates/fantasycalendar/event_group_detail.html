@@ -7,7 +7,8 @@ Event Group Detail
 {% block content %}
 <h2><a href="{% url 'fantasycalendar:world-detail' eventgroup.calendar.world_id %}">{{ eventgroup.calendar.world.world_name }}</a> - <a
         href="{% url 'fantasycalendar:calendar-detail' eventgroup.calendar.world_id eventgroup.calendar_id %}">{{ eventgroup.calendar.calendar_name }}</a> - {{ eventgroup.event_group_name }}{% if user.pk == eventgroup.calendar.world.creator.pk %}
-    <a href="{% url 'fantasycalendar:event-group-update' eventgroup.calendar.world_id eventgroup.calendar_id eventgroup.id %}">(edit)</a>{% endif %}</h2>
+    <a href="{% url 'fantasycalendar:event-group-update' eventgroup.calendar.world_id eventgroup.calendar_id eventgroup.id %}">(edit)</a> <a
+        href="{% url 'fantasycalendar:event-group-delete' eventgroup.calendar.world_id eventgroup.calendar_id eventgroup.id %}">(delete)</a>{% endif %}</h2>
 <h3>Events</h3>
 {% if events_sorted %}
     <ul>

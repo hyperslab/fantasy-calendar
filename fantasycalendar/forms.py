@@ -2,7 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
-from .models import Calendar, DisplayConfig, DisplayUnitConfig, DateBookmark
+from .models import Calendar, DisplayConfig, DisplayUnitConfig, DateBookmark, EventGroup
 
 
 class CalendarUpdateForm(forms.ModelForm):
@@ -177,3 +177,9 @@ class DateBookmarkCreateForm(forms.ModelForm):
                            ValidationError(_("Error: bookmark sub unit is not a valid sub unit of time unit!"),
                                            code='invalid'))
         return cleaned_data
+
+class EventGroupDeleteForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        super(EventGroupDeleteForm, self).__init__(*args, **kwargs)
+        self.fields['delete_events'] = forms.BooleanField(required=False,
+                                                          label='Delete all events in this group as well?')

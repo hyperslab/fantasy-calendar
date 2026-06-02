@@ -70,7 +70,8 @@ Calendar Detail
     <ul>
     {% for event_group in calendar.eventgroup_set.all %}
         <li><a href="{% url 'fantasycalendar:event-group-detail' calendar.world_id calendar.id event_group.id %}">{{ event_group.event_group_name }}</a>{% if user.pk == calendar.world.creator.pk %} <a
-                href="{% url 'fantasycalendar:event-group-update' calendar.world_id calendar.id event_group.id %}">(edit)</a>{% endif %}
+                href="{% url 'fantasycalendar:event-group-update' calendar.world_id calendar.id event_group.id %}">(edit)</a> <a
+                href="{% url 'fantasycalendar:event-group-delete' calendar.world_id calendar.id event_group.id %}">(delete)</a>{% endif %}
     {% endfor %}
     </ul>
 {% else %}

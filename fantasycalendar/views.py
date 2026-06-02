@@ -7,7 +7,7 @@ from django.views import generic
 from .models import (World, Calendar, TimeUnit, Event, EventGroup, DateFormat, DisplayConfig, DateBookmark,
                      DisplayUnitConfig)
 from .forms import (DisplayConfigCreateForm, DisplayConfigUpdateForm, DisplayUnitConfigCreateForm,
-                    DisplayUnitConfigUpdateForm, DateBookmarkCreateForm, CalendarUpdateForm)
+                    DisplayUnitConfigUpdateForm, DateBookmarkCreateForm, CalendarUpdateForm, EventGroupDeleteForm)
 
 
 class WorldIndexView(generic.ListView):
@@ -681,6 +681,32 @@ class EventDeleteView(UserPassesTestMixin, generic.DeleteView):
                        kwargs={'world_key': self.object.calendar.world.id, 'calendar_key': self.object.calendar.id,
                                'pk': self.object.calendar.get_bottom_level_time_unit().id,
                                'iteration': self.object.bottom_level_iteration})
+
+
+class EventGroupDeleteView(UserPassesTestMixin, generic.DeleteView):
+    model = EventGroup
+    form_class = EventGroupDeleteForm
+    template_name = 'fantasycalendar/event_group_delete_form.html'
+
+    def test_func(self):
+        world = get_object_or_404(EventGroup, pk=self.kwargs['pk']).calendar.world
+        return self.request.user == world.creator
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        warnings = []
+        # no possible warnings right now but leaving this here for potential future use
+        context['warnings'] = warnings
+        return context
+
+    def form_valid(self, form):
+        if form.cleaned_data['delete_events']:
+            Event.objects.filter(event_group_id=self.object.id).delete()
+        return super(EventGroupDeleteView, self).form_valid(form)
+
+    def get_success_url(self):
+        return reverse('fantasycalendar:calendar-detail',
+                       kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
 
 
 class DisplayUnitConfigDeleteView(UserPassesTestMixin, generic.DeleteView):

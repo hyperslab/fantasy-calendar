@@ -57,6 +57,8 @@ urlpatterns = [
          name="event-group-create"),
     path("worlds/<int:world_key>/calendars/<int:calendar_key>/event-groups/<int:pk>/edit/",
          views.EventGroupUpdateView.as_view(), name="event-group-update"),
+    path("worlds/<int:world_key>/calendars/<int:calendar_key>/event-groups/<int:pk>/delete/",
+         views.EventGroupDeleteView.as_view(), name="event-group-delete"),
     path("worlds/<int:world_key>/calendars/<int:calendar_key>/time-units/<int:timeunit_key>/date-formats/<int:pk>/",
          views.DateFormatDetailView.as_view(), name="date-format-detail"),
     path("worlds/<int:world_key>/calendars/<int:calendar_key>/time-units/<int:timeunit_key>/date-formats/new/",
