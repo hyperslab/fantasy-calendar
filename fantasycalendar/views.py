@@ -333,13 +333,15 @@ class DisplayConfigCreateView(UserPassesTestMixin, generic.CreateView):
     def get_form(self, form_class=None):
         form = super(DisplayConfigCreateView, self).get_form()
 
-        # provide default name if this is the calendar's first display config
-        if not DisplayConfig.objects.filter(calendar_id=self.kwargs['calendar_key']).exists():
+        # provide default name if the calendar doesn't have a default yet
+        calendar = get_object_or_404(Calendar, pk=self.kwargs['calendar_key'])
+        if not calendar.default_display_config:
             form['display_config_name'].initial = 'Default Display Config'
 
         possible_unit_configs = []
         for unit in TimeUnit.objects.filter(calendar_id=self.kwargs['calendar_key']):
-            possible_unit_configs.append((unit, None))
+            if unit.is_bottom_level():
+                possible_unit_configs.append((unit, None))
             for parent_unit in unit.get_all_higher_containing_units():
                 possible_unit_configs.append((parent_unit, unit))
         form.fields['default_time_unit_page'].choices = \
@@ -375,8 +377,8 @@ class DisplayConfigCreateView(UserPassesTestMixin, generic.CreateView):
             instance.default_display_unit_config = default_display_unit_config
             instance.save()
 
-        # set as calendar default if this is the calendar's first display config
-        if DisplayConfig.objects.filter(calendar_id=self.kwargs['calendar_key']).count() == 1:
+        # set as calendar default if it doesn't have one yet
+        if not calendar.default_display_config:
             calendar.default_display_config = form.instance
             calendar.save()
 
