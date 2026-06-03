@@ -7,7 +7,8 @@ Time Unit Detail
 {% block content %}
 <h2><a href="{% url 'fantasycalendar:world-detail' timeunit.calendar.world_id %}">{{ timeunit.calendar.world.world_name }}</a> - <a
         href="{% url 'fantasycalendar:calendar-detail' timeunit.calendar.world_id timeunit.calendar_id %}">{{ timeunit.calendar.calendar_name }}</a> - {{ timeunit.time_unit_name }}{% if user.pk == timeunit.calendar.world.creator.pk %}
-    <a href="{% url 'fantasycalendar:time-unit-update' timeunit.calendar.world_id timeunit.calendar_id timeunit.id %}">(edit)</a>{% endif %}</h2>
+    <a href="{% url 'fantasycalendar:time-unit-update' timeunit.calendar.world_id timeunit.calendar_id timeunit.id %}">(edit)</a>{% if not timeunit.is_bottom_level and timeunit.is_top_level %} <a
+        href="{% url 'fantasycalendar:time-unit-delete' timeunit.calendar.world_id timeunit.calendar.id timeunit.id %}">(delete)</a>{% endif %}{% endif %}</h2>
 {% if timeunit.base_unit %}
     <h3>Base Unit</h3>
     <p><a href="{% url 'fantasycalendar:time-unit-detail' timeunit.calendar.world_id timeunit.calendar_id timeunit.base_unit.id %}">{{ timeunit.base_unit.time_unit_name }}</a></p>

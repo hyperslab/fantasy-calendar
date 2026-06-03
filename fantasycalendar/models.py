@@ -124,7 +124,7 @@ class TimeUnit(models.Model):
     calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
     time_unit_name = models.CharField(max_length=200, default='',
                                       help_text=html_tooltip('The name of this time unit, e.g. "Month" or "Day"'))
-    base_unit = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True,
+    base_unit = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True,
                                   help_text=html_tooltip('The type of time unit that this time unit consists of,  e.g. '
                                                          '"Year" could have a base unit of "Month"'))
     length_cycle = models.CharField(max_length=800, default='1',
@@ -1473,6 +1473,16 @@ class DateFormat(models.Model):
                 likely_formats.append(date_format)
         return likely_formats
 
+    def references_time_unit(self, time_unit: 'TimeUnit') -> bool:
+        """
+        Return True if this date format's format_string contains a
+        reference to a given time unit or if this date format's time
+        unit is the same as the given time unit.
+        """
+        return (self.time_unit.pk == time_unit.pk
+                or re.search('{' + str(time_unit.pk) + '-[0-9]+-[in]}', self.format_string)
+                or re.search('{[0-9]+-' + str(time_unit.pk) + '-[in]}', self.format_string))
+
 
 class DisplayConfig(models.Model):
     calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
@@ -1602,7 +1612,7 @@ class DisplayUnitConfig(models.Model):
                                       help_text=html_tooltip('The time unit page to navigate to when the sub unit '
                                                              'header is clicked; if blank, the sub unit header will '
                                                              'not be clickable'))
-    row_grouping_time_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE, related_name='+', blank=True,
+    row_grouping_time_unit = models.ForeignKey(TimeUnit, on_delete=models.SET_NULL, related_name='+', blank=True,
                                                null=True,
                                                help_text=html_tooltip('An optional time unit that can be used to '
                                                                       'organize the calendar page into rows, e.g. many '
@@ -1632,7 +1642,7 @@ class DisplayUnitConfig(models.Model):
                                       null=True,
                                       help_text=html_tooltip('The time unit page to navigate to when the row label is '
                                                              'clicked; if blank, the row label will not be clickable'))
-    block_grouping_time_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE, related_name='+', blank=True,
+    block_grouping_time_unit = models.ForeignKey(TimeUnit, on_delete=models.SET_NULL, related_name='+', blank=True,
                                                  null=True,
                                                  help_text=html_tooltip('An optional time unit that can be used to '
                                                                         'organize the calendar page into blocks, e.g. '

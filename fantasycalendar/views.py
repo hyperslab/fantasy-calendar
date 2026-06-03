@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.db import transaction
+from django.db import transaction, IntegrityError
+from django.db.models import Q
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import generic
@@ -655,6 +656,50 @@ class DateBookmarkUpdateView(UserPassesTestMixin, generic.UpdateView):
     def test_func(self):
         world = get_object_or_404(DateBookmark, pk=self.kwargs['pk']).calendar.world
         return self.request.user == world.creator
+
+    def get_success_url(self):
+        return reverse('fantasycalendar:calendar-detail',
+                       kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
+
+
+class TimeUnitDeleteView(UserPassesTestMixin, generic.DeleteView):
+    model = TimeUnit
+    template_name = 'fantasycalendar/time_unit_delete_form.html'
+
+    def test_func(self):
+        world = get_object_or_404(TimeUnit, pk=self.kwargs['pk']).calendar.world
+        return self.request.user == world.creator
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        warnings = []
+        for date_format in DateFormat.objects.filter(calendar_id=self.object.calendar.pk):
+            if date_format.references_time_unit(self.object):
+                warnings.append("Date format " + str(date_format) + " will also be deleted.")
+        for display_unit_config in DisplayUnitConfig.objects.filter(
+                Q(time_unit_id=self.object.pk) | Q(sub_unit_id=self.object.pk)):
+            warnings.append("Time unit page " + str(display_unit_config) + " will also be deleted.")
+        for display_unit_config in (DisplayUnitConfig.objects.exclude(time_unit_id=self.object.pk).
+                exclude(sub_unit_id=self.object.pk).filter(row_grouping_time_unit_id=self.object.pk)):
+            warnings.append("Time unit page " + str(display_unit_config) + " will have its row grouping removed.")
+        for display_unit_config in (DisplayUnitConfig.objects.exclude(time_unit_id=self.object.pk).
+                exclude(sub_unit_id=self.object.pk).filter(block_grouping_time_unit_id=self.object.pk)):
+            warnings.append("Time unit page " + str(display_unit_config) + " will have its block grouping removed.")
+        for date_bookmark in DateBookmark.objects.filter(
+                Q(bookmark_unit_id=self.object.pk) | Q(bookmark_sub_unit_id=self.object.pk)):
+            warnings.append("Date bookmark " + str(date_bookmark) + " will also be deleted.")
+        context['warnings'] = warnings
+        return context
+
+    def form_valid(self, form):
+        if self.object.is_bottom_level():
+            raise IntegrityError  # do not allow deleting the bottom level time unit
+        if not self.object.is_top_level():
+            raise IntegrityError  # do not allow deleting time units that other time units are based on
+        for date_format in DateFormat.objects.filter(calendar_id=self.object.calendar.pk):
+            if date_format.references_time_unit(self.object):
+                date_format.delete()  # CASCADE doesn't consider format strings so delete these manually
+        return super(TimeUnitDeleteView, self).form_valid(form)
 
     def get_success_url(self):
         return reverse('fantasycalendar:calendar-detail',

@@ -41,6 +41,8 @@ urlpatterns = [
          name="time-unit-create"),
     path("worlds/<int:world_key>/calendars/<int:calendar_key>/time-units/<int:pk>/edit/",
          views.TimeUnitUpdateView.as_view(), name="time-unit-update"),
+    path("worlds/<int:world_key>/calendars/<int:calendar_key>/time-units/<int:pk>/delete/",
+         views.TimeUnitDeleteView.as_view(), name="time-unit-delete"),
     path("worlds/<int:world_key>/calendars/<int:calendar_key>/time-units/<int:pk>/instances/<int:iteration>/",
          views.TimeUnitInstanceDetailView.as_view(), name="time-unit-instance-detail"),
     path("worlds/<int:world_key>/calendars/<int:calendar_key>/events/<int:pk>/", views.EventDetailView.as_view(),

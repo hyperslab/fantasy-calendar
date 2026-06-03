@@ -17,7 +17,8 @@ Calendar Detail
                 href="{% url 'fantasycalendar:time-unit-update' calendar.world_id calendar.id time_unit.id %}">(edit)</a>{% endif %}</li>
         {% else %}
         <li><a href="{% url 'fantasycalendar:time-unit-detail' calendar.world_id calendar.id time_unit.id %}">{{ time_unit.time_unit_name }}</a> - {{ time_unit.get_length_cycle_display  }} {{ time_unit.base_unit.time_unit_name }}s long{% if user.pk == calendar.world.creator.pk %} <a
-                href="{% url 'fantasycalendar:time-unit-update' calendar.world_id calendar.id time_unit.id %}">(edit)</a>{% endif %}</li>
+                href="{% url 'fantasycalendar:time-unit-update' calendar.world_id calendar.id time_unit.id %}">(edit)</a>{% if time_unit.is_top_level %} <a
+                href="{% url 'fantasycalendar:time-unit-delete' calendar.world_id calendar.id time_unit.id %}">(delete)</a>{% endif %}{% endif %}</li>
         {% endif %}
     {% endfor %}
     </ul>
