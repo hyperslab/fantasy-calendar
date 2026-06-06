@@ -756,6 +756,46 @@ class EventGroupDeleteView(UserPassesTestMixin, generic.DeleteView):
                        kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
 
 
+class DateFormatDeleteView(UserPassesTestMixin, generic.DeleteView):
+    model = DateFormat
+    template_name = 'fantasycalendar/date_format_delete_form.html'
+
+    def test_func(self):
+        world = get_object_or_404(DateFormat, pk=self.kwargs['pk']).calendar.world
+        return self.request.user == world.creator
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        warnings = []
+        if (self.object.time_unit.default_date_format
+                and self.object.time_unit.default_date_format.pk == self.object.pk):
+            warnings.append("Currently assigned as the default date format for " + str(self.object.time_unit) + ". "
+                            "Deleting will cause the default date format for " + str(self.object.time_unit) + " to be "
+                            "set to nothing.")
+        if (self.object.time_unit.secondary_date_format
+                and self.object.time_unit.secondary_date_format.pk == self.object.pk):
+            warnings.append("Currently assigned as the secondary date format for " + str(self.object.time_unit) + ". "
+                            "Deleting will cause the secondary date format for " + str(self.object.time_unit) + " to "
+                            "be set to nothing.")
+        for display_unit_config in DisplayUnitConfig.objects.filter(header_other_date_format_id=self.object.pk,
+                                                                    header_display_name_type='other'):
+            warnings.append("Currently assigned as the header format on the " + str(display_unit_config) + " page. "
+                            "Deleting will cause the header format on the " + str(display_unit_config) + " page to be "
+                            "set to nothing.")
+        for display_unit_config in DisplayUnitConfig.objects.filter(sub_unit_other_date_format_id=self.object.pk,
+                                                                    sub_unit_display_name_type='other'):
+            warnings.append("Currently assigned as the sub unit format on the " + str(display_unit_config) + " page. "
+                            "Deleting will cause the sub unit format on the " + str(display_unit_config) + " page to "
+                            "be set to nothing.")
+        context['warnings'] = warnings
+        return context
+
+    def get_success_url(self):
+        return reverse('fantasycalendar:time-unit-detail',
+                       kwargs={'pk': self.object.time_unit.id, 'calendar_key': self.object.calendar.id,
+                               'world_key': self.object.calendar.world.id})
+
+
 class DisplayUnitConfigDeleteView(UserPassesTestMixin, generic.DeleteView):
     model = DisplayUnitConfig
     template_name = 'fantasycalendar/display_unit_config_delete_form.html'

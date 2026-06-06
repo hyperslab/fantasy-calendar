@@ -137,12 +137,12 @@ class TimeUnit(models.Model):
                                                                        'unit within this time unit, separated by '
                                                                        'spaces, e.g. "Year" could have base units '
                                                                        'called "January February (...) December"'))
-    default_date_format = models.ForeignKey('DateFormat', on_delete=models.CASCADE, null=True, blank=True,
+    default_date_format = models.ForeignKey('DateFormat', on_delete=models.SET_NULL, null=True, blank=True,
                                             help_text=html_tooltip('The format for instances of this time unit to be '
                                                                    'displayed as most prominently, such as on the '
                                                                    'title of a calendar page'),
                                             related_name='timeunit_default_set')
-    secondary_date_format = models.ForeignKey('DateFormat', on_delete=models.CASCADE, null=True, blank=True,
+    secondary_date_format = models.ForeignKey('DateFormat', on_delete=models.SET_NULL, null=True, blank=True,
                                               help_text=html_tooltip('The format for instances of this time unit to be '
                                                                      'displayed as in less prominent locations, often '
                                                                      'in groups underneath a parent unit, such as on '
@@ -1589,7 +1589,7 @@ class DisplayUnitConfig(models.Model):
                                                                        'secondary format, by specifying some other '
                                                                        'format, or by using no format, generating '
                                                                        'something like "(time unit name) (iteration)"'))
-    header_other_date_format = models.ForeignKey(DateFormat, on_delete=models.CASCADE, related_name='+', blank=True,
+    header_other_date_format = models.ForeignKey(DateFormat, on_delete=models.SET_NULL, related_name='+', blank=True,
                                                  null=True,
                                                  help_text=html_tooltip('The date format to use if "Other" is selected '
                                                                         'for the header display name type'))
@@ -1602,7 +1602,7 @@ class DisplayUnitConfig(models.Model):
                                                                           'specifying some other format, or by using '
                                                                           'no format, generating something like "(sub '
                                                                           'time unit name) (relative iteration)"'))
-    sub_unit_other_date_format = models.ForeignKey(DateFormat, on_delete=models.CASCADE, related_name='+', blank=True,
+    sub_unit_other_date_format = models.ForeignKey(DateFormat, on_delete=models.SET_NULL, related_name='+', blank=True,
                                                     null=True,
                                                     help_text=html_tooltip('The date format to use if "Other" is '
                                                                            'selected for the sub unit display name '
