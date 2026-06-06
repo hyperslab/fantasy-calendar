@@ -124,7 +124,7 @@ class TimeUnit(models.Model):
     calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
     time_unit_name = models.CharField(max_length=200, default='',
                                       help_text=html_tooltip('The name of this time unit, e.g. "Month" or "Day"'))
-    base_unit = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True,
+    base_unit = models.ForeignKey('self', on_delete=models.RESTRICT, null=True, blank=True,
                                   help_text=html_tooltip('The type of time unit that this time unit consists of,  e.g. '
                                                          '"Year" could have a base unit of "Month"'))
     length_cycle = models.CharField(max_length=800, default='1',
@@ -1488,7 +1488,7 @@ class DisplayConfig(models.Model):
     calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
     display_config_name = models.CharField(max_length=200,
                                            help_text=html_tooltip('The name of this display configuration'))
-    default_display_unit_config = models.ForeignKey('DisplayUnitConfig', on_delete=models.PROTECT, null=True,
+    default_display_unit_config = models.ForeignKey('DisplayUnitConfig', on_delete=models.RESTRICT, null=True,
                                                     help_text=html_tooltip('The time unit page to show by default'))
     default_date_bookmark = models.ForeignKey('DateBookmark', on_delete=models.SET_NULL, null=True, blank=True,
                                               help_text=html_tooltip('The date to show by default when this display '
