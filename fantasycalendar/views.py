@@ -664,6 +664,25 @@ class DateBookmarkUpdateView(UserPassesTestMixin, generic.UpdateView):
                        kwargs={'pk': self.object.calendar.id, 'world_key': self.object.calendar.world.id})
 
 
+class WorldDeleteView(UserPassesTestMixin, generic.DeleteView):
+    model = World
+    template_name = 'fantasycalendar/world_delete_form.html'
+
+    def test_func(self):
+        world = get_object_or_404(World, pk=self.kwargs['pk'])
+        return self.request.user == world.creator
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        warnings = []
+        # no possible warnings right now but leaving this here for potential future use
+        context['warnings'] = warnings
+        return context
+
+    def get_success_url(self):
+        return reverse('fantasycalendar:world-index')
+
+
 class CalendarDeleteView(UserPassesTestMixin, generic.DeleteView):
     model = Calendar
     template_name = 'fantasycalendar/calendar_delete_form.html'

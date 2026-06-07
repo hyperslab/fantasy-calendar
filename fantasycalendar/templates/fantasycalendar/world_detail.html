@@ -5,7 +5,9 @@ World Detail
 {% endblock %}
 
 {% block content %}
-<h2>{{ world.world_name }}{% if user.pk == world.creator.pk %} <a href="{% url 'fantasycalendar:world-update' world.id %}">(edit)</a>{% endif %}</h2>
+<h2>{{ world.world_name }}{% if user.pk == world.creator.pk %} <a
+        href="{% url 'fantasycalendar:world-update' world.id %}">(edit)</a> <a
+        href="{% url 'fantasycalendar:world-delete' world.id %}">(delete)</a>{% endif %}</h2>
 <h3>Calendars{% if user.pk == world.creator.pk %}  <a href="{% url 'fantasycalendar:calendar-create' world.id %}">(+new)</a>{% endif %}</h3>
 {% if world.calendar_set %}
     <ul>

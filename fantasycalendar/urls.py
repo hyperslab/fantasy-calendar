@@ -30,6 +30,7 @@ urlpatterns = [
     path("worlds/<int:pk>/", views.WorldDetailView.as_view(), name="world-detail"),
     path("worlds/new/", views.WorldCreateView.as_view(), name="world-create"),
     path("worlds/<int:pk>/edit/", views.WorldUpdateView.as_view(), name="world-update"),
+    path("worlds/<int:pk>/delete/", views.WorldDeleteView.as_view(), name="world-delete"),
     path("worlds/<int:world_key>/calendars/<int:pk>/", views.CalendarDetailView.as_view(), name="calendar-detail"),
     path("worlds/<int:world_key>/calendars/new/", views.CalendarCreateView.as_view(), name="calendar-create"),
     path("worlds/<int:world_key>/calendars/<int:pk>/edit/", views.CalendarUpdateView.as_view(), name="calendar-update"),
