@@ -24,7 +24,7 @@ Display Config Detail
 </li></ul>
 {% endif %}
 <h3>Viewable Time Unit Pages{% if user.pk == displayconfig.calendar.world.creator.pk and can_add_unit_configs %} <a href="{% url 'fantasycalendar:display-unit-config-create' displayconfig.calendar.world_id displayconfig.calendar.id displayconfig.id %}">(+new)</a>{% endif %}</h3>
-{% if displayconfig.displayunitconfig_set and displayconfig.displayunitconfig_set.all|length > 0 %}
+{% if displayconfig.displayunitconfig_set and displayconfig.displayunitconfig_set.count > 0 %}
 <ul>
     {% for unit_config in displayconfig.displayunitconfig_set.all %}
     <li>{{ unit_config }}{% if user.pk == displayconfig.calendar.world.creator.pk %} <a

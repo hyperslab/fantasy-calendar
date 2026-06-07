@@ -26,7 +26,7 @@ Time Unit Detail
     <h3>This is a Bottom Level Time Unit</h3>
 {% endif %}
 <h3>Date Formats{% if user.pk == timeunit.calendar.world.creator.pk %} <a href="{% url 'fantasycalendar:date-format-create' timeunit.calendar.world_id timeunit.calendar.id timeunit.id %}">(+new)</a>{% endif %}</h3>
-{% if timeunit.dateformat_set %}
+{% if timeunit.dateformat_set and timeunit.dateformat_set.count > 0 %}
     <ul>
     {% for date_format in timeunit.dateformat_set.all %}
         <li><a href="{% url 'fantasycalendar:date-format-detail' timeunit.calendar.world_id timeunit.calendar.id timeunit.id date_format.id %}">{{ date_format.date_format_name }}</a>{% if user.pk == timeunit.calendar.world.creator.pk %} <a

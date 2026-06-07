@@ -10,7 +10,7 @@ Calendar Detail
         href="{% url 'fantasycalendar:calendar-delete' calendar.world_id calendar.id %}">(delete)</a>{% endif %}</h2>
 <h4><a href="{% url 'fantasycalendar:calendar-calendar' calendar.world_id calendar.id %}">View Fullscreen Calendar Page</a></h4>
 <h3>Time Units{% if user.pk == calendar.world.creator.pk %} <a href="{% url 'fantasycalendar:time-unit-create' calendar.world_id calendar.id %}">(+new)</a>{% endif %}</h3>
-{% if calendar.timeunit_set %}
+{% if calendar.timeunit_set and calendar.timeunit_set.count > 0 %}
     <ul>
     {% for time_unit in calendar.timeunit_set.all %}
         {% if time_unit.is_bottom_level %}
@@ -51,7 +51,7 @@ Calendar Detail
 {% endif %}
 <h3>Shared Date Bookmarks{% if user.pk == calendar.world.creator.pk %} <a
         href="{% url 'fantasycalendar:date-bookmark-create' calendar.world_id calendar.id %}">(+new)</a>{% endif %}</h3>
-{% if calendar.datebookmark_set %}
+{% if calendar.datebookmark_set and calendar.datebookmark_set.count > 0 %}
     <ul>
     {% for date_bookmark in calendar.datebookmark_set.all %}
         {% if not date_bookmark.is_personal %}
@@ -68,7 +68,7 @@ Calendar Detail
 {% endif %}
 <h3>Event Groups{% if user.pk == calendar.world.creator.pk %} <a
         href="{% url 'fantasycalendar:event-group-create' calendar.world_id calendar.id %}">(+new)</a>{% endif %}</h3>
-{% if calendar.eventgroup_set %}
+{% if calendar.eventgroup_set and calendar.eventgroup_set.count > 0 %}
     <ul>
     {% for event_group in calendar.eventgroup_set.all %}
         <li><a href="{% url 'fantasycalendar:event-group-detail' calendar.world_id calendar.id event_group.id %}">{{ event_group.event_group_name }}</a>{% if user.pk == calendar.world.creator.pk %} <a
