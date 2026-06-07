@@ -64,8 +64,13 @@ h2 a, h3 a, h4 a {
     text-decoration: none;
 }
 
+#row {
+    display: flex;
+}
+
 #content {
     float: left;
+    flex-grow: 1;
     padding: 10px;
 }
 
