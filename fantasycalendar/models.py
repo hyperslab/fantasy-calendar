@@ -1112,6 +1112,10 @@ class Event(models.Model):
                                   help_text=html_tooltip('Whether this event should appear on the main calendar; will '
                                                          'use group setting if not set and default to be visible if '
                                                          'group is also not set'))
+    navigable = models.BooleanField(default=False, blank=True, null=True,
+                                    help_text=html_tooltip('Whether this event should should have a link under the '
+                                                           'bookmarks dropdown; will use group setting if not set and '
+                                                           'default to be not navigable if group is also not set'))
 
     def __str__(self):
         return self.event_name
@@ -1137,6 +1141,9 @@ class EventGroup(models.Model):
     visible = models.BooleanField(default=True,
                                   help_text=html_tooltip('Whether the events in this group should appear on the '
                                                          'main calendar'))
+    navigable = models.BooleanField(default=False,
+                                    help_text=html_tooltip('Whether the events in this group should have a link under '
+                                                           'the bookmarks dropdown'))
 
     def __str__(self):
         return self.event_group_name

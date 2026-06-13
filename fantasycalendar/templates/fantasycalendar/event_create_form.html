@@ -10,17 +10,24 @@ Create an Event
     x-data="
         {
             selected_group: '{{ form.event_group.value }}',
-            selected_visibility: '{% if form.visible.value == True %}true{% elif form.visible.value == False %}false{% endif %}'
+            selected_visibility: '{% if form.visible.value == True %}true{% elif form.visible.value == False %}false{% endif %}',
+            selected_navigability: '{% if form.navigable.value == True %}true{% elif form.navigable.value == False %}false{% endif %}'
         }
     "
     x-init="
         if (selected_group == '' && (selected_visibility == 'unknown' || selected_visibility == ''))
             selected_visibility = 'true';
+        if (selected_group == '' && (selected_navigability == 'unknown' || selected_navigability == ''))
+            selected_navigability = 'false';
         $watch('selected_group', value => {
           if (value == '' && selected_visibility == 'unknown')
             selected_visibility = 'true';
           else if (value != '')
             selected_visibility = 'unknown';
+          if (value == '' && selected_navigability == 'unknown')
+            selected_navigability = 'false';
+          else if (value != '')
+            selected_navigability = 'unknown';
         });
     ">{% csrf_token %}
     {{ form.non_field_errors }}
@@ -67,6 +74,16 @@ Create an Event
             <option value="false"{% if form.visible.value == False %} selected{% endif %}>No</option>
         </select>
         <span class="helptext">{{ form.visible.help_text|safe }}</span>
+    </p>
+    <p>
+        {{ form.navigable.errors }}
+        {{ form.navigable.label_tag }}
+        <select id="{{ form.navigable.id_for_label }}" name="{{ form.navigable.name }}" x-model="selected_navigability">
+            <option x-show="selected_group != '' && selected_group != 'None'" value="unknown"{% if form.navigable.value == None %} selected{% endif %}>Use Group Setting</option>
+            <option value="true"{% if form.navigable.value == True %} selected{% endif %}>Yes</option>
+            <option value="false"{% if form.navigable.value == False %} selected{% endif %}>No</option>
+        </select>
+        <span class="helptext">{{ form.navigable.help_text|safe }}</span>
     </p>
     <input type="submit" value="Save">
 </form>

@@ -37,7 +37,7 @@ COPY --from=react /src/fantasycalendar/static/fantasycalendar/main.js /app/fanta
 RUN python manage.py collectstatic --no-input
 
 # non-Azure containers will create a new DB every time that needs to be set up
-# this will keep the Azure DB up to date as well
+# this does not seem to keep the Azure DB up to date as well
 RUN python manage.py migrate
 
 EXPOSE 8000

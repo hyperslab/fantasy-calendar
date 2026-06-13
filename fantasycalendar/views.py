@@ -240,7 +240,8 @@ class TimeUnitCreateView(UserPassesTestMixin, generic.CreateView):
 class EventCreateView(UserPassesTestMixin, generic.CreateView):
     model = Event
     template_name = 'fantasycalendar/event_create_form.html'
-    fields = ['event_name', 'event_description', 'bottom_level_iteration', 'display_order', 'event_group', 'visible']
+    fields = ['event_name', 'event_description', 'bottom_level_iteration', 'display_order', 'event_group', 'visible',
+              'navigable']
 
     def test_func(self):
         world = get_object_or_404(World, pk=self.kwargs['world_key'])
@@ -256,11 +257,13 @@ class EventCreateView(UserPassesTestMixin, generic.CreateView):
         form.fields['bottom_level_iteration'].label = \
             'Which ' + str(bottom_unit.time_unit_name) + ' does this event take place on?'
 
-        class ModelChoiceFieldWithVisibility(forms.ModelChoiceField):
+        class EventGroupModelChoiceField(forms.ModelChoiceField):
             def label_from_instance(self, obj):
-                return obj.__str__() + ' (' + ('not ' if not obj.visible else '') + 'visible)'
+                return (obj.__str__()
+                        + ' (' + ('not ' if not obj.visible else '') + 'visible)'
+                        + ' (' + ('not ' if not obj.navigable else '') + 'navigable)')
 
-        form.fields['event_group'] = ModelChoiceFieldWithVisibility(required=False,
+        form.fields['event_group'] = EventGroupModelChoiceField(required=False,
             queryset=EventGroup.objects.filter(calendar_id=self.kwargs['calendar_key']))
         return form
 
@@ -280,7 +283,7 @@ class EventCreateView(UserPassesTestMixin, generic.CreateView):
 class EventGroupCreateView(UserPassesTestMixin, generic.CreateView):
     model = EventGroup
     template_name = 'fantasycalendar/event_group_create_form.html'
-    fields = ['event_group_name', 'visible']
+    fields = ['event_group_name', 'visible', 'navigable']
 
     def test_func(self):
         world = get_object_or_404(World, pk=self.kwargs['world_key'])
@@ -527,7 +530,8 @@ class TimeUnitUpdateView(UserPassesTestMixin, generic.UpdateView):
 class EventUpdateView(UserPassesTestMixin, generic.UpdateView):
     model = Event
     template_name = 'fantasycalendar/event_update_form.html'
-    fields = ['event_name', 'event_description', 'bottom_level_iteration', 'display_order', 'event_group', 'visible']
+    fields = ['event_name', 'event_description', 'bottom_level_iteration', 'display_order', 'event_group', 'visible',
+              'navigable']
 
     def test_func(self):
         world = get_object_or_404(Event, pk=self.kwargs['pk']).calendar.world
@@ -539,11 +543,13 @@ class EventUpdateView(UserPassesTestMixin, generic.UpdateView):
         form.fields['bottom_level_iteration'].label = \
             'Which ' + str(bottom_unit.time_unit_name) + ' does this event take place on?'
 
-        class ModelChoiceFieldWithVisibility(forms.ModelChoiceField):
+        class EventGroupModelChoiceField(forms.ModelChoiceField):
             def label_from_instance(self, obj):
-                return obj.__str__() + ' (' + ('not ' if not obj.visible else '') + 'visible)'
+                return (obj.__str__()
+                        + ' (' + ('not ' if not obj.visible else '') + 'visible)'
+                        + ' (' + ('not ' if not obj.navigable else '') + 'navigable)')
 
-        form.fields['event_group'] = ModelChoiceFieldWithVisibility(required=False,
+        form.fields['event_group'] = EventGroupModelChoiceField(required=False,
             queryset=EventGroup.objects.filter(calendar_id=self.kwargs['calendar_key']))
         return form
 
@@ -551,7 +557,7 @@ class EventUpdateView(UserPassesTestMixin, generic.UpdateView):
 class EventGroupUpdateView(UserPassesTestMixin, generic.UpdateView):
     model = EventGroup
     template_name = 'fantasycalendar/event_group_update_form.html'
-    fields = ['event_group_name', 'visible']
+    fields = ['event_group_name', 'visible', 'navigable']
 
     def test_func(self):
         world = get_object_or_404(Event, pk=self.kwargs['pk']).calendar.world
