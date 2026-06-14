@@ -54,14 +54,18 @@ class DisplayConfigSerializer(serializers.ModelSerializer):
 
 class DateBookmarkSerializer(serializers.ModelSerializer):
     display_name = serializers.SerializerMethodField('get_display_name')
+    from_event = serializers.SerializerMethodField('get_from_event')
 
     def get_display_name(self, date_bookmark):
         return date_bookmark.get_display_name()
 
+    def get_from_event(self, date_bookmark):
+        return date_bookmark.id < 0  # may be a cleaner way to do this but this works for now
+
     class Meta:
         model = DateBookmark
         fields = ('id', 'calendar', 'date_bookmark_name', 'bookmark_unit', 'bookmark_iteration', 'bookmark_sub_unit',
-                  'display_name', 'personal_bookmark_creator')
+                  'display_name', 'personal_bookmark_creator', 'from_event')
 
 
 class DateBookmarkPersonalSerializer(serializers.ModelSerializer):
@@ -78,16 +82,26 @@ class DateBookmarkPersonalSerializer(serializers.ModelSerializer):
 
 class CalendarDetailSerializer(serializers.ModelSerializer):
     time_units = TimeUnitSerializer(source='timeunit_set', many=True)
-    date_bookmarks = DateBookmarkSerializer(source='datebookmark_set', many=True)
-    navigable_events = serializers.SerializerMethodField('get_navigable_events')
+    date_bookmarks = serializers.SerializerMethodField('get_date_bookmarks')
 
-    def get_navigable_events(self, calendar):
+    def get_date_bookmarks(self, calendar):
+        date_bookmarks = DateBookmark.objects.filter(calendar_id=calendar.pk)
+        bookmark_serializer = DateBookmarkSerializer(instance=date_bookmarks, many=True)
+        bookmark_data = list(bookmark_serializer.data)
         events = Event.objects.filter(calendar_id=calendar.pk).filter(
             Q(navigable=True) | Q(navigable=None, event_group__isnull=False, event_group__navigable=True))
-        serializer = EventSerializer(instance=events, many=True)
-        return serializer.data
+        fake_id = -11
+        for event in events:
+            event_bookmark = DateBookmark(id=fake_id, calendar=calendar, date_bookmark_name=str(event),
+                                          bookmark_unit=calendar.get_bottom_level_time_unit(),
+                                          bookmark_iteration=event.bottom_level_iteration,
+                                          bookmark_sub_unit=None)
+            fake_id -= 1
+            event_serializer = DateBookmarkSerializer(instance=event_bookmark, many=False)
+            bookmark_data = bookmark_data + [event_serializer.data] if bookmark_data is not None \
+                else event_serializer.data
+        return bookmark_data
 
     class Meta:
         model = Calendar
-        fields = ('id', 'world', 'calendar_name', 'default_display_config', 'time_units', 'date_bookmarks',
-                  'navigable_events')
+        fields = ('id', 'world', 'calendar_name', 'default_display_config', 'time_units', 'date_bookmarks')
