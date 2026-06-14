@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework import serializers
 from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig, DateBookmark, DisplayUnitConfig
 
@@ -78,7 +79,15 @@ class DateBookmarkPersonalSerializer(serializers.ModelSerializer):
 class CalendarDetailSerializer(serializers.ModelSerializer):
     time_units = TimeUnitSerializer(source='timeunit_set', many=True)
     date_bookmarks = DateBookmarkSerializer(source='datebookmark_set', many=True)
+    navigable_events = serializers.SerializerMethodField('get_navigable_events')
+
+    def get_navigable_events(self, calendar):
+        events = Event.objects.filter(calendar_id=calendar.pk).filter(
+            Q(navigable=True) | Q(navigable=None, event_group__isnull=False, event_group__navigable=True))
+        serializer = EventSerializer(instance=events, many=True)
+        return serializer.data
 
     class Meta:
         model = Calendar
-        fields = ('id', 'world', 'calendar_name', 'default_display_config', 'time_units', 'date_bookmarks')
+        fields = ('id', 'world', 'calendar_name', 'default_display_config', 'time_units', 'date_bookmarks',
+                  'navigable_events')
