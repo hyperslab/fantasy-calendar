@@ -4,6 +4,60 @@ from django.test import TestCase
 from .models import TimeUnit, Calendar, World, DateFormat, DisplayConfig, DisplayUnitConfig
 
 
+class WorldModelTests(TestCase):
+    def test_get_linked_calendars_with_linked_calendars(self):
+        """
+        get_linked_calendars() returns all linked calendars for worlds
+        that have only linked calendars.
+        """
+        world = World.objects.create()
+        calendar_linked_1 = Calendar.objects.create(world=world, world_link_iteration=1)
+        calendar_linked_2 = Calendar.objects.create(world=world, world_link_iteration=9876)
+        linked_calendars = world.get_linked_calendars()
+        self.assertEqual(len(linked_calendars), 2)
+        self.assertIn(calendar_linked_1, linked_calendars)
+        self.assertIn(calendar_linked_2, linked_calendars)
+
+    def test_get_linked_calendars_with_unlinked_calendars(self):
+        """
+        get_linked_calendars() returns no calendars for worlds that
+        have only unlinked calendars.
+        """
+        world = World.objects.create()
+        calendar_unlinked_1 = Calendar.objects.create(world=world, world_link_iteration=None)
+        calendar_unlinked_2 = Calendar.objects.create(world=world, world_link_iteration=None)
+        linked_calendars = world.get_linked_calendars()
+        self.assertEqual(len(linked_calendars), 0)
+        self.assertNotIn(calendar_unlinked_1, linked_calendars)
+        self.assertNotIn(calendar_unlinked_2, linked_calendars)
+
+    def test_get_linked_calendars_with_linked_and_unlinked_calendars(self):
+        """
+        get_linked_calendars() returns only the linked calendars for
+        worlds that have both linked calendars and unlinked calendars.
+        """
+        world = World.objects.create()
+        calendar_linked_1 = Calendar.objects.create(world=world, world_link_iteration=1)
+        calendar_linked_2 = Calendar.objects.create(world=world, world_link_iteration=9876)
+        calendar_unlinked_1 = Calendar.objects.create(world=world, world_link_iteration=None)
+        calendar_unlinked_2 = Calendar.objects.create(world=world, world_link_iteration=None)
+        linked_calendars = world.get_linked_calendars()
+        self.assertEqual(len(linked_calendars), 2)
+        self.assertIn(calendar_linked_1, linked_calendars)
+        self.assertIn(calendar_linked_2, linked_calendars)
+        self.assertNotIn(calendar_unlinked_1, linked_calendars)
+        self.assertNotIn(calendar_unlinked_2, linked_calendars)
+
+    def test_get_linked_calendars_with_no_calendars(self):
+        """
+        get_linked_calendars() returns nothing for worlds that have no
+        calendars.
+        """
+        world = World.objects.create()
+        linked_calendars = world.get_linked_calendars()
+        self.assertEqual(len(linked_calendars), 0)
+
+
 class CalendarModelTests(TestCase):
     def test_ensure_default_display_config_with_no_display_configs(self):
         """
