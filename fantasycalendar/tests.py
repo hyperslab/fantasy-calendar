@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.db.models import ObjectDoesNotExist
 from django.test import TestCase
 from .models import TimeUnit, Calendar, World, DateFormat, DisplayConfig, DisplayUnitConfig
 
@@ -59,6 +60,71 @@ class WorldModelTests(TestCase):
 
 
 class CalendarModelTests(TestCase):
+    def test_get_bottom_level_time_unit_with_one_time_unit(self):
+        """
+        get_bottom_level_time_unit() returns the bottom level time unit
+        for a calendar with only one time unit.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        time_unit = TimeUnit.objects.create(calendar=calendar)
+        bottom_level_time_unit = calendar.get_bottom_level_time_unit()
+        self.assertEqual(time_unit, bottom_level_time_unit)
+
+    def test_get_bottom_level_time_unit_with_two_time_units(self):
+        """
+        get_bottom_level_time_unit() returns the bottom level time unit
+        for a calendar with two time units.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        time_unit = TimeUnit.objects.create(calendar=calendar)
+        time_unit_2 = TimeUnit.objects.create(calendar=calendar, base_unit=time_unit)
+        bottom_level_time_unit = calendar.get_bottom_level_time_unit()
+        self.assertEqual(time_unit, bottom_level_time_unit)
+        self.assertNotEqual(time_unit_2, bottom_level_time_unit)
+
+    def test_get_bottom_level_time_unit_with_no_time_units(self):
+        """
+        get_bottom_level_time_unit() throws ObjectDoesNotExist for a
+        calendar with no time units.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        try:
+            bottom_level_time_unit = calendar.get_bottom_level_time_unit()
+            self.assertFalse(True)
+        except Exception as error:
+            self.assertIsInstance(error, ObjectDoesNotExist)
+
+    def test_ensure_bottom_level_time_unit_with_no_time_unit(self):
+        """
+        ensure_bottom_level_time_unit() creates a bottom level time
+        unit for a calendar with no time units.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        calendar.ensure_bottom_level_time_unit()
+        bottom_level_time_unit = calendar.get_bottom_level_time_unit()
+        self.assertIsNotNone(bottom_level_time_unit)
+        self.assertIsInstance(bottom_level_time_unit, TimeUnit)
+
+    def test_ensure_bottom_level_time_unit_with_one_time_unit(self):
+        """
+        ensure_bottom_level_time_unit() does not create a time unit for
+        a calendar with a time unit (which should always be bottom
+        level).
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world)
+        time_unit = TimeUnit.objects.create(calendar=calendar)
+        pre_ensure_unit_count = TimeUnit.objects.filter(calendar_id=calendar.id).count()
+        calendar.ensure_bottom_level_time_unit()
+        post_ensure_unit_count = TimeUnit.objects.filter(calendar_id=calendar.id).count()
+        bottom_level_time_unit = calendar.get_bottom_level_time_unit()
+        self.assertEqual(pre_ensure_unit_count, post_ensure_unit_count)
+        self.assertEqual(time_unit, bottom_level_time_unit)
+
     def test_ensure_default_display_config_with_no_display_configs(self):
         """
         ensure_default_display_config() creates a display config with a
@@ -171,6 +237,24 @@ class CalendarModelTests(TestCase):
         self.assertIs(DisplayConfig.objects.all().count(), 1)
         self.assertIs(DisplayUnitConfig.objects.all().count(), 1)
         self.assertNotEqual(default_display_config.default_display_unit_config.time_unit, bottom_level_time_unit)
+
+    def test_is_linked_with_linked_calendar(self):
+        """
+        is_linked() returns True for a calendar with
+        world_link_iteration set.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world, world_link_iteration=6)
+        self.assertTrue(calendar.is_linked())
+
+    def test_is_linked_with_unlinked_calendar(self):
+        """
+        is_linked() returns False for a calendar without
+        world_link_iteration set.
+        """
+        world = World.objects.create()
+        calendar = Calendar.objects.create(world=world, world_link_iteration=None)
+        self.assertFalse(calendar.is_linked())
 
 
 class TimeUnitModelTests(TestCase):
