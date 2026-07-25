@@ -21,7 +21,7 @@ RUN curl -sSL -O https://packages.microsoft.com/config/ubuntu/24.04/packages-mic
 RUN dpkg -i packages-microsoft-prod.deb
 RUN rm packages-microsoft-prod.deb
 RUN apt-get update
-RUN ACCEPT_EULA=Y apt-get install -y msodbcsql17
+RUN ACCEPT_EULA=Y apt-get install -y msodbcsql18
 
 WORKDIR /app
 

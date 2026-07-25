@@ -1,5 +1,5 @@
 asgiref==3.11.1
-Django==5.0.14
+Django==5.1.15
 pip==26.1.2
 setuptools==82.0.1
 sqlparse==0.5.5
@@ -10,4 +10,4 @@ whitenoise==6.12.0
 djangorestframework==3.17.1
 django-cors-headers==4.9.0
 pyodbc==5.3.0
-mssql-django==1.5
+mssql-django==1.7.4
