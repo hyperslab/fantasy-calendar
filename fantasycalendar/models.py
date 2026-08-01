@@ -1749,3 +1749,17 @@ class DateBookmark(models.Model):
         bookmark made by the world creator intended for anyone to use.
         """
         return True if self.personal_bookmark_creator else False
+
+
+class UserNote(models.Model):
+    calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
+    note_unit = models.ForeignKey(TimeUnit, on_delete=models.CASCADE,
+                                  help_text=html_tooltip('The type of time unit that this note is for'))
+    note_iteration = models.IntegerField(help_text=html_tooltip('The instance of the specified time unit type for this '
+                                                                'note to link to'))
+    note_creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True,
+                                     help_text=html_tooltip('The creator of this note'))
+    note_text = models.TextField(max_length=4000, blank=True, help_text=html_tooltip('The content of this note'))
+
+    def __str__(self):
+        return str(self.note_creator) + "'s note for " + self.note_unit.get_instance_display_name(self.note_iteration)
