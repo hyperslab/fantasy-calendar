@@ -13,6 +13,7 @@ router.register('events', api_views.EventViewSet, 'event')
 router.register('dateformats', api_views.DateFormatViewSet, 'dateformat')
 router.register('displayconfigs', api_views.DisplayConfigViewSet, 'displayconfig')
 router.register('datebookmarks', api_views.DateBookmarkViewSet, 'datebookmark')
+router.register('usernotes', api_views.UserNoteViewSet, 'usernote')
 
 app_name = 'fantasycalendar'
 urlpatterns = [
@@ -26,6 +27,7 @@ urlpatterns = [
     path("api/timeunitcontainediteration/", api_views.TimeUnitContainedIteration.as_view()),
     path("api/dateformatreverse/", api_views.DateFormatReverse.as_view()),
     path("api/datebookmarkcreatepersonal/", api_views.DateBookmarkCreatePersonal.as_view()),
+    path("api/usernotemanage/", api_views.UserNoteManage.as_view()),
     path("worlds/", views.WorldIndexView.as_view(), name="world-index"),
     path("worlds/<int:pk>/", views.WorldDetailView.as_view(), name="world-detail"),
     path("worlds/new/", views.WorldCreateView.as_view(), name="world-create"),

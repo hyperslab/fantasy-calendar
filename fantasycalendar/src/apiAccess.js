@@ -10,6 +10,10 @@ function getAuthenticated(url, then) {
     axios.get(baseUrl + url).then(res => then(res));  // turns out session cookies are sent automatically so no extra auth needed
 }
 
+function getAuthenticatedNoCache(url, then) {
+    axios.get(baseUrl + url, { cache: { enabled: false } }).then(res => then(res));  // problematic to use caching for user-updatable fields
+}
+
 export function getUserStatusByWorldId(worldId, then) {
     const url = 'userstatus/?world_id=' + worldId;
     getAuthenticated(url, then);
@@ -87,6 +91,16 @@ export function getDateBookmarksByCalendarId(calendarId, then) {
     getAuthenticated(url, then);
 }
 
+export function getUserNote(timeUnitId, iteration, then) {
+    const url = 'usernotes/?own_only=true&note_unit_id=' + timeUnitId + '&note_iteration=' + iteration;
+    getAuthenticatedNoCache(url, then);  // TODO refresh this cache on postUserNote instead of disabling altogether
+}
+
+export function getUserNotes(timeUnitId, iteration, then) {
+    const url = 'usernotes/?note_unit_id=' + timeUnitId + '&note_iteration=' + iteration;
+    getAuthenticatedNoCache(url, then);  // TODO refresh this cache on postUserNote instead of disabling altogether
+}
+
 function getCookie(name) {  // copied from https://docs.djangoproject.com/en/3.2/ref/csrf/#ajax
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -136,6 +150,17 @@ export function postPersonalDateBookmark(calendarId, dateBookmarkName, bookmarkU
         bookmark_unit: bookmarkUnitId,
         bookmark_iteration: bookmarkIteration,
         bookmark_sub_unit: bookmarkSubUnitId,
+    };
+    postAuthenticated(url, params, then);
+}
+
+export function postUserNote(calendarId, noteUnitId, noteIteration, noteText, then) {
+    const url = 'usernotemanage/';
+    const params = {
+        calendar: calendarId,
+        note_unit: noteUnitId,
+        note_iteration: noteIteration,
+        note_text: noteText
     };
     postAuthenticated(url, params, then);
 }

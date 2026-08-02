@@ -1,6 +1,7 @@
 from django.db.models import Q
 from rest_framework import serializers
-from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig, DateBookmark, DisplayUnitConfig
+from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig, DateBookmark, DisplayUnitConfig, \
+    UserNote
 
 
 class WorldSerializer(serializers.ModelSerializer):
@@ -78,6 +79,12 @@ class DateBookmarkPersonalSerializer(serializers.ModelSerializer):
         model = DateBookmark
         fields = ('id', 'calendar', 'date_bookmark_name', 'bookmark_unit', 'bookmark_iteration', 'bookmark_sub_unit',
                   'display_name', 'personal_bookmark_creator')
+
+
+class UserNoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserNote
+        fields = ('id', 'calendar', 'note_unit', 'note_iteration', 'note_creator', 'note_text')
 
 
 class CalendarDetailSerializer(serializers.ModelSerializer):

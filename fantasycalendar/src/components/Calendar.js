@@ -7,6 +7,7 @@ import DisplayUnitNameHeader from './DisplayUnitNameHeader.js';
 import DisplayIterationSelect from './DisplayIterationSelect.js';
 import BookmarkSelect from './BookmarkSelect.js';
 import BookmarkCreateModalButton from './BookmarkCreateModalButton.js';
+import NoteManageModalButton from './NoteManageModalButton.js';
 import DateFormatSearch from './DateFormatSearch.js';
 import * as api from '../apiAccess.js';
 
@@ -195,6 +196,10 @@ export default class Calendar extends React.Component {
         this.setState({ dateBookmarks: [...this.state.dateBookmarks, res.data] });
     }
 
+    handleNoteManageModalFormPostResponse = (res) => {
+        return;  // TODO once we have an "all notes" section update that
+    }
+
     handleDateFormatReverseGetResponse = (res) => {
         if ('time_unit_id' in res.data && 'iteration' in res.data)
             this.setState({
@@ -246,6 +251,9 @@ export default class Calendar extends React.Component {
                         <BookmarkSelect bookmarks={this.state.dateBookmarks} selectedBookmarkId={this.state.selectedBookmarkId} onChange={this.handleBookmarkSelectChange} />
                         &nbsp;&nbsp;
                         <BookmarkCreateModalButton calendarId={this.state.displayUnit.calendar} timeUnit={this.state.displayUnit} subUnit={this.state.displaySubUnit} iteration={this.state.displayIteration} userStatus={this.state.userStatus} handlePostResponse={this.handleBookmarkCreateModalFormPostResponse} />
+                    </span>
+                    <span>
+                        <NoteManageModalButton calendarId={this.state.displayUnit.calendar} timeUnit={this.state.displayUnit} iteration={this.state.displayIteration} userStatus={this.state.userStatus} handlePostResponse={this.handleNoteManageModalFormPostResponse} />
                     </span>
                     <PageForwardButton timeUnitName={this.state.displayUnit.time_unit_name} onClick={this.handlePageForwardClick} />
                 </span>

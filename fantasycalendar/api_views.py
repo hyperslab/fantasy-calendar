@@ -8,9 +8,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig, DateBookmark, DisplayUnitConfig
+from .models import World, Calendar, TimeUnit, Event, DateFormat, DisplayConfig, DateBookmark, DisplayUnitConfig, \
+    UserNote
 from .serializers import WorldSerializer, CalendarSerializer, TimeUnitSerializer, EventSerializer, \
-    DateFormatSerializer, DisplayConfigSerializer, DateBookmarkSerializer, CalendarDetailSerializer
+    DateFormatSerializer, DisplayConfigSerializer, DateBookmarkSerializer, CalendarDetailSerializer, UserNoteSerializer
 from .permissions import IsCreatorOrPublic, IsWorldCreatorOrPublic, IsCalendarWorldCreatorOrPublic, \
     IsCalendarWorldCreator
 
@@ -551,4 +552,61 @@ class DateBookmarkCreatePersonal(APIView):
 
         # response
         serializer = DateBookmarkSerializer(bookmark)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class UserNoteViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = UserNote.objects.all()
+    serializer_class = UserNoteSerializer
+
+    def get_permissions(self):
+        permission_classes = [IsCalendarWorldCreatorOrPublic]
+        return [permission() for permission in permission_classes]
+
+    def get_queryset(self):
+        queryset = super(UserNoteViewSet, self).get_queryset()
+        if self.action == 'list':
+            if 'own_only' in self.request.query_params and self.request.user.is_authenticated:
+                queryset = queryset.filter(note_creator_id=self.request.user.id)
+            if 'note_unit_id' in self.request.query_params:
+                note_unit_id = int(self.request.query_params.get('note_unit_id'))
+                queryset = queryset.filter(note_unit_id=note_unit_id)
+            if 'note_iteration' in self.request.query_params:
+                note_iteration = int(self.request.query_params.get('note_iteration'))
+                queryset = queryset.filter(note_iteration=note_iteration)
+        return queryset
+
+
+class UserNoteManage(APIView):
+    def post(self, request):
+        # initial validation
+        if not request.user:
+            return Response({'message': 'ERROR: user is not authenticated'}, status=status.HTTP_403_FORBIDDEN)
+        required_params = [
+            'calendar',
+            'note_unit',
+            'note_iteration',
+            'note_text',
+        ]
+        missing_fields = [param for param in required_params if param not in request.data]
+        if len(missing_fields) > 0:
+            return Response({'message': 'ERROR: missing required fields ' + ' and '.join(missing_fields)},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # creation/update
+        calendar = get_object_or_404(Calendar, pk=int(request.data['calendar']))
+        if not calendar.world.public and calendar.world.creator != request.user:
+            return Response(
+                {'message': "ERROR: this resource's world is not public and you are not authenticated as its creator"},
+                status=status.HTTP_403_FORBIDDEN)
+        note_unit = get_object_or_404(TimeUnit, pk=int(request.data['note_unit']))
+        note_iteration = int(request.data['note_iteration'])
+        note_text = request.data['note_text']
+        note_creator = request.user
+        (user_note, _) = UserNote.objects.update_or_create(calendar=calendar, note_unit=note_unit,
+                                                           note_iteration=note_iteration, note_creator=note_creator,
+                                                           defaults={'note_text': note_text})
+
+        # response
+        serializer = UserNoteSerializer(user_note)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
