@@ -5,12 +5,12 @@ import {getTimeUnitInstanceDisplayName, getUserNote, postUserNote} from '../apiA
 const customStyles = {
     content: {
         background: 'lightgray',
-        top: '30%',
+        top: '15%',
         left: '50%',
         right: 'auto',
         bottom: 'auto',
         marginRight: '-50%',
-        transform: 'translate(-50%, -50%)',
+        transform: 'translate(-50%)',
     },
     overlay: {
         backgroundColor: 'rgba(169, 169, 169, 0.75)',
