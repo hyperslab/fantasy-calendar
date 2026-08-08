@@ -82,9 +82,14 @@ class DateBookmarkPersonalSerializer(serializers.ModelSerializer):
 
 
 class UserNoteSerializer(serializers.ModelSerializer):
+    note_creator_username = serializers.SerializerMethodField('get_note_creator_username')
+
+    def get_note_creator_username(self, user_note):
+        return user_note.note_creator.username
+
     class Meta:
         model = UserNote
-        fields = ('id', 'calendar', 'note_unit', 'note_iteration', 'note_creator', 'note_text')
+        fields = ('id', 'calendar', 'note_unit', 'note_iteration', 'note_creator', 'note_text', 'note_creator_username')
 
 
 class CalendarDetailSerializer(serializers.ModelSerializer):

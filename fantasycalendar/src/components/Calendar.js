@@ -8,6 +8,7 @@ import DisplayIterationSelect from './DisplayIterationSelect.js';
 import BookmarkSelect from './BookmarkSelect.js';
 import BookmarkCreateModalButton from './BookmarkCreateModalButton.js';
 import NoteManageModalButton from './NoteManageModalButton.js';
+import NoteViewModalButton from './NoteViewModalButton.js';
 import DateFormatSearch from './DateFormatSearch.js';
 import * as api from '../apiAccess.js';
 
@@ -197,7 +198,7 @@ export default class Calendar extends React.Component {
     }
 
     handleNoteManageModalFormPostResponse = (res) => {
-        return;  // TODO once we have an "all notes" section update that
+        return;  // TODO once we have an "all notes" section on the calendar itself update that
     }
 
     handleDateFormatReverseGetResponse = (res) => {
@@ -254,6 +255,8 @@ export default class Calendar extends React.Component {
                     </span>
                     <span>
                         <NoteManageModalButton calendarId={this.state.displayUnit.calendar} timeUnit={this.state.displayUnit} iteration={this.state.displayIteration} userStatus={this.state.userStatus} handlePostResponse={this.handleNoteManageModalFormPostResponse} />
+                        &nbsp;&nbsp;
+                        <NoteViewModalButton timeUnit={this.state.displayUnit} iteration={this.state.displayIteration} />
                     </span>
                     <PageForwardButton timeUnitName={this.state.displayUnit.time_unit_name} onClick={this.handlePageForwardClick} />
                 </span>
