@@ -29,6 +29,24 @@ html, body {
     text-decoration: none;
 }
 
+/* logout needs to be a button so it can POST as of Django 5, make it look like an h5 link like it used to be */
+#header * button {
+    color: lightgray;
+    text-decoration: none;
+    border: none;
+    outline: none;
+    background: none;
+    cursor: pointer;
+    padding: 0;
+    font-family: inherit;
+    display: block;
+    margin-top: 1.67em;
+    margin-bottom: 1.67em;
+    margin-left: 0;
+    margin-right: 0;
+    font-weight: bold;
+}
+
 #header-buttons {
     float: left;
     display: flex;

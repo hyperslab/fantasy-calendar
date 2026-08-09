@@ -21,7 +21,12 @@
                 <h5>{{ user.username }}</h5>
             </span>
             <span>
-                <h5><a href="{% url 'accounts:logout' %}">Log Out</a></h5>
+                <h5>
+                    <form id="logout" method="post" action="{% url 'accounts:logout' %}">
+                        {% csrf_token %}
+                        <button type="submit">Log Out</button>
+                    </form>
+                </h5>
             </span>
             {% else %}
             <span>
