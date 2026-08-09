@@ -154,13 +154,14 @@ export function postPersonalDateBookmark(calendarId, dateBookmarkName, bookmarkU
     postAuthenticated(url, params, then);
 }
 
-export function postUserNote(calendarId, noteUnitId, noteIteration, noteText, then) {
+export function postUserNote(calendarId, noteUnitId, noteIteration, noteText, notePublic, then) {
     const url = 'usernotemanage/';
     const params = {
         calendar: calendarId,
         note_unit: noteUnitId,
         note_iteration: noteIteration,
-        note_text: noteText
+        note_text: noteText,
+        public: notePublic
     };
     postAuthenticated(url, params, then);
 }

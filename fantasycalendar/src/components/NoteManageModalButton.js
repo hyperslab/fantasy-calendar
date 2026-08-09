@@ -22,6 +22,7 @@ Modal.setAppElement('#root');
 export default function NoteManageModalButton({ calendarId, timeUnit, iteration, userStatus, handlePostResponse }) {
     const [modalIsOpen, setModalIsOpen] = React.useState(false);
     const [noteText, setNoteText] = React.useState('');
+    const [notePublic, setNotePublic] = React.useState(false);
     const [displayName, setDisplayName] = React.useState('');
     const [editable, setEditable] = React.useState(false);
 
@@ -33,9 +34,11 @@ export default function NoteManageModalButton({ calendarId, timeUnit, iteration,
         getUserNote(timeUnit.id, iteration, res => {
             if (res.data.length > 0) {
                 setNoteText(res.data[0].note_text);
+                setNotePublic(res.data[0].public);
             }
             else {
                 setNoteText('');
+                setNotePublic(false);
             }
             setEditable(true);
         });
@@ -44,12 +47,13 @@ export default function NoteManageModalButton({ calendarId, timeUnit, iteration,
     function closeModal() {
         setModalIsOpen(false);
         setNoteText('');
+        setNotePublic(false);
         setEditable(false);
     }
 
     function handleSubmit(event) {
         event.preventDefault();
-        postUserNote(calendarId, timeUnit.id, iteration, noteText, () => {
+        postUserNote(calendarId, timeUnit.id, iteration, noteText, notePublic, () => {
             closeModal();  // wait until post completes to reset fields to be sure they make it to the API
             handlePostResponse();
         });
@@ -64,6 +68,11 @@ export default function NoteManageModalButton({ calendarId, timeUnit, iteration,
             <form onSubmit={handleSubmit}>
                 <p>Notes for date: {displayName}</p>
                 <textarea rows="12" cols="60" disabled={!editable} value={noteText} onChange={(e) => setNoteText(e.target.value)} />
+                <br/><br/>
+                <label>
+                    Make note visible to other users?&nbsp;
+                    <input type="checkbox" disabled={!editable} checked={notePublic} onChange={(e) => setNotePublic(e.target.checked)} />
+                </label>
                 <br/><br/>
                 <input type="submit" value="Save" />
             </form>

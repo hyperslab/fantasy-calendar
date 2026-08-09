@@ -89,7 +89,8 @@ class UserNoteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserNote
-        fields = ('id', 'calendar', 'note_unit', 'note_iteration', 'note_creator', 'note_text', 'note_creator_username')
+        fields = ('id', 'calendar', 'note_unit', 'note_iteration', 'note_creator', 'note_text', 'note_creator_username',
+                  'public')
 
 
 class CalendarDetailSerializer(serializers.ModelSerializer):

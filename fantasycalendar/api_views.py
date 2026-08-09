@@ -1,5 +1,6 @@
 import math
 
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from rest_framework import viewsets
@@ -566,8 +567,13 @@ class UserNoteViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         queryset = super(UserNoteViewSet, self).get_queryset()
         if self.action == 'list':
-            if 'own_only' in self.request.query_params and self.request.user.is_authenticated:
-                queryset = queryset.filter(note_creator_id=self.request.user.id)
+            if self.request.user.is_authenticated:
+                if 'own_only' in self.request.query_params:
+                    queryset = queryset.filter(note_creator_id=self.request.user.id)
+                else:
+                    queryset = queryset.filter(Q(public=True) | Q(note_creator_id=self.request.user.id))
+            else:
+                queryset = queryset.filter(public=True)
             if 'note_unit_id' in self.request.query_params:
                 note_unit_id = int(self.request.query_params.get('note_unit_id'))
                 queryset = queryset.filter(note_unit_id=note_unit_id)
@@ -602,10 +608,12 @@ class UserNoteManage(APIView):
         note_unit = get_object_or_404(TimeUnit, pk=int(request.data['note_unit']))
         note_iteration = int(request.data['note_iteration'])
         note_text = request.data['note_text']
+        public = request.data['public'] if 'public' in request.data else False  # not required, default to false
         note_creator = request.user
+        # each user gets one note per instance of a time unit
         (user_note, _) = UserNote.objects.update_or_create(calendar=calendar, note_unit=note_unit,
                                                            note_iteration=note_iteration, note_creator=note_creator,
-                                                           defaults={'note_text': note_text})
+                                                           defaults={'note_text': note_text, 'public': public})
 
         # response
         serializer = UserNoteSerializer(user_note)
