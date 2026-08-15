@@ -6,12 +6,10 @@ const axios = setupCache(instance);
 
 const baseUrl = '/fantasy-calendar/api/';
 
-function getAuthenticated(url, then) {
-    axios.get(baseUrl + url).then(res => then(res));  // turns out session cookies are sent automatically so no extra auth needed
-}
-
-function getAuthenticatedNoCache(url, then) {
-    axios.get(baseUrl + url, { cache: { enabled: false } }).then(res => then(res));  // problematic to use caching for user-updatable fields
+function getAuthenticated(url, then, cacheEnabled = true, cacheId = null) {
+    // session cookies are sent automatically so no extra auth needed
+    // cacheId, if provided, should include URL parameters so it is unique across pages
+    axios.get(baseUrl + url, { cache: { enabled: cacheEnabled }, id: cacheId }).then(res => then(res));
 }
 
 export function getUserStatusByWorldId(worldId, then) {
@@ -93,12 +91,12 @@ export function getDateBookmarksByCalendarId(calendarId, then) {
 
 export function getUserNote(timeUnitId, iteration, then) {
     const url = 'usernotes/?own_only=true&note_unit_id=' + timeUnitId + '&note_iteration=' + iteration;
-    getAuthenticatedNoCache(url, then);  // TODO refresh this cache on postUserNote instead of disabling altogether
+    getAuthenticated(url, then, true, 'user-note-own-' + timeUnitId + '-' + iteration);
 }
 
 export function getUserNotes(timeUnitId, iteration, then) {
     const url = 'usernotes/?note_unit_id=' + timeUnitId + '&note_iteration=' + iteration;
-    getAuthenticatedNoCache(url, then);  // TODO refresh this cache on postUserNote instead of disabling altogether
+    getAuthenticated(url, then, true, 'user-note-' + timeUnitId + '-' + iteration   );
 }
 
 function getCookie(name) {  // copied from https://docs.djangoproject.com/en/3.2/ref/csrf/#ajax
@@ -117,7 +115,7 @@ function getCookie(name) {  // copied from https://docs.djangoproject.com/en/3.2
     return cookieValue;
 }
 
-function postAuthenticated(url, params, then) {
+function postAuthenticated(url, params, then, cacheIdsToClear = null) {
     const csrftoken = getCookie('csrftoken');
 
     const config = {
@@ -126,6 +124,20 @@ function postAuthenticated(url, params, then) {
             'X-CSRFToken': csrftoken,
         }
     };
+
+    // clear the cache of the given ID(s) if provided
+    if (cacheIdsToClear) {
+        config.cache = {
+            update: {
+            }
+        };
+        if (cacheIdsToClear.constructor !== Array) {
+            config.cache.update[cacheIdsToClear] = 'delete';
+        }
+        else {
+            cacheIdsToClear.forEach((cacheId) => config.cache.update[cacheId] = 'delete');
+        }
+    }
 
     axios.post(baseUrl + url, params, config).then(res => then(res));
 }
@@ -163,5 +175,5 @@ export function postUserNote(calendarId, noteUnitId, noteIteration, noteText, no
         note_text: noteText,
         public: notePublic
     };
-    postAuthenticated(url, params, then);
+    postAuthenticated(url, params, then, ['user-note-' + noteUnitId + '-' + noteIteration, 'user-note-own-' + noteUnitId + '-' + noteIteration]);
 }
