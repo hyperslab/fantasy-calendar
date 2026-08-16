@@ -39,10 +39,15 @@ export default function NoteViewModalButton({ timeUnit, iteration }) {
     }
 
     const noteRows = [];
-    if (notes) {
+    if (notes && notes.length > 0) {
+        let noteKey = 1;
         notes.forEach((note) => {
-            noteRows.push(<li>{note.note_creator_username}: {note.note_text}</li>);
+            noteRows.push(<li key={noteKey}>{note.note_creator_username}: {note.note_text}</li>);
+            noteKey++;
         });
+    }
+    else {
+        noteRows.push(<li key="0">No notes available for this date!</li>);
     }
 
     let modalContent;
