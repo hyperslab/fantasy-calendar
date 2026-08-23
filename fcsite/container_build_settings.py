@@ -4,6 +4,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 ALLOWED_HOSTS = ['127.0.0.1', '.localhost']
+CSRF_TRUSTED_ORIGINS = ['http://localhost', 'http://localhost:8000']  # for development
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

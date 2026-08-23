@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  gunicorn:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fantasy-calendar-gunicorn
+    volumes:
+      - static_volume:/app/static
+    expose:
+      - 8000
+    restart: unless-stopped
+    networks:
+      - fantasy-calendar-network
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    container_name: fantasy-calendar-nginx
+    volumes:
+      - static_volume:/app/static
+    ports:
+      - "8000:80"
+    depends_on:
+      - gunicorn
+    restart: unless-stopped
+    networks:
+      - fantasy-calendar-network
+
+networks:
+  fantasy-calendar-network:
+    driver: bridge
+
+volumes:
+  static_volume:
