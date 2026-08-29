@@ -4,7 +4,7 @@ services:
   gunicorn:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.gunicorn
     container_name: fantasy-calendar-gunicorn
     volumes:
       - static_volume:/app/static

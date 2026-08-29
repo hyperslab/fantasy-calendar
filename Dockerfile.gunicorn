@@ -40,10 +40,6 @@ RUN python manage.py collectstatic --no-input
 # this does not seem to keep the Azure DB up to date as well
 RUN python manage.py migrate
 
-RUN apt install nginx -y
+EXPOSE 8000
 
-COPY nginx-single.conf /etc/nginx/sites-available/default
-
-EXPOSE 80
-
-ENTRYPOINT ["sh", "/app/start.sh"]
+CMD ["gunicorn"]
