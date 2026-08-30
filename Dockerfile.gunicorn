@@ -8,6 +8,8 @@ RUN yarn install --frozen-lockfile
 
 COPY fantasycalendar/src/. ./src/
 
+ENV NODE_ENV=production
+
 RUN yarn run build
 
 FROM python:3.11
