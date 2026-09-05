@@ -17,6 +17,7 @@ class World(models.Model):
     world_name = models.CharField(max_length=200, help_text=html_tooltip('The name of this world'))
     public = models.BooleanField(default=False,
                                  help_text=html_tooltip('Whether this world is viewable by other people'))
+    last_activity = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.world_name
@@ -46,12 +47,17 @@ class Calendar(models.Model):
                                                                          'calendar in the world to be linked, or '
                                                                          'leave it blank to leave the calendar '
                                                                          'unlinked'))
+    last_activity = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.calendar_name
 
     def get_absolute_url(self):
         return reverse('fantasycalendar:calendar-detail', kwargs={'pk': self.pk, 'world_key': self.world.pk})
+
+    def save(self, **kwargs):
+        super(Calendar, self).save(**kwargs)
+        self.world.save()
 
     def get_bottom_level_time_unit(self) -> 'TimeUnit':
         """
@@ -151,6 +157,10 @@ class TimeUnit(models.Model):
 
     def __str__(self):
         return self.time_unit_name
+
+    def save(self, **kwargs):
+        super(TimeUnit, self).save(**kwargs)
+        self.calendar.save()
 
     @admin.display(boolean=True, description='Lowest level time unit?')
     def is_bottom_level(self) -> bool:
@@ -1124,6 +1134,10 @@ class Event(models.Model):
         return reverse('fantasycalendar:event-detail', kwargs={'pk': self.pk, 'calendar_key': self.calendar.pk,
                                                                'world_key': self.calendar.world.pk})
 
+    def save(self, **kwargs):
+        super(Event, self).save(**kwargs)
+        self.calendar.save()
+
     def is_visible(self):
         """
         Return True if this Event should be visible on the main
@@ -1153,6 +1167,10 @@ class EventGroup(models.Model):
                                                                      'calendar_key': self.calendar.pk,
                                                                      'world_key': self.calendar.world.pk})
 
+    def save(self, **kwargs):
+        super(EventGroup, self).save(**kwargs)
+        self.calendar.save()
+
 
 class DateFormat(models.Model):
     calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
@@ -1175,6 +1193,10 @@ class DateFormat(models.Model):
         return reverse('fantasycalendar:date-format-detail', kwargs={'pk': self.pk, 'timeunit_key': self.time_unit.pk,
                                                                      'calendar_key': self.calendar.pk,
                                                                      'world_key': self.calendar.world.pk})
+
+    def save(self, **kwargs):
+        super(DateFormat, self).save(**kwargs)
+        self.calendar.save(**kwargs)
 
     def get_formatted_date(self, iteration: int) -> str:
         """
@@ -1508,6 +1530,10 @@ class DisplayConfig(models.Model):
         return reverse('fantasycalendar:display-config-detail', kwargs={'pk': self.pk, 'calendar_key': self.calendar.pk,
                                                                         'world_key': self.calendar.world.pk})
 
+    def save(self, **kwargs):
+        super(DisplayConfig, self).save(**kwargs)
+        self.calendar.save()
+
     def get_possible_display_unit_configs(self, include_non_bottom_singles: bool = False) -> list[(TimeUnit, TimeUnit)]:
         """
         Return a list of tuples of a time unit and a corresponding sub
@@ -1703,6 +1729,10 @@ class DisplayUnitConfig(models.Model):
         else:
             return 'All ' + str(self.sub_unit) + ' in a ' + str(self.time_unit)
 
+    def save(self, **kwargs):
+        super(DisplayUnitConfig, self).save(**kwargs)
+        self.display_config.calendar.save()
+
 
 class DateBookmark(models.Model):
     calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE)
@@ -1724,6 +1754,10 @@ class DateBookmark(models.Model):
 
     def __str__(self):
         return self.get_display_name()
+
+    def save(self, **kwargs):
+        super(DateBookmark, self).save(**kwargs)
+        self.calendar.save()
 
     def get_display_name(self):
         """
@@ -1764,3 +1798,7 @@ class UserNote(models.Model):
 
     def __str__(self):
         return str(self.note_creator) + "'s note for " + self.note_unit.get_instance_display_name(self.note_iteration)
+
+    def save(self, **kwargs):
+        super(UserNote, self).save(**kwargs)
+        self.calendar.save()
