@@ -9,7 +9,7 @@ World Index
 {% if user.is_authenticated %}
     {% if user_world_list %}
         <ul>
-        {% for world in user_world_list %}
+        {% for world in user_world_list|dictsortreversed:"last_activity" %}
             <li><a href="{% url 'fantasycalendar:world-detail' world.id %}">{{ world.world_name }}</a></li>
         {% endfor %}
         </ul>
@@ -26,7 +26,7 @@ World Index
 <h3>Worlds from Other Creators</h3>
 {% if world_list %}
     <ul>
-    {% for world in world_list %}
+    {% for world in world_list|dictsortreversed:"last_activity" %}
         <li><a href="{% url 'fantasycalendar:world-detail' world.id %}">{{ world.world_name }}</a> by {{ world.creator.username }}</li>
     {% endfor %}
     </ul>

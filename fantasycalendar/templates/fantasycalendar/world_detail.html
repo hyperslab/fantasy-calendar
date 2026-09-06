@@ -11,7 +11,7 @@ World Detail
 <h3>Calendars{% if user.pk == world.creator.pk %}  <a href="{% url 'fantasycalendar:calendar-create' world.id %}">(+new)</a>{% endif %}</h3>
 {% if world.calendar_set %}
     <ul>
-    {% for calendar in world.calendar_set.all %}
+    {% for calendar in world.calendar_set.all|dictsortreversed:"last_activity" %}
         {% if user == world.creator %}
         <li><a href="{% url 'fantasycalendar:calendar-detail' world.id calendar.id %}">{{ calendar.calendar_name }}</a></li>
         {% else %}
