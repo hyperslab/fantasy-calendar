@@ -10,7 +10,10 @@ World Index
     {% if user_world_list %}
         <ul>
         {% for world in user_world_list|dictsortreversed:"last_activity" %}
-            <li><a href="{% url 'fantasycalendar:world-detail' world.id %}">{{ world.world_name }}</a></li>
+            <li>
+                <a href="{% url 'fantasycalendar:world-detail' world.id %}">{{ world.world_name }}</a>
+                {% if world.activity_message %} ({{ world.activity_message }}!){% endif %}
+            </li>
         {% endfor %}
         </ul>
     {% else %}
@@ -27,7 +30,10 @@ World Index
 {% if world_list %}
     <ul>
     {% for world in world_list|dictsortreversed:"last_activity" %}
-        <li><a href="{% url 'fantasycalendar:world-detail' world.id %}">{{ world.world_name }}</a> by {{ world.creator.username }}</li>
+        <li>
+            <a href="{% url 'fantasycalendar:world-detail' world.id %}">{{ world.world_name }}</a> by {{ world.creator.username }}
+            {% if world.activity_message %} ({{ world.activity_message }}!){% endif %}
+        </li>
     {% endfor %}
     </ul>
 {% else %}

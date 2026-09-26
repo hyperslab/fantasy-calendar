@@ -12,11 +12,14 @@ World Detail
 {% if world.calendar_set %}
     <ul>
     {% for calendar in world.calendar_set.all|dictsortreversed:"last_activity" %}
-        {% if user == world.creator %}
-        <li><a href="{% url 'fantasycalendar:calendar-detail' world.id calendar.id %}">{{ calendar.calendar_name }}</a></li>
-        {% else %}
-        <li><a href="{% url 'fantasycalendar:calendar-calendar' world.id calendar.id %}">{{ calendar.calendar_name }}</a></li>
-        {% endif %}
+        <li>
+            {% if user == world.creator %}
+            <a href="{% url 'fantasycalendar:calendar-detail' world.id calendar.id %}">{{ calendar.calendar_name }}</a>
+            {% else %}
+            <a href="{% url 'fantasycalendar:calendar-calendar' world.id calendar.id %}">{{ calendar.calendar_name }}</a>
+            {% endif %}
+            {% if calendar.activity_message %} ({{ calendar.activity_message }}!){% endif %}
+        </li>
     {% endfor %}
     </ul>
 {% else %}

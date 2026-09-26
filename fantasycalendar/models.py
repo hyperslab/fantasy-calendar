@@ -1,3 +1,4 @@
+import datetime
 import decimal
 import math
 import re
@@ -18,6 +19,17 @@ class World(models.Model):
     public = models.BooleanField(default=False,
                                  help_text=html_tooltip('Whether this world is viewable by other people'))
     last_activity = models.DateTimeField(auto_now=True)
+
+    @property
+    def activity_message(self):
+        activity_message = ''
+        if self.last_activity.date() == datetime.date.today():
+            activity_message = 'Updated Today'
+        elif self.last_activity.date() == datetime.date.today() - datetime.timedelta(days=1):
+            activity_message = 'Updated Yesterday'
+        elif self.last_activity >= datetime.datetime.now(tz=self.last_activity.tzinfo) - datetime.timedelta(hours=96):
+            activity_message = 'Updated Recently'
+        return activity_message
 
     def __str__(self):
         return self.world_name
@@ -48,6 +60,17 @@ class Calendar(models.Model):
                                                                          'leave it blank to leave the calendar '
                                                                          'unlinked'))
     last_activity = models.DateTimeField(auto_now=True)
+
+    @property
+    def activity_message(self):
+        activity_message = ''
+        if self.last_activity.date() == datetime.date.today():
+            activity_message = 'Updated Today'
+        elif self.last_activity.date() == datetime.date.today() - datetime.timedelta(days=1):
+            activity_message = 'Updated Yesterday'
+        elif self.last_activity >= datetime.datetime.now(tz=self.last_activity.tzinfo) - datetime.timedelta(hours=96):
+            activity_message = 'Updated Recently'
+        return activity_message
 
     def __str__(self):
         return self.calendar_name
