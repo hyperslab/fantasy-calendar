@@ -18,7 +18,7 @@ World Detail
             {% else %}
             <a href="{% url 'fantasycalendar:calendar-calendar' world.id calendar.id %}">{{ calendar.calendar_name }}</a>
             {% endif %}
-            {% if calendar.activity_message %} ({{ calendar.activity_message }}!){% endif %}
+            {% if calendar.activity_message %} ({{ calendar.activity_message }}){% endif %}
         </li>
     {% endfor %}
     </ul>

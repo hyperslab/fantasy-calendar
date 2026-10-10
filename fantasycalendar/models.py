@@ -24,11 +24,11 @@ class World(models.Model):
     def activity_message(self):
         activity_message = ''
         if self.last_activity.date() == datetime.date.today():
-            activity_message = 'Updated Today'
+            activity_message = 'Updated Today!'
         elif self.last_activity.date() == datetime.date.today() - datetime.timedelta(days=1):
-            activity_message = 'Updated Yesterday'
+            activity_message = 'Updated Yesterday!'
         elif self.last_activity >= datetime.datetime.now(tz=self.last_activity.tzinfo) - datetime.timedelta(hours=96):
-            activity_message = 'Updated Recently'
+            activity_message = 'Updated Recently!'
         return activity_message
 
     def __str__(self):
@@ -65,11 +65,11 @@ class Calendar(models.Model):
     def activity_message(self):
         activity_message = ''
         if self.last_activity.date() == datetime.date.today():
-            activity_message = 'Updated Today'
+            activity_message = 'Updated Today!'
         elif self.last_activity.date() == datetime.date.today() - datetime.timedelta(days=1):
-            activity_message = 'Updated Yesterday'
+            activity_message = 'Updated Yesterday!'
         elif self.last_activity >= datetime.datetime.now(tz=self.last_activity.tzinfo) - datetime.timedelta(hours=96):
-            activity_message = 'Updated Recently'
+            activity_message = 'Updated Recently!'
         return activity_message
 
     def __str__(self):
