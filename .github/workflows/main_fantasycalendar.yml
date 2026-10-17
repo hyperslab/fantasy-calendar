@@ -13,8 +13,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      NODE_ENV: production
 
     steps:
       - uses: actions/checkout@v2
@@ -47,6 +45,9 @@ jobs:
         run: yarn install
         working-directory: fantasycalendar
 
+      - name: Set NODE_ENV
+        run: export NODE_ENV=production
+
       - name: Build JavaScript
         run: yarn run build
         working-directory: fantasycalendar
@@ -61,8 +62,6 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    env:
-      NODE_ENV: production
     needs: build
     environment:
       name: 'Production'
