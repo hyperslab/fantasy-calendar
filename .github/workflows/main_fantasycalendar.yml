@@ -14,7 +14,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      NODE_ENV: 'production'
+      NODE_ENV: production
 
     steps:
       - uses: actions/checkout@v2
@@ -62,7 +62,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      NODE_ENV: 'production'
+      NODE_ENV: production
     needs: build
     environment:
       name: 'Production'
