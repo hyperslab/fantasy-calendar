@@ -177,3 +177,37 @@ export function postUserNote(calendarId, noteUnitId, noteIteration, noteText, no
     };
     postAuthenticated(url, params, then, ['user-note-' + noteUnitId + '-' + noteIteration, 'user-note-own-' + noteUnitId + '-' + noteIteration]);
 }
+
+// helper functions to pre-cache calendar pages
+
+// cache all bookmark pages
+export async function loadBookmarks(calendar, displayConfigId = null) {
+    calendar.date_bookmarks.forEach((bookmark) => {
+        getCalendarPage(bookmark.bookmark_unit,
+        bookmark.bookmark_sub_unit,
+        bookmark.bookmark_iteration,
+        displayConfigId,
+        res => {});
+    });
+};
+
+// cache next page
+export async function loadNext(timeUnitId, subUnitId, iteration, displayConfigId = null) {
+    console.log('loadnext');
+    getCalendarPage(timeUnitId, subUnitId, iteration + 1, displayConfigId, res => {});
+};
+
+// cache previous page
+export async function loadPrevious(timeUnitId, subUnitId, iteration, displayConfigId = null) {
+    console.log('loadprev');
+    // only if it actually exists
+    if (iteration > 1) {
+        getCalendarPage(timeUnitId, subUnitId, iteration - 1, displayConfigId, res => {});
+    }
+};
+
+// cache next and previous pages
+export async function loadAdjacent(timeUnitId, subUnitId, iteration, displayConfigId = null) {
+    loadNext(timeUnitId, subUnitId, iteration, displayConfigId);
+    loadPrevious(timeUnitId, subUnitId, iteration, displayConfigId);
+};

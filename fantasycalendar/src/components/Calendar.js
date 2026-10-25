@@ -26,20 +26,6 @@ export default class Calendar extends React.Component {
     }
 
     componentDidMount() {
-        const loadData = async(calendar, displayConfig) => {
-            // start calling API in the background to cache some data
-            // always call this last after the API calls that are actually needed
-            const loadCalendarPage = async(timeUnit, subUnit, iteration, displayConfig = null) => {
-                api.getCalendarPage(timeUnit.id, subUnit?.id, iteration, displayConfig?.id, res => {});
-            };
-            calendar.date_bookmarks.forEach((bookmark) => {  // for bookmarks
-                loadCalendarPage(calendar.time_units.find(x => x.id == bookmark.bookmark_unit),
-                bookmark.bookmark_sub_unit != null ? calendar.time_units.find(x => x.id == bookmark.bookmark_sub_unit) : null,
-                bookmark.bookmark_iteration,
-                displayConfig);
-            });
-        };
-
         // required props validation
         if (!this.props.hasOwnProperty('calendarId') || !(this.props.calendarId)) return;  // note: 0 is an invalid calendarId, failing there is intentional
 
@@ -94,23 +80,23 @@ export default class Calendar extends React.Component {
                     }
 
                     // determine initial iteration with priority prop > default bookmark > 1
+                    var displayIteration = 1;
                     if (this.props.hasOwnProperty('displayIteration') && this.props.displayIteration && typeof this.props.displayIteration === 'number' && this.props.displayIteration > 0)
                     {
-                        this.setState({ displayIteration: this.props.displayIteration });
+                        displayIteration = this.props.displayIteration;
                     }
                     else if (displayConfig.default_date_bookmark)
                     {
                         const defaultDateBookmark = allowedBookmarks.find(x => x.id == displayConfig.default_date_bookmark);
                         if (defaultDateBookmark)
                         {
-                            this.setState({ displayIteration: defaultDateBookmark.bookmark_iteration });
+                            displayIteration = defaultDateBookmark.bookmark_iteration;
                         }
                     }
-                    else
-                    {
-                        this.setState({ displayIteration: 1 });
-                    }
-                    loadData(calendar, displayConfig);
+                    this.setState({ displayIteration: displayIteration });
+
+                    api.loadBookmarks(calendar, displayConfigId);
+                    api.loadAdjacent(displayUnit.id, displaySubUnit?.id, displayIteration, displayConfigId);
                 });
             }
             else  // if there is no display config being used, checks for what is allowed are much less strict
@@ -119,42 +105,51 @@ export default class Calendar extends React.Component {
                 this.setState({ dateBookmarks: calendar.date_bookmarks });
 
                 // determine initial time unit page with priority props > config default
+                var displayUnit = calendar.time_units[0];
+                var displaySubUnit = null;
                 if (this.props.hasOwnProperty('displayUnitId') && this.props.displayUnitId && calendar.time_units.find(x => x.id == this.props.displayUnitId))
                 {
-                    this.setState({ displayUnit: calendar.time_units.find(x => x.id == this.props.displayUnitId) });
+                    displayUnit = calendar.time_units.find(x => x.id == this.props.displayUnitId);
 
                     // must specify a time unit to specify a sub unit
                     if (this.props.hasOwnProperty('displaySubUnitId') && this.props.displaySubUnitId  && calendar.time_units.find(x => x.id == this.props.displaySubUnitId))
                     {
-                        this.setState({ displaySubUnit: calendar.time_units.find(x => x.id == this.props.displaySubUnitId) });
+                        displaySubUnit = calendar.time_units.find(x => x.id == this.props.displaySubUnitId);
                     }
                 }
-                else
+                this.setState({ displayUnit: displayUnit });
+                if (displaySubUnit)
                 {
-                    this.setState({ displayUnit: calendar.time_units[0] });
+                    this.setState({ displaySubUnit: displaySubUnit });
                 }
 
                 // determine initial iteration with priority prop > 1
+                var displayIteration = 1;
                 if (this.props.hasOwnProperty('displayIteration') && this.props.displayIteration && typeof this.props.displayIteration === 'number' && this.props.displayIteration > 0)
                 {
-                    this.setState({ displayIteration: this.props.displayIteration });
+                    displayIteration = this.props.displayIteration;
                 }
-                else
-                {
-                    this.setState({ displayIteration: 1 });
-                }
-                loadData(calendar);
+                this.setState({ displayIteration: displayIteration });
+
+                api.loadBookmarks(calendar);
+                api.loadAdjacent(displayUnit.id, displaySubUnit?.id, displayIteration);
             }
         });
     }
 
     handlePageBackClick = () => {
         if (this.state.displayIteration > 1)  // don't go below 1
-            this.setState({ displayIteration: this.state.displayIteration - 1 });
+            this.setState(
+                { displayIteration: this.state.displayIteration - 1 },
+                () => { api.loadPrevious(this.state.displayUnit.id, this.state.displaySubUnit?.id, this.state.displayIteration, this.state.displayConfig?.id); }
+            );
     }
 
     handlePageForwardClick = () => {
-        this.setState({ displayIteration: this.state.displayIteration + 1 });
+        this.setState(
+            { displayIteration: this.state.displayIteration + 1 },
+            () => { api.loadNext(this.state.displayUnit.id, this.state.displaySubUnit?.id, this.state.displayIteration, this.state.displayConfig?.id); }
+        );
     }
 
     handleTimeUnitInstanceClick = (timeUnitId, subUnitId, iteration) => {
@@ -162,7 +157,7 @@ export default class Calendar extends React.Component {
             displayUnit: this.state.timeUnits.find(x => x.id == timeUnitId),
             displaySubUnit: subUnitId ? this.state.timeUnits.find(x => x.id == subUnitId) : '',
             displayIteration: iteration,
-        });
+        }, () => { api.loadAdjacent(timeUnitId, subUnitId, iteration, this.state.displayConfig?.id); });
     }
 
     handleDisplayUnitSelectChange = (newUnitId, newSubUnitId) => {
@@ -171,7 +166,7 @@ export default class Calendar extends React.Component {
                 displayUnit: this.state.timeUnits.find(x => x.id == newUnitId),
                 displaySubUnit: this.state.timeUnits.find(x => x.id == newSubUnitId),
                 displayIteration: res.data.iteration,
-            });
+            }, () => { api.loadAdjacent(newUnitId, newSubUnitId, res.data.iteration, this.state.displayConfig?.id); });
         });
     }
 
@@ -180,7 +175,10 @@ export default class Calendar extends React.Component {
             newIteration = 1;
         else if (newIteration > Number.MAX_SAFE_INTEGER)
             newIteration = Number.MAX_SAFE_INTEGER;
-        this.setState({ displayIteration: newIteration });
+        this.setState(
+            { displayIteration: newIteration },
+            () => { api.loadAdjacent(this.state.displayUnit.id, this.state.displaySubUnit?.id, newIteration, this.state.displayConfig?.id); }
+        );
     }
 
     handleBookmarkSelectChange = (newBookmarkId) => {
@@ -190,7 +188,7 @@ export default class Calendar extends React.Component {
             displaySubUnit: newBookmark.bookmark_sub_unit != null ? this.state.timeUnits.find(x => x.id == newBookmark.bookmark_sub_unit) : '',
             displayIteration: newBookmark.bookmark_iteration,
             selectedBookmarkId: '',
-        });
+        }, () => { api.loadAdjacent(this.state.displayUnit.id, this.state.displaySubUnit?.id, this.state.displayIteration, this.state.displayConfig?.id); });
     }
 
     handleBookmarkCreateModalFormPostResponse = (res) => {
@@ -202,11 +200,12 @@ export default class Calendar extends React.Component {
     }
 
     handleDateFormatReverseGetResponse = (res) => {
-        if ('time_unit_id' in res.data && 'iteration' in res.data)
+        if ('time_unit_id' in res.data && 'iteration' in res.data) {
             this.setState({
                 displayUnit: this.state.timeUnits.find(x => x.id == res.data.time_unit_id),
                 displayIteration: res.data.iteration,
-            });
+            }, () => { api.loadAdjacent(res.data.time_unit_id, this.state.displaySubUnit?.id, res.data.iteration, this.state.displayConfig?.id); });
+        }
         else
             window.alert('Error parsing date format: ' + ('message' in res.data ? res.data.message : 'no message specified'));
     }
