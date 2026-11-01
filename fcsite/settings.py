@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
+    'django_extensions',
     'accounts',
     'fantasycalendar.apps.FantasycalendarConfig',
 ]
