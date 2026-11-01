@@ -193,13 +193,11 @@ export async function loadBookmarks(calendar, displayConfigId = null) {
 
 // cache next page
 export async function loadNext(timeUnitId, subUnitId, iteration, displayConfigId = null) {
-    console.log('loadnext');
     getCalendarPage(timeUnitId, subUnitId, iteration + 1, displayConfigId, res => {});
 };
 
 // cache previous page
 export async function loadPrevious(timeUnitId, subUnitId, iteration, displayConfigId = null) {
-    console.log('loadprev');
     // only if it actually exists
     if (iteration > 1) {
         getCalendarPage(timeUnitId, subUnitId, iteration - 1, displayConfigId, res => {});
