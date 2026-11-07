@@ -3,7 +3,6 @@ import CalendarPage from './CalendarPage.js';
 import PageForwardButton from './PageForwardButton.js';
 import PageBackButton from './PageBackButton.js';
 import DisplayUnitSelect from './DisplayUnitSelect.js';
-import DisplayUnitNameHeader from './DisplayUnitNameHeader.js';
 import DisplayIterationSelect from './DisplayIterationSelect.js';
 import BookmarkSelect from './BookmarkSelect.js';
 import BookmarkCreateModalButton from './BookmarkCreateModalButton.js';
@@ -233,7 +232,6 @@ export default function Calendar({ calendarId, displayConfigId = null, displayUn
     return (
         <div className="calendar">
             <h2>{calendar.calendar_name}</h2>
-            <DisplayUnitNameHeader timeUnit={displayPage.timeUnit} iteration={displayPage.iteration} />
             <span className="calendar-top-controls">
                 <PageBackButton timeUnitName={displayPage.timeUnit.time_unit_name} onClick={handlePageBackClick} />
                 <span>

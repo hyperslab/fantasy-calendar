@@ -174,20 +174,20 @@ class CalendarPage(APIView):
         calendar_dates = []
         current_block = 0
         for index, instance in enumerate(instances):
-            iteration = first_sub_iteration + index
+            instance_iteration = first_sub_iteration + index
             # max_events_per_instance count includes linked events as well
             # show native events first, then linked events if we still have room
             max_linked_events = max(max_events_per_instance - len(events[index]), 0)
             not_all_events_returned = len(events[index]) + len(linked_events[index]) > max_events_per_instance
             if (len(block_start_iterations) > current_block + 1
-                    and iteration >= block_start_iterations[current_block + 1]):
+                    and instance_iteration >= block_start_iterations[current_block + 1]):
                 current_block += 1
             calendar_dates.append({
                 "name": instance[0],
                 "display_name": instance[0] if not sub_unit.secondary_date_format
                 else instance_display_names[index],
                 "time_unit_id": sub_unit.pk,
-                "iteration": iteration,
+                "iteration": instance_iteration,
                 "events": EventSerializer(
                     [e for e in events[index] if e.is_visible()][:max_events_per_instance], many=True).data,
                 "linked_display_names": linked_instance_display_names[index] if len(linked_instance_display_names) > 0
@@ -232,6 +232,16 @@ class CalendarPage(APIView):
                 if display_unit_config.block_unit_page.sub_unit else None] \
                     if display_unit_config.block_unit_page else None
 
+        # pull page header
+        page_header = time_unit.get_instance_display_name(iteration=iteration)
+        header_link = ''
+        if calendar.world.creator == request.user:
+            header_link = reverse('fantasycalendar:time-unit-instance-detail',
+                                  kwargs={'world_key': calendar.world.pk,
+                                          'calendar_key': calendar.pk,
+                                          'pk': time_unit.pk,
+                                          'iteration': iteration})
+
         # assemble and send response
         data = dict()
         data["calendar_dates"] = calendar_dates
@@ -243,6 +253,8 @@ class CalendarPage(APIView):
         data["sub_unit_page"] = sub_unit_page
         data["row_unit_page"] = row_unit_page
         data["block_unit_page"] = block_unit_page
+        data["page_header"] = page_header
+        data["header_link"] = header_link
         return Response(data)
 
 

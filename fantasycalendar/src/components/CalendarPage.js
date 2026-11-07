@@ -1,4 +1,5 @@
 import React from 'react';
+import DisplayUnitNameHeader from './DisplayUnitNameHeader.js';
 import DateSquare from './DateSquare.js';
 import LabelSquare from './LabelSquare.js';
 import LabelRow from './LabelRow.js';
@@ -135,8 +136,11 @@ export default function CalendarPage({ timeUnit, subUnit, iteration, displayConf
         gridStyleOverrides.gridTemplateRows = 'auto';
 
     return (
-        <div className="grid-container" style={gridStyleOverrides}>
-            {squares}
-        </div>
+        <>
+            <DisplayUnitNameHeader displayName={calendarPage.page_header} instancePageLink={calendarPage.header_link} />
+            <div className="grid-container" style={gridStyleOverrides}>
+                {squares}
+            </div>
+        </>
     );
 }
