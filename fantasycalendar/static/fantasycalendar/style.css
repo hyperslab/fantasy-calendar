@@ -149,6 +149,11 @@ h2 a, h3 a, h4 a {
     margin-right: 0;
 }
 
+.grid-item-label-large a {
+    color: midnightblue;
+    text-decoration: none;
+}
+
 .grid-item-header {
     display: block;
     font-size: .83em;

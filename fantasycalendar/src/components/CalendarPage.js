@@ -1,5 +1,5 @@
 import React from 'react';
-import DisplayUnitNameHeader from './DisplayUnitNameHeader.js';
+import PageNameRow from './PageNameRow.js';
 import DateSquare from './DateSquare.js';
 import LabelSquare from './LabelSquare.js';
 import LabelRow from './LabelRow.js';
@@ -27,6 +27,8 @@ export default function CalendarPage({ timeUnit, subUnit, iteration, displayConf
         </div>
     );
 
+    let pageNameRow = <PageNameRow displayName={calendarPage.page_header} instancePageLink={calendarPage.header_link} />;
+
     let headerRow = [];
     if (calendarPage.header_row && calendarPage.header_row.length > 0)
     {
@@ -45,9 +47,9 @@ export default function CalendarPage({ timeUnit, subUnit, iteration, displayConf
         subUnitPage = null;  // don't allow navigation to the page we're already on
     }
 
-    const squares = headerRow.concat(blankSquares.concat(calendarPage.calendar_dates.map(baseUnitInstance =>
+    const squares = [pageNameRow].concat(headerRow.concat(blankSquares.concat(calendarPage.calendar_dates.map(baseUnitInstance =>
         <DateSquare key={baseUnitInstance.iteration} timeUnitId={baseUnitInstance.time_unit_id} subUnitId={subUnitPage ? subUnitPage[1] : null} timeUnitInstance={baseUnitInstance} headerClickable={!!subUnitPage} timeUnitInstanceClickHandler={timeUnitInstanceClickHandler} showEventDescription={timeUnit.id==baseUnitInstance.time_unit_id} showExtraEventEllipsis={baseUnitInstance.not_all_events_returned} />
-    )));
+    ))));
 
     // blocking
     const blockNames = [];
@@ -137,7 +139,6 @@ export default function CalendarPage({ timeUnit, subUnit, iteration, displayConf
 
     return (
         <>
-            <DisplayUnitNameHeader displayName={calendarPage.page_header} instancePageLink={calendarPage.header_link} />
             <div className="grid-container" style={gridStyleOverrides}>
                 {squares}
             </div>
