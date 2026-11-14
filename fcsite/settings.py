@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'django_extensions',
+    'colorfield',
     'accounts',
     'fantasycalendar.apps.FantasycalendarConfig',
 ]

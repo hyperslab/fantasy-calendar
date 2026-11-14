@@ -5,6 +5,7 @@ import re
 from copy import copy
 from decimal import Decimal
 
+from colorfield.fields import ColorField
 from django.db import models
 from django.contrib import admin
 from django.db.models import F, Q
@@ -1825,3 +1826,40 @@ class UserNote(models.Model):
     def save(self, **kwargs):
         super(UserNote, self).save(**kwargs)
         self.calendar.save()
+
+
+class AestheticConfig(models.Model):
+    page_header_back_color = ColorField(null=True, blank=True, help_text=html_tooltip('The color of the page header'))
+    page_header_text_color = ColorField(null=True, blank=True,
+                                        help_text=html_tooltip('The color of text on the page header'))
+    page_body_back_color = ColorField(null=True, blank=True, help_text=html_tooltip('The color of the page body'))
+    page_body_header_text_color = ColorField(null=True, blank=True,
+                                             help_text=html_tooltip('The color of header text on the page body'))
+    page_body_body_text_color = ColorField(null=True, blank=True,
+                                           help_text=html_tooltip('The color of non-header text on the page body'))
+    page_body_header_link_color = ColorField(null=True, blank=True,
+                                             help_text=html_tooltip('The color of clickable header text on the page '
+                                                                    'body'))
+    page_body_body_link_color = ColorField(null=True, blank=True,
+                                           help_text=html_tooltip('The color of clickable non-header text on the page '
+                                                                  'body'))
+    calendar_back_color = ColorField(null=True, blank=True,
+                                     help_text=html_tooltip('The color of the calendar background'))
+    calendar_label_back_color = ColorField(null=True, blank=True,
+                                           help_text=html_tooltip('The color of label elements on the calendar'))
+    calendar_label_text_color = ColorField(null=True, blank=True,
+                                           help_text=html_tooltip('The color of text on label elements on the '
+                                                                  'calendar'))
+    calendar_label_link_color = ColorField(null=True, blank=True,
+                                           help_text=html_tooltip('The color of certain clickable text on label '
+                                                                  'elements on the calendar'))
+    calendar_item_back_color = ColorField(null=True, blank=True,
+                                          help_text=html_tooltip('The color of non-label elements on the calendar'))
+    calendar_item_header_text_color = ColorField(null=True, blank=True,
+                                                 help_text=html_tooltip('The color of header text on non-label '
+                                                                        'elements on the calendar'))
+    calendar_item_body_text_color = ColorField(null=True, blank=True,
+                                               help_text=html_tooltip('The color of non-header text on non-label '
+                                                                      'elements on the calendar'))
+    calendar_loading_icon_color = ColorField(null=True, blank=True,
+                                             help_text=html_tooltip('The color of the loading icon on the calendar'))
