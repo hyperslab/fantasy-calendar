@@ -20,6 +20,8 @@ class World(models.Model):
     public = models.BooleanField(default=False,
                                  help_text=html_tooltip('Whether this world is viewable by other people'))
     last_activity = models.DateTimeField(auto_now=True)
+    aesthetic_config = models.ForeignKey('AestheticConfig', on_delete=models.CASCADE, null=True, blank=True,
+                                         help_text=html_tooltip('The default appearance for this world'))
 
     @property
     def activity_message(self):
@@ -44,6 +46,17 @@ class World(models.Model):
         calendars in the same world.
         """
         return [x for x in Calendar.objects.filter(world_id=self.pk) if x.is_linked()]
+
+    def ensure_aesthetic_config(self):
+        """
+        Create a populated aesthetic config for this world if it does not have
+        one.
+        """
+        if self.aesthetic_config is None:
+            aesthetic_config = AestheticConfig.generate_populated_default()
+            aesthetic_config.save()
+            self.aesthetic_config = aesthetic_config
+            self.save()
 
 
 class Calendar(models.Model):
@@ -1546,6 +1559,9 @@ class DisplayConfig(models.Model):
     default_date_bookmark = models.ForeignKey('DateBookmark', on_delete=models.SET_NULL, null=True, blank=True,
                                               help_text=html_tooltip('The date to show by default when this display '
                                                                      'configuration is initially loaded'))
+    aesthetic_config = models.ForeignKey('AestheticConfig', on_delete=models.CASCADE, null=True, blank=True,
+                                         help_text=html_tooltip('The default appearance for this display configuration '
+                                                                '(overrides world appearance)'))
 
     def __str__(self):
         return self.display_config_name
@@ -1606,6 +1622,17 @@ class DisplayConfig(models.Model):
         unused_unit_configs = [pc for pc in possible_unit_configs if pc not in
                                [(ec.time_unit, ec.sub_unit) for ec in existing_unit_configs]]
         return unused_unit_configs
+
+    def ensure_aesthetic_config(self):
+        """
+        Create a blank aesthetic config for this display config if it
+        does not have one.
+        """
+        if self.aesthetic_config is None:
+            aesthetic_config = AestheticConfig()
+            aesthetic_config.save()
+            self.aesthetic_config = aesthetic_config
+            self.save()
 
 
 class DisplayUnitConfig(models.Model):
@@ -1740,6 +1767,9 @@ class DisplayUnitConfig(models.Model):
                                                       help_text=html_tooltip('Whether to show events from linked '
                                                                              'instances from other calendars on your '
                                                                              'calendar page for this time unit'))
+    aesthetic_config = models.ForeignKey('AestheticConfig', on_delete=models.CASCADE, null=True, blank=True,
+                                         help_text=html_tooltip('The appearance for your calendar page for this time '
+                                                                'unit (overrides display config and world appearance)'))
 
     class Meta:
         constraints = [
@@ -1756,6 +1786,17 @@ class DisplayUnitConfig(models.Model):
     def save(self, **kwargs):
         super(DisplayUnitConfig, self).save(**kwargs)
         self.display_config.calendar.save()
+
+    def ensure_aesthetic_config(self):
+        """
+        Create a blank aesthetic config for this display unit config if
+        it does not have one.
+        """
+        if self.aesthetic_config is None:
+            aesthetic_config = AestheticConfig()
+            aesthetic_config.save()
+            self.aesthetic_config = aesthetic_config
+            self.save()
 
 
 class DateBookmark(models.Model):
@@ -1863,3 +1904,23 @@ class AestheticConfig(models.Model):
                                                                       'elements on the calendar'))
     calendar_loading_icon_color = ColorField(null=True, blank=True,
                                              help_text=html_tooltip('The color of the loading icon on the calendar'))
+
+    @classmethod
+    def generate_populated_default(cls):
+        return cls(
+            page_header_back_color='#191970',  # midnight blue
+            page_header_text_color='#D3D3D3',  # light gray
+            page_body_back_color='#D3D3D3',  # light gray
+            page_body_header_text_color='#000000',  # black
+            page_body_body_text_color='#000000',  # black
+            page_body_header_link_color='#191970',  # midnight blue
+            page_body_body_link_color='#008B8B',  # dark cyan
+            calendar_back_color='#808080',  # gray
+            calendar_label_back_color='#99C4D2',  # 153, 196, 210 (~ pale cerulean)
+            calendar_label_text_color='#000000',  # black
+            calendar_label_link_color='#191970',  # midnight blue
+            calendar_item_back_color='#ADD8E6',  # light blue
+            calendar_item_header_text_color='#000000',  # black
+            calendar_item_body_text_color='#000000',  # black
+            calendar_loading_icon_color='#0000FF'  # blue
+        )

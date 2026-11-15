@@ -190,6 +190,7 @@ class WorldCreateView(LoginRequiredMixin, generic.CreateView):
     def form_valid(self, form):
         form.instance.creator = self.request.user
         form.instance.save()
+        form.instance.ensure_aesthetic_config()
         return super(WorldCreateView, self).form_valid(form)
 
 
@@ -208,6 +209,8 @@ class CalendarCreateView(UserPassesTestMixin, generic.CreateView):
         form.instance.save()
         form.instance.ensure_bottom_level_time_unit()
         form.instance.ensure_default_display_config()
+        form.instance.default_display_config.ensure_aesthetic_config()
+        form.instance.default_display_config.default_display_unit_config.ensure_aesthetic_config()
         return super(CalendarCreateView, self).form_valid(form)
 
 
@@ -385,6 +388,9 @@ class DisplayConfigCreateView(UserPassesTestMixin, generic.CreateView):
             calendar.default_display_config = form.instance
             calendar.save()
 
+        instance.ensure_aesthetic_config()
+        instance.default_display_unit_config.ensure_aesthetic_config()
+
         return super(DisplayConfigCreateView, self).form_valid(form)
 
     def get_success_url(self):
@@ -427,6 +433,8 @@ class DisplayUnitConfigCreateView(UserPassesTestMixin, generic.CreateView):
         if sub_unit_key:
             sub_unit = get_object_or_404(TimeUnit, pk=sub_unit_key)
             form.instance.sub_unit = sub_unit
+
+        form.instance.ensure_aesthetic_config()
 
         return super(DisplayUnitConfigCreateView, self).form_valid(form)
 
