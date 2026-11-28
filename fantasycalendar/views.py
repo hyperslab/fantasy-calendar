@@ -8,7 +8,8 @@ from django.views import generic
 from .models import (World, Calendar, TimeUnit, Event, EventGroup, DateFormat, DisplayConfig, DateBookmark,
                      DisplayUnitConfig)
 from .forms import (DisplayConfigCreateForm, DisplayConfigUpdateForm, DisplayUnitConfigCreateForm,
-                    DisplayUnitConfigUpdateForm, DateBookmarkCreateForm, CalendarUpdateForm, EventGroupDeleteForm)
+                    DisplayUnitConfigUpdateForm, DateBookmarkCreateForm, CalendarUpdateForm, EventGroupDeleteForm,
+                    WorldUpdateForm)
 
 
 class WorldIndexView(generic.ListView):
@@ -481,12 +482,37 @@ class DateBookmarkCreateView(UserPassesTestMixin, generic.CreateView):
 
 class WorldUpdateView(UserPassesTestMixin, generic.UpdateView):
     model = World
+    form_class = WorldUpdateForm
     template_name = 'fantasycalendar/world_update_form.html'
-    fields = ['world_name', 'public']
 
     def test_func(self):
         world = get_object_or_404(World, pk=self.kwargs['pk'])
         return self.request.user == world.creator
+
+    def form_valid(self, form):
+        if form.instance.aesthetic_config:
+            form.instance.aesthetic_config.page_header_back_color = form.cleaned_data['page_header_back_color']
+            form.instance.aesthetic_config.page_header_text_color = form.cleaned_data['page_header_text_color']
+            form.instance.aesthetic_config.page_body_back_color = form.cleaned_data['page_body_back_color']
+            form.instance.aesthetic_config.page_body_header_text_color = (
+                form.cleaned_data)['page_body_header_text_color']
+            form.instance.aesthetic_config.page_body_body_text_color = form.cleaned_data['page_body_body_text_color']
+            form.instance.aesthetic_config.page_body_header_link_color = (
+                form.cleaned_data)['page_body_header_link_color']
+            form.instance.aesthetic_config.page_body_body_link_color = form.cleaned_data['page_body_body_link_color']
+            form.instance.aesthetic_config.calendar_back_color = form.cleaned_data['calendar_back_color']
+            form.instance.aesthetic_config.calendar_label_back_color = form.cleaned_data['calendar_label_back_color']
+            form.instance.aesthetic_config.calendar_label_text_color = form.cleaned_data['calendar_label_text_color']
+            form.instance.aesthetic_config.calendar_label_link_color = form.cleaned_data['calendar_label_link_color']
+            form.instance.aesthetic_config.calendar_item_back_color = form.cleaned_data['calendar_item_back_color']
+            form.instance.aesthetic_config.calendar_item_header_text_color = (
+                form.cleaned_data)['calendar_item_header_text_color']
+            form.instance.aesthetic_config.calendar_item_body_text_color = (
+                form.cleaned_data)['calendar_item_body_text_color']
+            form.instance.aesthetic_config.calendar_loading_icon_color = (
+                form.cleaned_data)['calendar_loading_icon_color']
+            form.instance.aesthetic_config.save()
+        return super(WorldUpdateView, self).form_valid(form)
 
 
 class CalendarUpdateView(UserPassesTestMixin, generic.UpdateView):

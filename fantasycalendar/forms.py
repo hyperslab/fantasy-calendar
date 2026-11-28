@@ -1,8 +1,49 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
+from colorfield.forms import ColorField
 
-from .models import Calendar, DisplayConfig, DisplayUnitConfig, DateBookmark, EventGroup
+from .models import World, Calendar, DisplayConfig, DisplayUnitConfig, DateBookmark
+
+
+class WorldUpdateForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(WorldUpdateForm, self).__init__(*args, **kwargs)
+        if self.instance.aesthetic_config:
+            self.fields['page_header_back_color'] = ColorField(widget=forms.TextInput(attrs={'type': 'color'}),
+                initial=self.instance.aesthetic_config.page_header_back_color)
+            self.fields['page_header_text_color'] = ColorField(widget=forms.TextInput(attrs={'type': 'color'}),
+                initial=self.instance.aesthetic_config.page_header_text_color)
+            self.fields['page_body_back_color'] = ColorField(widget=forms.TextInput(attrs={'type': 'color'}),
+                initial=self.instance.aesthetic_config.page_body_back_color)
+            self.fields['page_body_header_text_color'] = ColorField(widget=forms.TextInput(attrs={'type': 'color'}),
+                initial=self.instance.aesthetic_config.page_body_header_text_color)
+            self.fields['page_body_body_text_color'] = ColorField(widget=forms.TextInput(attrs={'type': 'color'}),
+                initial=self.instance.aesthetic_config.page_body_body_text_color)
+            self.fields['page_body_header_link_color'] = ColorField(widget=forms.TextInput(attrs={'type': 'color'}),
+                initial=self.instance.aesthetic_config.page_body_header_link_color)
+            self.fields['page_body_body_link_color'] = ColorField(widget=forms.TextInput(attrs={'type': 'color'}),
+                initial=self.instance.aesthetic_config.page_body_body_link_color)
+            self.fields['calendar_back_color'] = ColorField(widget=forms.TextInput(attrs={'type': 'color'}),
+                initial=self.instance.aesthetic_config.calendar_back_color)
+            self.fields['calendar_label_back_color'] = ColorField(widget=forms.TextInput(attrs={'type': 'color'}),
+                initial=self.instance.aesthetic_config.calendar_label_back_color)
+            self.fields['calendar_label_text_color'] = ColorField(widget=forms.TextInput(attrs={'type': 'color'}),
+                initial=self.instance.aesthetic_config.calendar_label_text_color)
+            self.fields['calendar_label_link_color'] = ColorField(widget=forms.TextInput(attrs={'type': 'color'}),
+                initial=self.instance.aesthetic_config.calendar_label_link_color)
+            self.fields['calendar_item_back_color'] = ColorField(widget=forms.TextInput(attrs={'type': 'color'}),
+                initial=self.instance.aesthetic_config.calendar_item_back_color)
+            self.fields['calendar_item_header_text_color'] = ColorField(widget=forms.TextInput(attrs={'type': 'color'}),
+                initial=self.instance.aesthetic_config.calendar_item_header_text_color)
+            self.fields['calendar_item_body_text_color'] = ColorField(widget=forms.TextInput(attrs={'type': 'color'}),
+                initial=self.instance.aesthetic_config.calendar_item_body_text_color)
+            self.fields['calendar_loading_icon_color'] = ColorField(widget=forms.TextInput(attrs={'type': 'color'}),
+                initial=self.instance.aesthetic_config.calendar_loading_icon_color)
+
+    class Meta:
+        model = World
+        fields = ['world_name', 'public']
 
 
 class CalendarUpdateForm(forms.ModelForm):
